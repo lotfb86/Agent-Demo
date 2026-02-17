@@ -81,24 +81,6 @@ DEMO_INVOICES: list[DemoInvoice] = [
     ),
     DemoInvoice(
         invoice_number="INV-9004",
-        vendor="Blue Ridge Equipment Rental",
-        invoice_date=date(2026, 2, 7),
-        amount=8200.00,
-        po_reference="PO-2024-1102",
-        payment_terms="Net 30",
-        lines=[InvoiceLine("CAT 320 Excavator rental (2 weeks)", 2, 4100.00)],
-    ),
-    DemoInvoice(
-        invoice_number="INV-9005",
-        vendor="Consolidated Concrete Inc.",
-        invoice_date=date(2026, 2, 8),
-        amount=6780.00,
-        po_reference=None,
-        payment_terms="Net 30",
-        lines=[InvoiceLine("Ready-mix concrete", 60, 113.00)],
-    ),
-    DemoInvoice(
-        invoice_number="INV-9006",
         vendor="Martin Materials LLC",
         invoice_date=date(2026, 2, 8),
         amount=12450.00,
@@ -223,20 +205,6 @@ CRITICAL_PURCHASE_ORDERS = [
         "amount": 45000.00,
         "job_id": "EX-2024-022",
         "gl_code": "5300",
-    },
-    {
-        "po_number": "PO-2024-1102",
-        "vendor": "Blue Ridge Equipment Rental",
-        "amount": 8200.00,
-        "job_id": "ES-2024-009",
-        "gl_code": "5200",
-    },
-    {
-        "po_number": "PO-2024-0998",
-        "vendor": "Consolidated Concrete Inc.",
-        "amount": 6780.00,
-        "job_id": "MR-2024-015",
-        "gl_code": "5100",
     },
     {
         "po_number": "PO-2024-1187",
@@ -1270,7 +1238,7 @@ def main() -> None:
     print(f"Reset complete: {database_path}")
     print("- SQLite schema rebuilt")
     print("- 50 vendors, 30 projects, 150 purchase orders, 200 invoices seeded")
-    print("- 7 invoice PDFs generated")
+    print("- 5 invoice PDFs generated")
     print("- JSON scenario payloads refreshed")
     print("- Skills files restored from skills_original.md")
 

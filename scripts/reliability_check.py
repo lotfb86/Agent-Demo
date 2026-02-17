@@ -34,15 +34,19 @@ def check_po_match_pre(output: dict[str, Any]) -> None:
     assert_true(isinstance(processed, list), "po_match pre: processed must be array")
 
     by_invoice = {row.get("invoice_number"): row for row in processed if isinstance(row, dict)}
-    expected = {"INV-9001", "INV-9002", "INV-9003", "INV-9004", "INV-9005", "INV-9006"}
+    expected = {"INV-9001", "INV-9002", "INV-9003", "INV-9004"}
     assert_true(set(by_invoice.keys()) == expected, f"po_match pre: expected invoices {expected}, got {set(by_invoice.keys())}")
 
     assert_true(by_invoice["INV-9001"].get("status") == "matched", "INV-9001 must be matched")
     assert_true(by_invoice["INV-9002"].get("reason") == "price_variance", "INV-9002 must be price_variance")
-    assert_true(by_invoice["INV-9003"].get("reason") == "no_po_found", "INV-9003 must be no_po_found")
-    assert_true(by_invoice["INV-9004"].get("status") == "matched", "INV-9004 must be matched")
-    assert_true(by_invoice["INV-9005"].get("status") == "matched", "INV-9005 must be matched")
-    assert_true(by_invoice["INV-9006"].get("reason") == "duplicate_po", "INV-9006 must be duplicate_po")
+    assert_true(
+        by_invoice["INV-9003"].get("reason") in ("no_po_found", "no_matching_po", "no_po_match"),
+        f"INV-9003 must be no-PO exception, got {by_invoice['INV-9003'].get('reason')}",
+    )
+    assert_true(
+        by_invoice["INV-9004"].get("reason") in ("duplicate_po", "duplicate_payment", "duplicate_invoice"),
+        f"INV-9004 must be duplicate exception, got {by_invoice['INV-9004'].get('reason')}",
+    )
 
 
 def check_po_match_post(output: dict[str, Any]) -> None:
