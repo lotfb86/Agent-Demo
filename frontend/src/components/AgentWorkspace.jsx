@@ -849,7 +849,7 @@ export default function AgentWorkspace() {
             </span>
           )}
           <button
-            onClick={() => apiPost('/api/demo/reset').then(() => Promise.all([loadAgent(), loadReviewQueue(), loadComms()]))}
+            onClick={() => apiPost('/api/demo/reset').then(() => { setActivity([]); setLatestOutput(null); setActiveInvoice(''); setActiveVendor(''); setActiveAmount(null); setCurrentInvoicePath(''); setExpandedReviewId(null); return Promise.all([loadAgent(), loadReviewQueue(), loadComms()]) })}
             className="rounded-lg border border-rpmx-slate bg-white px-2.5 py-1.5 hover:bg-rpmx-canvas transition-colors"
           >
             Reset

@@ -5,6 +5,8 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
 
+from api.services.session_manager import session_manager
+
 router = APIRouter(prefix="/api/demo", tags=["demo"])
 
 
@@ -23,6 +25,9 @@ async def reset_demo() -> dict[str, str]:
     stdout, stderr = await proc.communicate()
     if proc.returncode != 0:
         raise HTTPException(status_code=500, detail=stderr.decode().strip() or "Reset failed")
+
+    # Clear in-memory session state so stale latest_output doesn't persist
+    await session_manager.clear_all()
 
     return {
         "status": "ok",

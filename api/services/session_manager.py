@@ -82,6 +82,12 @@ class SessionManager:
                 return None
             return sorted(candidates, key=lambda s: s.created_at)[-1]
 
+    async def clear_all(self) -> None:
+        """Remove all sessions and conversations (used by demo reset)."""
+        async with self._lock:
+            self._sessions.clear()
+            self._conversations.clear()
+
     async def get_or_create_conversation(
         self, conversation_id: Optional[str], agent_id: str
     ) -> ConversationContext:
