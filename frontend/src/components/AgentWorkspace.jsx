@@ -544,6 +544,7 @@ export default function AgentWorkspace() {
   const [agent, setAgent] = useState(null)
   const [activity, setActivity] = useState([])
   const [reviewItems, setReviewItems] = useState([])
+  const [expandedReviewId, setExpandedReviewId] = useState(null)
   const [communications, setCommunications] = useState([])
   const [skills, setSkills] = useState('')
   const [sessionId, setSessionId] = useState('')
@@ -1085,24 +1086,201 @@ export default function AgentWorkspace() {
               ) : (
                 <div className="space-y-2">
                   {reviewItems.length === 0 && <p className="text-sm text-rpmx-steel">No review items.</p>}
-                  {reviewItems.map((item) => (
-                    <div key={item.id} className="rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas p-3">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold">{item.item_ref}</p>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                          item.reason_code === 'price_variance' ? 'bg-amber-100 text-amber-800' :
-                          item.reason_code === 'duplicate_payment_risk' ? 'bg-red-100 text-red-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>{item.reason_code?.replace(/_/g, ' ')}</span>
-                      </div>
-                      <p className="mt-2 text-sm text-rpmx-ink">{item.details}</p>
-                      <div className="mt-3 flex gap-2 text-xs">
+                  {reviewItems.map((item) => {
+                    const isExp = expandedReviewId === item.id
+                    const ctx = item.context || {}
+                    const inv = ctx.invoice || {}
+                    const invData = ctx.invoice_data || {}
+                    const selPo = ctx.selected_po
+                    const dupes = ctx.duplicates || []
+                    const proj = ctx.project
+                    const steps = ctx.step_history || []
+                    const vAmt = ctx.variance_amount
+                    const vPct = ctx.variance_pct
+                    const poMatches = ctx.po_matches || []
+                    const hasCtx = !!ctx.invoice
+
+                    const reasonBadge = (
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        item.reason_code === 'price_variance' ? 'bg-amber-100 text-amber-800' :
+                        item.reason_code === 'duplicate_payment_risk' ? 'bg-red-100 text-red-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>{item.reason_code?.replace(/_/g, ' ')}</span>
+                    )
+
+                    const actionBtns = item.status === 'open' && (
+                      <div className="flex gap-1.5 text-xs" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => actReviewItem(item.id, 'approve')} className="rounded-lg bg-rpmx-mint px-3 py-1.5 font-semibold text-white hover:brightness-95">Approve</button>
                         <button onClick={() => actReviewItem(item.id, 'reject')} className="rounded-lg bg-rpmx-danger px-3 py-1.5 font-semibold text-white hover:brightness-95">Reject</button>
                         <button onClick={() => actReviewItem(item.id, 'escalate')} className="rounded-lg bg-rpmx-amber px-3 py-1.5 font-semibold text-white hover:brightness-95">Escalate</button>
                       </div>
-                    </div>
-                  ))}
+                    )
+
+                    const fmtDollars = (v) => Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+                    return (
+                      <div key={item.id} className="rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas overflow-hidden animate-slide-in">
+                        {/* ── Collapsed header ── */}
+                        <div
+                          className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/40 transition-colors"
+                          onClick={() => setExpandedReviewId(isExp ? null : item.id)}
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <p className="text-sm font-semibold truncate">{item.item_ref}</p>
+                            {reasonBadge}
+                            {item.status !== 'open' && (
+                              <span className="rounded-full bg-rpmx-slate/20 px-2 py-0.5 text-[10px] font-semibold text-rpmx-steel">{item.action || item.status}</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {!isExp && actionBtns}
+                            <svg
+                              className={`h-4 w-4 text-rpmx-steel shrink-0 transition-transform duration-200 ${isExp ? 'rotate-180' : ''}`}
+                              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+                        </div>
+
+                        {/* ── Details text (always visible) ── */}
+                        {!isExp && <div className="px-3 pb-2.5 -mt-1"><p className="text-xs text-rpmx-steel">{item.details}</p></div>}
+
+                        {/* ── Expanded detail panel ── */}
+                        {isExp && (
+                          <div className="border-t border-rpmx-slate/50 bg-white px-4 py-3 space-y-3.5 text-xs">
+                            {/* Agent summary */}
+                            <p className="text-sm text-rpmx-ink">{item.details}</p>
+
+                            {hasCtx ? (
+                              <>
+                                {/* Invoice Details */}
+                                <div>
+                                  <p className="text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel mb-1.5">Invoice Details</p>
+                                  <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                                    <p><span className="text-rpmx-steel">Invoice:</span> <span className="font-medium">{inv.invoice_number}</span></p>
+                                    <p><span className="text-rpmx-steel">Vendor:</span> <span className="font-medium">{invData.vendor || inv.vendor}</span></p>
+                                    <p><span className="text-rpmx-steel">Amount:</span> <span className="font-medium">${fmtDollars(inv.amount)}</span></p>
+                                    <p><span className="text-rpmx-steel">Date:</span> <span className="font-medium">{invData.invoice_date || 'N/A'}</span></p>
+                                    {(invData.po_reference || inv.po_reference) && (
+                                      <p><span className="text-rpmx-steel">PO Ref:</span> <span className="font-medium">{invData.po_reference || inv.po_reference}</span></p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Matched PO */}
+                                {selPo && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel mb-1.5">Matched Purchase Order</p>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                                      <p><span className="text-rpmx-steel">PO:</span> <span className="font-medium">{selPo.po_number}</span></p>
+                                      <p><span className="text-rpmx-steel">PO Amount:</span> <span className="font-medium">${fmtDollars(selPo.amount)}</span></p>
+                                      <p><span className="text-rpmx-steel">Job:</span> <span className="font-medium">{selPo.job_id}</span></p>
+                                      <p><span className="text-rpmx-steel">GL Code:</span> <span className="font-medium">{selPo.gl_code}</span></p>
+                                      {selPo.confidence != null && (
+                                        <p><span className="text-rpmx-steel">Match Confidence:</span> <span className="font-medium">{(selPo.confidence * 100).toFixed(0)}%</span></p>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Variance */}
+                                {vAmt != null && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel mb-1.5">Variance</p>
+                                    <div className="flex items-center gap-3">
+                                      <span className={`text-sm font-semibold ${Math.abs(vAmt) > 500 ? 'text-rpmx-danger' : 'text-rpmx-ink'}`}>
+                                        {vAmt >= 0 ? '+' : ''}${fmtDollars(vAmt)}
+                                      </span>
+                                      {vPct != null && (
+                                        <span className={`font-semibold ${Math.abs(vPct) > 10 ? 'text-rpmx-danger' : 'text-rpmx-steel'}`}>
+                                          ({vPct >= 0 ? '+' : ''}{vPct}%)
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* No PO matches */}
+                                {!selPo && poMatches.length === 0 && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel mb-1.5">PO Search</p>
+                                    <p className="text-rpmx-danger font-medium">No matching purchase orders found</p>
+                                  </div>
+                                )}
+
+                                {/* Other PO candidates */}
+                                {poMatches.length > 1 && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel mb-1.5">Other PO Candidates</p>
+                                    <div className="space-y-0.5">
+                                      {poMatches.filter(po => po.po_number !== selPo?.po_number).map((po, i) => (
+                                        <p key={i} className="text-rpmx-steel">
+                                          {po.po_number} &mdash; ${fmtDollars(po.amount)} ({po.vendor}) &mdash; {(po.confidence * 100).toFixed(0)}% match
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Duplicate risk */}
+                                {dupes.length > 0 && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-red-600 mb-1.5">Duplicate Payment Risk</p>
+                                    {dupes.map((dup, i) => (
+                                      <p key={i} className="text-red-700 font-medium">
+                                        {dup.invoice_number || dup} {dup.status ? `(${dup.status})` : ''}
+                                      </p>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* Project */}
+                                {proj && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel mb-1.5">Project</p>
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                                      <p><span className="text-rpmx-steel">Name:</span> <span className="font-medium">{proj.name}</span></p>
+                                      <p><span className="text-rpmx-steel">ID:</span> <span className="font-medium">{proj.id}</span></p>
+                                      {proj.pm_name && <p><span className="text-rpmx-steel">PM:</span> <span className="font-medium">{proj.pm_name}</span></p>}
+                                      {proj.pm_email && <p><span className="text-rpmx-steel">Email:</span> <span className="font-medium">{proj.pm_email}</span></p>}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Agent reasoning / step history */}
+                                {steps.length > 0 && (
+                                  <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel mb-1.5">Agent Reasoning</p>
+                                    <div className="space-y-0.5 max-h-36 overflow-auto">
+                                      {steps.map((s, i) => (
+                                        <p key={i} className="text-rpmx-steel">
+                                          <span className="font-mono text-rpmx-ink font-medium">{s.step}.</span>{' '}
+                                          <span className="font-medium text-rpmx-ink">{s.action?.replace(/_/g, ' ')}</span>{' '}
+                                          &mdash; {s.reason}
+                                        </p>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <p className="text-rpmx-steel italic">Detailed context not available for this item.</p>
+                            )}
+
+                            {/* Bottom action buttons */}
+                            {item.status === 'open' && (
+                              <div className="flex gap-2 pt-2 border-t border-rpmx-slate/30">
+                                <button onClick={() => actReviewItem(item.id, 'approve')} className="rounded-lg bg-rpmx-mint px-4 py-2 font-semibold text-white hover:brightness-95">Approve</button>
+                                <button onClick={() => actReviewItem(item.id, 'reject')} className="rounded-lg bg-rpmx-danger px-4 py-2 font-semibold text-white hover:brightness-95">Reject</button>
+                                <button onClick={() => actReviewItem(item.id, 'escalate')} className="rounded-lg bg-rpmx-amber px-4 py-2 font-semibold text-white hover:brightness-95">Escalate</button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               )
             )}

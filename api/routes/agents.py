@@ -399,14 +399,23 @@ async def get_review_queue(agent_id: str) -> list[dict[str, Any]]:
         rows = await fetchall(
             conn,
             """
-            SELECT id, agent_id, item_ref, reason_code, details, status, created_at, action, actioned_at
+            SELECT id, agent_id, item_ref, reason_code, details, context, status, created_at, action, actioned_at
             FROM review_queue
             WHERE agent_id = ?
             ORDER BY created_at DESC
             """,
             (agent_id,),
         )
-        return [dict(row) for row in rows]
+        result = []
+        for row in rows:
+            item = dict(row)
+            if item.get("context"):
+                try:
+                    item["context"] = json.loads(item["context"])
+                except (json.JSONDecodeError, TypeError):
+                    item["context"] = None
+            result.append(item)
+        return result
     finally:
         await conn.close()
 

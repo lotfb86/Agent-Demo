@@ -94,6 +94,7 @@ CREATE TABLE review_queue (
     item_ref TEXT NOT NULL,
     reason_code TEXT NOT NULL,
     details TEXT NOT NULL,
+    context TEXT,
     status TEXT NOT NULL DEFAULT 'open',
     created_at TEXT NOT NULL,
     action TEXT,

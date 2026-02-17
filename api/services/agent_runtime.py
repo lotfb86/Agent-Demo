@@ -201,13 +201,13 @@ class EventEmitter:
         )
 
 
-async def insert_review_item(conn, agent_id: str, item_ref: str, reason: str, details: str) -> int:
+async def insert_review_item(conn, agent_id: str, item_ref: str, reason: str, details: str, context: str | None = None) -> int:
     cursor = await conn.execute(
         """
-        INSERT INTO review_queue (agent_id, item_ref, reason_code, details, status, created_at)
-        VALUES (?, ?, ?, ?, 'open', ?)
+        INSERT INTO review_queue (agent_id, item_ref, reason_code, details, context, status, created_at)
+        VALUES (?, ?, ?, ?, ?, 'open', ?)
         """,
-        (agent_id, item_ref, reason, details, utc_now()),
+        (agent_id, item_ref, reason, details, context, utc_now()),
     )
     return cursor.lastrowid
 
@@ -1259,7 +1259,31 @@ async def run_po_match(conn, emitter: EventEmitter) -> dict[str, Any]:
             if action == "flag_exception":
                 reason_code = str(args.get("reason_code", "")).strip().lower()
                 details = str(args.get("details", "")).strip()
-                review_id = await insert_review_item(conn, agent_id, invoice["invoice_number"], reason_code, details)
+
+                # Build context snapshot for human reviewer
+                _sel_po = state.get("selected_po")
+                _var_amt = None
+                _var_pct = None
+                if _sel_po:
+                    _inv_amt = float(invoice["amount"])
+                    _po_amt = float(_sel_po["amount"])
+                    _var_amt = round(_inv_amt - _po_amt, 2)
+                    if _po_amt != 0:
+                        _var_pct = round((_var_amt / _po_amt) * 100, 1)
+
+                review_context = safe_json({
+                    "invoice": invoice,
+                    "invoice_data": state.get("invoice_data"),
+                    "po_matches": (state.get("po_matches") or [])[:5],
+                    "selected_po": _sel_po,
+                    "duplicates": state.get("duplicates") or [],
+                    "project": state.get("project"),
+                    "variance_amount": _var_amt,
+                    "variance_pct": _var_pct,
+                    "step_history": state.get("step_history") or [],
+                })
+
+                review_id = await insert_review_item(conn, agent_id, invoice["invoice_number"], reason_code, details, context=review_context)
                 await mark_invoice_status(conn, invoice["invoice_number"], "exception", details)
                 state["status"] = "exception"
                 state["exception_reason_code"] = reason_code
