@@ -619,57 +619,29 @@ def make_po_step_validator(
     return validate
 
 
-def make_ar_followup_validator(
-    expected_customers: list[str],
-    expected_actions: Optional[dict[str, str]] = None,
-) -> Callable[[dict[str, Any]], list[str]]:
-    allowed_actions = {
-        "polite_reminder",
-        "firm_email_plus_internal_task",
-        "escalated_to_collections",
-        "skip_retainage",
-        "no_action_within_terms",
-    }
+AR_ALLOWED_ACTIONS = {
+    "polite_reminder",
+    "firm_email_plus_internal_task",
+    "escalated_to_collections",
+    "skip_retainage",
+    "no_action_within_terms",
+}
 
-    def validate(payload: dict[str, Any]) -> list[str]:
-        errors: list[str] = []
-        actions = payload.get("actions")
-        if not isinstance(actions, list):
-            return ["actions must be an array"]
 
-        seen: dict[str, dict[str, Any]] = {}
-        for idx, row in enumerate(actions):
-            if not isinstance(row, dict):
-                errors.append(f"actions[{idx}] must be object")
-                continue
-            customer = row.get("customer")
-            if not _is_non_empty_string(customer):
-                errors.append(f"actions[{idx}].customer is required")
-                continue
-            seen[str(customer).strip()] = row
-
-        for customer in expected_customers:
-            if customer not in seen:
-                errors.append(f"missing action for {customer}")
-
-        for customer, row in seen.items():
-            action = str(row.get("action", "")).strip()
-            if action not in allowed_actions:
-                errors.append(f"{customer}: invalid action")
-            if expected_actions and expected_actions.get(customer) and action != expected_actions[customer]:
-                errors.append(
-                    f"{customer}: action must be {expected_actions[customer]}"
-                )
-            if not _is_non_empty_string(row.get("reason")):
-                errors.append(f"{customer}: reason is required")
-            if action in {"polite_reminder", "firm_email_plus_internal_task"}:
-                if not _is_non_empty_string(row.get("email_subject")):
-                    errors.append(f"{customer}: email_subject required for {action}")
-                if not _is_non_empty_string(row.get("email_body")):
-                    errors.append(f"{customer}: email_body required for {action}")
-        return errors
-
-    return validate
+def validate_ar_single_account(payload: dict[str, Any]) -> list[str]:
+    """Validate a single-account AR action response from the LLM."""
+    errors: list[str] = []
+    action = str(payload.get("action", "")).strip()
+    if action not in AR_ALLOWED_ACTIONS:
+        errors.append(f"action must be one of: {', '.join(sorted(AR_ALLOWED_ACTIONS))}")
+    if not _is_non_empty_string(payload.get("reason")):
+        errors.append("reason is required")
+    if action in {"polite_reminder", "firm_email_plus_internal_task", "escalated_to_collections"}:
+        if not _is_non_empty_string(payload.get("email_subject")):
+            errors.append(f"email_subject required for {action}")
+        if not _is_non_empty_string(payload.get("email_body")):
+            errors.append(f"email_body required for {action}")
+    return errors
 
 
 def validate_financial_report(payload: dict[str, Any]) -> list[str]:
@@ -1404,6 +1376,46 @@ async def run_po_match(conn, emitter: EventEmitter) -> dict[str, Any]:
     }
 
 
+async def ar_choose_account_action(
+    *,
+    agent_id: str,
+    account: dict[str, Any],
+    account_index: int,
+    total_accounts: int,
+) -> LLMResult:
+    """Ask the LLM to analyze one AR account and decide the follow-up action + compose email."""
+    days = int(account["days_out"])
+    if days <= 29:
+        bucket_hint = "0-29 days (within terms)"
+    elif days <= 59:
+        bucket_hint = "30-59 days (polite reminder range)"
+    elif days <= 89:
+        bucket_hint = "60-89 days (firm follow-up range)"
+    else:
+        bucket_hint = "90+ days (collections escalation range)"
+
+    objective = (
+        f"Analyze this accounts receivable account and determine the correct follow-up action. "
+        f"This is account {account_index} of {total_accounts}. "
+        f"The account falls in the {bucket_hint} aging bucket. "
+        f"Return JSON with keys: action (polite_reminder|firm_email_plus_internal_task|"
+        f"escalated_to_collections|skip_retainage|no_action_within_terms), "
+        f"reason (1-2 sentence explanation), "
+        f"email_subject (required for polite_reminder, firm_email_plus_internal_task, escalated_to_collections), "
+        f"email_body (required for same — write a professional email following the tone guidelines in your skills), "
+        f"recipient (email address — use billing@<companyname>.com format if not known)."
+    )
+
+    return await llm_json_response(
+        agent_id=agent_id,
+        objective=objective,
+        context_payload={"account": account},
+        max_tokens=800,
+        temperature=0.15,
+        validator=validate_ar_single_account,
+    )
+
+
 async def run_ar_followup(conn, emitter: EventEmitter) -> dict[str, Any]:
     agent_id = "ar_followup"
     rows = await fetchall(
@@ -1412,142 +1424,162 @@ async def run_ar_followup(conn, emitter: EventEmitter) -> dict[str, Any]:
     )
     accounts = [dict(row) for row in rows]
 
+    await emitter.emit_status_change("working", "AR Follow-Up Agent started aging review")
+    await update_agent_status(conn, agent_id, status="working", current_activity="Reviewing AR aging accounts")
+
     await emitter.emit_reasoning(
         f"Loading AR aging data. Found {len(accounts)} accounts to review, "
         f"ranging from {min(a['days_out'] for a in accounts)} to {max(a['days_out'] for a in accounts)} days outstanding."
     )
-    await asyncio.sleep(0.3)
 
     total_outstanding = sum(float(a["amount"]) for a in accounts)
     await emitter.emit_tool_call("scan_ar_aging", {"accounts": len(accounts), "total_outstanding": round(total_outstanding, 2)})
-    await asyncio.sleep(0.2)
-
-    await emitter.emit_reasoning(
-        "Analyzing each account's payment history, aging bucket, and retainage status to determine the appropriate follow-up action."
+    await emitter.emit_tool_result(
+        "scan_ar_aging",
+        {"accounts": len(accounts), "total_outstanding": round(total_outstanding, 2)},
+        f"Loaded {len(accounts)} accounts totaling ${total_outstanding:,.2f} outstanding.",
     )
-    await asyncio.sleep(0.2)
-
-    _llm = await llm_json_response(
-        agent_id=agent_id,
-        objective=(
-            "Choose AR follow-up actions for each account. "
-            "Return JSON with key actions (array). Each action must include: "
-            "customer, action (polite_reminder|firm_email_plus_internal_task|escalated_to_collections|skip_retainage|no_action_within_terms), "
-            "reason, email_subject (optional), email_body (optional), recipient (optional), "
-            "create_task (true/false), task_title (optional), task_description (optional), task_priority (optional). "
-            "Include every customer exactly once."
-        ),
-        context_payload={"accounts": accounts},
-        max_tokens=1400,
-        temperature=0.1,
-        validator=make_ar_followup_validator(
-            expected_customers=[row["customer_name"] for row in accounts],
-            expected_actions={
-                "Greenfield Development": "polite_reminder",
-                "Summit Property Group": "firm_email_plus_internal_task",
-                "Parkview Associates": "escalated_to_collections",
-                "Riverside Municipal": "skip_retainage",
-                "Oak Valley Homes": "no_action_within_terms",
-            },
-        ),
-    )
-    model_plan = _llm.data
-    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
-
-    actions = model_plan.get("actions")
-    if not isinstance(actions, list):
-        raise RuntimeError("ar_followup: model output missing actions[]")
-
-    action_map: dict[str, dict[str, Any]] = {}
-    for row in actions:
-        if isinstance(row, dict) and row.get("customer"):
-            action_map[str(row["customer"]).strip()] = row
-
-    missing = [account["customer_name"] for account in accounts if account["customer_name"] not in action_map]
-    if missing:
-        raise RuntimeError(f"ar_followup: model omitted customers: {', '.join(missing)}")
-
-    await emitter.emit_reasoning(
-        f"Analysis complete. Generated action plan for all {len(accounts)} accounts. Now executing actions for each account."
-    )
-    await asyncio.sleep(0.3)
 
     results: list[dict[str, Any]] = []
-    for idx, account in enumerate(accounts):
-        customer = account["customer_name"]
-        row = action_map[customer]
-        action = str(row.get("action", "")).strip()
-        reason = str(row.get("reason", "")).strip() or "Model-selected AR action."
+    emails_sent = 0
+    escalated = 0
+    skipped = 0
 
-        if action not in {
-            "polite_reminder",
-            "firm_email_plus_internal_task",
-            "escalated_to_collections",
-            "skip_retainage",
-            "no_action_within_terms",
-        }:
+    for idx, account in enumerate(accounts, start=1):
+        customer = account["customer_name"]
+        days_out = int(account["days_out"])
+        amount = float(account["amount"])
+        is_retainage = bool(account.get("is_retainage"))
+
+        await update_agent_status(
+            conn, agent_id, status="working",
+            current_activity=f"Reviewing {customer} ({idx}/{len(accounts)})",
+        )
+
+        # ── Step 1: Emit reasoning about this account ──
+        retainage_note = " (Retainage balance)" if is_retainage else ""
+        await emitter.emit_reasoning(
+            f"Reviewing account {idx} of {len(accounts)}: {customer} — "
+            f"${amount:,.2f} outstanding, {days_out} days.{retainage_note}"
+        )
+
+        # ── Step 2: Load account details ──
+        await emitter.emit_tool_call("review_account", {
+            "customer": customer,
+            "days_out": days_out,
+            "amount": amount,
+            "is_retainage": is_retainage,
+            "notes": account.get("notes", ""),
+        })
+        await emitter.emit_tool_result(
+            "review_account",
+            {"customer": customer, "days_out": days_out, "amount": amount},
+            f"Loaded account details for {customer}.",
+        )
+
+        # ── Step 3: LLM decides action + composes email ──
+        _llm = await ar_choose_account_action(
+            agent_id=agent_id,
+            account=account,
+            account_index=idx,
+            total_accounts=len(accounts),
+        )
+        decision = _llm.data
+        await emitter.emit_llm(
+            "tool_result",
+            {"tool": "llm_analysis", "result": {}, "summary": f"Analyzed {customer}"},
+            message=f"LLM analysis for {customer}",
+            prompt_tokens=_llm.prompt_tokens,
+            completion_tokens=_llm.completion_tokens,
+        )
+
+        action = str(decision.get("action", "")).strip()
+        reason = str(decision.get("reason", "")).strip() or "Model-selected AR action."
+
+        if action not in AR_ALLOWED_ACTIONS:
             raise RuntimeError(f"ar_followup: invalid action '{action}' for {customer}")
 
-        await emitter.emit_reasoning(
-            f"Reviewing account {idx + 1} of {len(accounts)}: {customer} — "
-            f"${account['amount']:,.2f} outstanding, {account['days_out']} days. {reason}"
-        )
-        await asyncio.sleep(0.15)
-
-        await emitter.emit_tool_call("determine_action", {"customer": customer, "days_out": account["days_out"], "amount": account["amount"]})
-        await asyncio.sleep(0.1)
-
+        # ── Step 4: Emit the determination ──
+        await emitter.emit_tool_call("determine_action", {
+            "customer": customer,
+            "days_out": days_out,
+            "amount": amount,
+            "action": action,
+        })
         await emitter.emit_tool_result(
             "determine_action",
             {"customer": customer, "action": action, "reason": reason},
-            f"Selected '{action.replace('_', ' ')}' for {customer}.",
+            f"Action for {customer}: {action.replace('_', ' ')}.",
         )
 
-        recipient = str(row.get("recipient", "")).strip() or f"billing@{customer.lower().replace(' ', '')}.com"
-        subject = str(row.get("email_subject", "")).strip()
-        body = str(row.get("email_body", "")).strip()
+        # ── Step 5: Execute the action ──
+        recipient = (
+            str(decision.get("recipient", "")).strip()
+            or f"billing@{customer.lower().replace(' ', '')}.com"
+        )
+        subject = str(decision.get("email_subject", "")).strip()
+        body = str(decision.get("email_body", "")).strip()
 
-        if action in {"polite_reminder", "firm_email_plus_internal_task"}:
-            if not subject or not body:
-                raise RuntimeError(f"ar_followup: missing email content for {customer}")
-            await insert_communication(conn, agent_id, recipient, subject, body)
-            await emitter.emit_communication(recipient, subject, body)
+        if action in {"polite_reminder", "firm_email_plus_internal_task", "escalated_to_collections"}:
+            if subject and body:
+                await emitter.emit_tool_call("compose_email", {
+                    "recipient": recipient,
+                    "subject": subject,
+                })
+                await insert_communication(conn, agent_id, recipient, subject, body)
+                await emitter.emit_communication(recipient, subject, body)
+                emails_sent += 1
 
         if action == "escalated_to_collections":
-            await insert_collection_item(conn, customer, float(account["amount"]), reason)
+            await emitter.emit_tool_call("escalate_to_collections", {
+                "customer": customer,
+                "amount": amount,
+            })
+            await insert_collection_item(conn, customer, amount, reason)
             await emitter.emit_tool_result(
-                "escalate_account",
-                {"customer": customer, "amount": account["amount"], "reason": reason},
-                f"Escalated {customer} to collections.",
+                "escalate_to_collections",
+                {"customer": customer, "amount": amount, "reason": reason},
+                f"Escalated {customer} (${amount:,.2f}) to collections queue.",
             )
+            escalated += 1
 
-        create_task = bool(row.get("create_task"))
         if action == "firm_email_plus_internal_task":
-            create_task = True
-        if create_task:
-            title = str(row.get("task_title", "")).strip() or f"AR follow-up for {customer}"
-            description = str(row.get("task_description", "")).strip() or reason
-            priority = str(row.get("task_priority", "")).strip() or "high"
+            title = f"AR follow-up call: {customer}"
+            description = f"Follow up by phone on ${amount:,.2f} outstanding ({days_out} days). {reason}"
+            await emitter.emit_tool_call("create_internal_task", {
+                "title": title,
+                "priority": "high",
+            })
             await insert_internal_task(
-                conn,
-                agent_id,
-                title,
-                description,
-                priority,
+                conn, agent_id, title, description, "high",
                 (datetime.utcnow() + timedelta(days=2)).date().isoformat(),
             )
+            await emitter.emit_tool_result(
+                "create_internal_task",
+                {"title": title, "priority": "high"},
+                f"Created internal follow-up task for {customer}.",
+            )
+
+        if action in {"skip_retainage", "no_action_within_terms"}:
+            skipped += 1
+
+        # ── Step 6: Mark account complete ──
+        await emitter.emit_tool_result(
+            "complete_account",
+            {"customer": customer, "action": action},
+            f"Completed review of {customer} — {action.replace('_', ' ')}.",
+        )
 
         results.append({
             "customer": customer,
             "action": action,
             "reason": reason,
-            "amount": float(account["amount"]),
-            "days_out": int(account["days_out"]),
-            "is_retainage": bool(account.get("is_retainage")),
+            "amount": amount,
+            "days_out": days_out,
+            "is_retainage": is_retainage,
         })
 
     # Build aging summary for the frontend
-    total_outstanding = sum(float(a["amount"]) for a in accounts)
     buckets = {"current": 0, "30_60": 0, "61_90": 0, "over_90": 0}
     bucket_amounts = {"current": 0.0, "30_60": 0.0, "61_90": 0.0, "over_90": 0.0}
     for a in accounts:
@@ -1569,7 +1601,17 @@ async def run_ar_followup(conn, emitter: EventEmitter) -> dict[str, Any]:
         "bucket_amounts": {k: round(v, 2) for k, v in bucket_amounts.items()},
     }
 
-    return {"results": results, "aging_summary": aging_summary}
+    return {
+        "results": results,
+        "aging_summary": aging_summary,
+        "queue_progress": {
+            "total": len(accounts),
+            "actions_taken": emails_sent + escalated,
+            "emails_sent": emails_sent,
+            "escalated": escalated,
+            "skipped": skipped,
+        },
+    }
 
 
 async def run_financial_reporting(conn, emitter: EventEmitter) -> dict[str, Any]:

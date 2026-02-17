@@ -76,16 +76,39 @@ def check_po_match_pm_email() -> None:
 def check_ar_followup(output: dict[str, Any]) -> None:
     results = output.get("results")
     assert_true(isinstance(results, list), "ar_followup: results must be array")
+    assert_true(len(results) == 5, f"ar_followup: expected 5 results, got {len(results)}")
 
     actions = {row.get("customer"): row.get("action") for row in results if isinstance(row, dict)}
-    expected = {
-        "Greenfield Development": "polite_reminder",
-        "Summit Property Group": "firm_email_plus_internal_task",
-        "Parkview Associates": "escalated_to_collections",
-        "Riverside Municipal": "skip_retainage",
-        "Oak Valley Homes": "no_action_within_terms",
+    expected_customers = {
+        "Greenfield Development", "Summit Property Group",
+        "Parkview Associates", "Riverside Municipal", "Oak Valley Homes",
     }
-    assert_true(actions == expected, f"ar_followup actions mismatch: {actions}")
+    assert_true(
+        set(actions.keys()) == expected_customers,
+        f"ar_followup: missing customers, got {set(actions.keys())}",
+    )
+
+    # Verify actions match aging bucket logic (allow reasonable LLM variation)
+    assert_true(
+        actions.get("Greenfield Development") == "polite_reminder",
+        f"Greenfield (35 days) should be polite_reminder, got {actions.get('Greenfield Development')}",
+    )
+    assert_true(
+        actions.get("Summit Property Group") == "firm_email_plus_internal_task",
+        f"Summit (67 days) should be firm_email_plus_internal_task, got {actions.get('Summit Property Group')}",
+    )
+    assert_true(
+        actions.get("Parkview Associates") == "escalated_to_collections",
+        f"Parkview (95 days) should be escalated_to_collections, got {actions.get('Parkview Associates')}",
+    )
+    assert_true(
+        actions.get("Riverside Municipal") == "skip_retainage",
+        f"Riverside (retainage) should be skip_retainage, got {actions.get('Riverside Municipal')}",
+    )
+    assert_true(
+        actions.get("Oak Valley Homes") == "no_action_within_terms",
+        f"Oak Valley (15 days) should be no_action_within_terms, got {actions.get('Oak Valley Homes')}",
+    )
 
 
 def check_financial_reporting(output: dict[str, Any]) -> None:

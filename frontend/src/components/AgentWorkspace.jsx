@@ -781,11 +781,11 @@ export default function AgentWorkspace() {
     } catch (err) { setError(err.message) }
   }
 
-  // Live-compute PO Match progress from activity stream so counter updates during processing
+  // Live-compute progress from activity stream so counter updates during processing
   const queueProgress = useMemo(() => {
     // After run completes, use final output
     if (!running && latestOutput?.queue_progress) return latestOutput.queue_progress
-    // During processing, derive from activity events
+    // During PO Match processing, derive from activity events
     if (agentId === 'po_match' && activity.length > 0) {
       let matched = 0, exceptions = 0, totalSeen = 0
       for (const ev of activity) {
@@ -799,7 +799,6 @@ export default function AgentWorkspace() {
           else exceptions++
         }
       }
-      // Use the "X of Y" from reasoning to detect total count
       let total = totalSeen
       for (const ev of activity) {
         if (ev.type === 'reasoning') {
@@ -808,7 +807,26 @@ export default function AgentWorkspace() {
         }
       }
       if (matched + exceptions > 0 || running) {
-        return { matched, exceptions, total: total || totalSeen || 6 }
+        return { matched, exceptions, total: total || totalSeen || 4 }
+      }
+    }
+    // During AR Follow-Up processing, count complete_account events
+    if (agentId === 'ar_followup' && activity.length > 0) {
+      let completed = 0, emailsSent = 0, skippedCount = 0, total = 5
+      for (const ev of activity) {
+        if (ev.type === 'tool_result' && ev.payload?.tool === 'complete_account') completed++
+        if (ev.type === 'communication') emailsSent++
+        if (ev.type === 'tool_result' && ev.payload?.tool === 'determine_action') {
+          const act = ev.payload?.result?.action || ''
+          if (act === 'skip_retainage' || act === 'no_action_within_terms') skippedCount++
+        }
+        if (ev.type === 'reasoning') {
+          const countMatch = ev.payload?.text?.match(/\d+\s+of\s+(\d+):/i)
+          if (countMatch) total = parseInt(countMatch[1], 10)
+        }
+      }
+      if (completed > 0 || running) {
+        return { total, completed, emails_sent: emailsSent, skipped: skippedCount }
       }
     }
     return latestOutput?.queue_progress || null
@@ -986,8 +1004,17 @@ export default function AgentWorkspace() {
           }`}>
             {queueProgress && (
               <div className="flex items-center justify-between border-b border-rpmx-slate/30 px-3 py-1.5 text-[10px] text-rpmx-steel">
-                <span>Matched: {queueProgress.matched} | Exceptions: {queueProgress.exceptions}</span>
-                <span className="font-mono">{queueProgress.matched + queueProgress.exceptions} / {queueProgress.total}</span>
+                {agentId === 'ar_followup' ? (
+                  <>
+                    <span>Emails: {queueProgress.emails_sent ?? 0} | Skipped: {queueProgress.skipped ?? 0}</span>
+                    <span className="font-mono">{queueProgress.completed ?? (queueProgress.actions_taken ?? 0) + (queueProgress.skipped ?? 0)} / {queueProgress.total}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Matched: {queueProgress.matched} | Exceptions: {queueProgress.exceptions}</span>
+                    <span className="font-mono">{(queueProgress.matched ?? 0) + (queueProgress.exceptions ?? 0)} / {queueProgress.total}</span>
+                  </>
+                )}
               </div>
             )}
 
