@@ -1,0 +1,981 @@
+{
+  "yard": {
+    "id": "YARD",
+    "name": "RPMX Dispatch Yard",
+    "lat": 35.7915,
+    "lng": -78.6382
+  },
+  "crews": [
+    {
+      "id": "crew_a",
+      "name": "Crew A",
+      "skills": [
+        "tree_work",
+        "general_maintenance"
+      ]
+    },
+    {
+      "id": "crew_b",
+      "name": "Crew B",
+      "skills": [
+        "heavy_mowing",
+        "general_maintenance"
+      ]
+    },
+    {
+      "id": "crew_c",
+      "name": "Crew C",
+      "skills": [
+        "general_maintenance"
+      ]
+    }
+  ],
+  "jobs": [
+    {
+      "id": "JOB-1001",
+      "name": "Wake Forest Medical Plaza",
+      "zone": "North Raleigh/Wake Forest",
+      "lat": 35.9801,
+      "lng": -78.5097,
+      "required_skill": "tree_work"
+    },
+    {
+      "id": "JOB-1002",
+      "name": "Falls Point Retail",
+      "zone": "North Raleigh/Wake Forest",
+      "lat": 35.9104,
+      "lng": -78.5854,
+      "required_skill": "heavy_mowing"
+    },
+    {
+      "id": "JOB-1003",
+      "name": "Capital Hills HOA",
+      "zone": "North Raleigh/Wake Forest",
+      "lat": 35.9045,
+      "lng": -78.5407,
+      "required_skill": "general_maintenance"
+    },
+    {
+      "id": "JOB-1004",
+      "name": "Cary Commerce Park",
+      "zone": "Cary/Apex",
+      "lat": 35.7846,
+      "lng": -78.7811,
+      "required_skill": "heavy_mowing"
+    },
+    {
+      "id": "JOB-1005",
+      "name": "Apex Professional Center",
+      "zone": "Cary/Apex",
+      "lat": 35.7325,
+      "lng": -78.8503,
+      "required_skill": "general_maintenance"
+    },
+    {
+      "id": "JOB-1006",
+      "name": "West Cary Tech Campus",
+      "zone": "Cary/Apex",
+      "lat": 35.838,
+      "lng": -78.8551,
+      "required_skill": "tree_work"
+    },
+    {
+      "id": "JOB-1007",
+      "name": "RTP South Labs",
+      "zone": "South Durham/RTP",
+      "lat": 35.8931,
+      "lng": -78.8636,
+      "required_skill": "general_maintenance"
+    },
+    {
+      "id": "JOB-1008",
+      "name": "Herndon Office Commons",
+      "zone": "South Durham/RTP",
+      "lat": 35.9041,
+      "lng": -78.9037,
+      "required_skill": "heavy_mowing"
+    },
+    {
+      "id": "JOB-1009",
+      "name": "South Durham Schools",
+      "zone": "South Durham/RTP",
+      "lat": 35.9324,
+      "lng": -78.9105,
+      "required_skill": "general_maintenance"
+    },
+    {
+      "id": "JOB-1010",
+      "name": "Brier Creek Plaza",
+      "zone": "North Raleigh/Wake Forest",
+      "lat": 35.9055,
+      "lng": -78.7879,
+      "required_skill": "tree_work"
+    },
+    {
+      "id": "JOB-1011",
+      "name": "Apex West Industrial",
+      "zone": "Cary/Apex",
+      "lat": 35.7483,
+      "lng": -78.9204,
+      "required_skill": "general_maintenance"
+    },
+    {
+      "id": "JOB-1012",
+      "name": "Durham South Retail",
+      "zone": "South Durham/RTP",
+      "lat": 35.9653,
+      "lng": -78.9513,
+      "required_skill": "general_maintenance"
+    }
+  ],
+  "travel_times": [
+    {
+      "from": "YARD",
+      "to": "YARD",
+      "minutes": 0
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1001",
+      "minutes": 31
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1002",
+      "minutes": 20
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1003",
+      "minutes": 21
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1004",
+      "minutes": 19
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1005",
+      "minutes": 27
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1006",
+      "minutes": 27
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1007",
+      "minutes": 31
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1008",
+      "minutes": 35
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1009",
+      "minutes": 37
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1010",
+      "minutes": 25
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1011",
+      "minutes": 34
+    },
+    {
+      "from": "YARD",
+      "to": "JOB-1012",
+      "minutes": 43
+    },
+    {
+      "from": "JOB-1001",
+      "to": "YARD",
+      "minutes": 31
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1001",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1002",
+      "minutes": 16
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1003",
+      "minutes": 14
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1004",
+      "minutes": 42
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1005",
+      "minutes": 52
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1006",
+      "minutes": 44
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1007",
+      "minutes": 42
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1008",
+      "minutes": 46
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1009",
+      "minutes": 46
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1010",
+      "minutes": 34
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1011",
+      "minutes": 56
+    },
+    {
+      "from": "JOB-1001",
+      "to": "JOB-1012",
+      "minutes": 50
+    },
+    {
+      "from": "JOB-1002",
+      "to": "YARD",
+      "minutes": 20
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1001",
+      "minutes": 16
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1002",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1003",
+      "minutes": 8
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1004",
+      "minutes": 30
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1005",
+      "minutes": 40
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1006",
+      "minutes": 33
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1007",
+      "minutes": 33
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1008",
+      "minutes": 37
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1009",
+      "minutes": 38
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1010",
+      "minutes": 25
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1011",
+      "minutes": 44
+    },
+    {
+      "from": "JOB-1002",
+      "to": "JOB-1012",
+      "minutes": 43
+    },
+    {
+      "from": "JOB-1003",
+      "to": "YARD",
+      "minutes": 21
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1001",
+      "minutes": 14
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1002",
+      "minutes": 8
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1003",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1004",
+      "minutes": 33
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1005",
+      "minutes": 43
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1006",
+      "minutes": 38
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1007",
+      "minutes": 37
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1008",
+      "minutes": 42
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1009",
+      "minutes": 42
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1010",
+      "minutes": 29
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1011",
+      "minutes": 48
+    },
+    {
+      "from": "JOB-1003",
+      "to": "JOB-1012",
+      "minutes": 47
+    },
+    {
+      "from": "JOB-1004",
+      "to": "YARD",
+      "minutes": 19
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1001",
+      "minutes": 42
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1002",
+      "minutes": 30
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1003",
+      "minutes": 33
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1004",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1005",
+      "minutes": 13
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1006",
+      "minutes": 14
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1007",
+      "minutes": 20
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1008",
+      "minutes": 24
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1009",
+      "minutes": 27
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1010",
+      "minutes": 19
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1011",
+      "minutes": 19
+    },
+    {
+      "from": "JOB-1004",
+      "to": "JOB-1012",
+      "minutes": 33
+    },
+    {
+      "from": "JOB-1005",
+      "to": "YARD",
+      "minutes": 27
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1001",
+      "minutes": 52
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1002",
+      "minutes": 40
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1003",
+      "minutes": 43
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1004",
+      "minutes": 13
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1005",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1006",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1007",
+      "minutes": 24
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1008",
+      "minutes": 26
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1009",
+      "minutes": 30
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1010",
+      "minutes": 27
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1011",
+      "minutes": 11
+    },
+    {
+      "from": "JOB-1005",
+      "to": "JOB-1012",
+      "minutes": 35
+    },
+    {
+      "from": "JOB-1006",
+      "to": "YARD",
+      "minutes": 27
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1001",
+      "minutes": 44
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1002",
+      "minutes": 33
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1003",
+      "minutes": 38
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1004",
+      "minutes": 14
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1005",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1006",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1007",
+      "minutes": 11
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1008",
+      "minutes": 13
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1009",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1010",
+      "minutes": 15
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1011",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1006",
+      "to": "JOB-1012",
+      "minutes": 23
+    },
+    {
+      "from": "JOB-1007",
+      "to": "YARD",
+      "minutes": 31
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1001",
+      "minutes": 42
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1002",
+      "minutes": 33
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1003",
+      "minutes": 37
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1004",
+      "minutes": 20
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1005",
+      "minutes": 24
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1006",
+      "minutes": 11
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1007",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1008",
+      "minutes": 8
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1009",
+      "minutes": 11
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1010",
+      "minutes": 12
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1011",
+      "minutes": 23
+    },
+    {
+      "from": "JOB-1007",
+      "to": "JOB-1012",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1008",
+      "to": "YARD",
+      "minutes": 35
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1001",
+      "minutes": 46
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1002",
+      "minutes": 37
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1003",
+      "minutes": 42
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1004",
+      "minutes": 24
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1005",
+      "minutes": 26
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1006",
+      "minutes": 13
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1007",
+      "minutes": 8
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1008",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1009",
+      "minutes": 7
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1010",
+      "minutes": 16
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1011",
+      "minutes": 24
+    },
+    {
+      "from": "JOB-1008",
+      "to": "JOB-1012",
+      "minutes": 13
+    },
+    {
+      "from": "JOB-1009",
+      "to": "YARD",
+      "minutes": 37
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1001",
+      "minutes": 46
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1002",
+      "minutes": 38
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1003",
+      "minutes": 42
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1004",
+      "minutes": 27
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1005",
+      "minutes": 30
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1006",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1007",
+      "minutes": 11
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1008",
+      "minutes": 7
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1009",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1010",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1011",
+      "minutes": 27
+    },
+    {
+      "from": "JOB-1009",
+      "to": "JOB-1012",
+      "minutes": 10
+    },
+    {
+      "from": "JOB-1010",
+      "to": "YARD",
+      "minutes": 25
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1001",
+      "minutes": 34
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1002",
+      "minutes": 25
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1003",
+      "minutes": 29
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1004",
+      "minutes": 19
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1005",
+      "minutes": 27
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1006",
+      "minutes": 15
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1007",
+      "minutes": 12
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1008",
+      "minutes": 16
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1009",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1010",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1011",
+      "minutes": 28
+    },
+    {
+      "from": "JOB-1010",
+      "to": "JOB-1012",
+      "minutes": 22
+    },
+    {
+      "from": "JOB-1011",
+      "to": "YARD",
+      "minutes": 34
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1001",
+      "minutes": 56
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1002",
+      "minutes": 44
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1003",
+      "minutes": 48
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1004",
+      "minutes": 19
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1005",
+      "minutes": 11
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1006",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1007",
+      "minutes": 23
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1008",
+      "minutes": 24
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1009",
+      "minutes": 27
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1010",
+      "minutes": 28
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1011",
+      "minutes": 0
+    },
+    {
+      "from": "JOB-1011",
+      "to": "JOB-1012",
+      "minutes": 32
+    },
+    {
+      "from": "JOB-1012",
+      "to": "YARD",
+      "minutes": 43
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1001",
+      "minutes": 50
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1002",
+      "minutes": 43
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1003",
+      "minutes": 47
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1004",
+      "minutes": 33
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1005",
+      "minutes": 35
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1006",
+      "minutes": 23
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1007",
+      "minutes": 17
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1008",
+      "minutes": 13
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1009",
+      "minutes": 10
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1010",
+      "minutes": 22
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1011",
+      "minutes": 32
+    },
+    {
+      "from": "JOB-1012",
+      "to": "JOB-1012",
+      "minutes": 0
+    }
+  ],
+  "unoptimized_drive_minutes": 148,
+  "optimized_drive_minutes": 115,
+  "improvement_percent": 22.3
+}

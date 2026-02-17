@@ -1,0 +1,274 @@
+{
+  "projects": [
+    {
+      "id": "BG-2025-001",
+      "name": "North Creek Utility Rehab",
+      "division_id": "EX",
+      "budget_text": "$384,902",
+      "percent_complete": 74.7,
+      "pm_name": "Sarah Whitfield",
+      "pm_email": "swhitfield@rpmx.com"
+    },
+    {
+      "id": "BG-2025-002",
+      "name": "Westpoint Earthwork Package",
+      "division_id": "RC",
+      "budget_text": "$709,895",
+      "percent_complete": 68.9,
+      "pm_name": "James Callahan",
+      "pm_email": "tbrandt@rpmx.com"
+    },
+    {
+      "id": "BG-2025-003",
+      "name": "Redwood Commercial Grade",
+      "division_id": "EX",
+      "budget_text": "$404,978",
+      "percent_complete": 16.4,
+      "pm_name": "Sarah Whitfield",
+      "pm_email": "jcallahan@rpmx.com"
+    },
+    {
+      "id": "BG-2025-004",
+      "name": "Briarwood Retaining Segment",
+      "division_id": "RW",
+      "budget_text": "$1,113,985",
+      "percent_complete": 72.4,
+      "pm_name": "Tyler Brandt",
+      "pm_email": "swhitfield@rpmx.com"
+    },
+    {
+      "id": "BG-2025-005",
+      "name": "Pine Hollow Streetscape",
+      "division_id": "LM",
+      "budget_text": "$2,751,559",
+      "percent_complete": 33.0,
+      "pm_name": "James Callahan",
+      "pm_email": "swhitfield@rpmx.com"
+    },
+    {
+      "id": "BG-2025-006",
+      "name": "Stonebridge Channel Repair",
+      "division_id": "LM",
+      "budget_text": "$1,707,114",
+      "percent_complete": 33.0,
+      "pm_name": "Sarah Whitfield",
+      "pm_email": "mrivera@rpmx.com"
+    },
+    {
+      "id": "BG-2025-007",
+      "name": "Highland Yard Expansion",
+      "division_id": "EX",
+      "budget_text": "$669,004",
+      "percent_complete": 42.2,
+      "pm_name": "Marcus Rivera",
+      "pm_email": "mrivera@rpmx.com"
+    },
+    {
+      "id": "BG-2025-008",
+      "name": "Lakeview Access Improvement",
+      "division_id": "RW",
+      "budget_text": "$1,389,480",
+      "percent_complete": 80.6,
+      "pm_name": "Tyler Brandt",
+      "pm_email": "jcallahan@rpmx.com"
+    },
+    {
+      "id": "BG-2025-009",
+      "name": "Arden Park Beautification",
+      "division_id": "LM",
+      "budget_text": "$610,511",
+      "percent_complete": 57.7,
+      "pm_name": "Marcus Rivera",
+      "pm_email": "swhitfield@rpmx.com"
+    },
+    {
+      "id": "BG-2025-010",
+      "name": "Kingsmill Drainage Phase",
+      "division_id": "EX",
+      "budget_text": "$472,201",
+      "percent_complete": 67.5,
+      "pm_name": "Marcus Rivera",
+      "pm_email": "jcallahan@rpmx.com"
+    },
+    {
+      "id": "BG-2025-011",
+      "name": "Hampton Freight Yard",
+      "division_id": "RC",
+      "budget_text": "$703,630",
+      "percent_complete": 42.2,
+      "pm_name": "Tyler Brandt",
+      "pm_email": "mrivera@rpmx.com"
+    },
+    {
+      "id": "BG-2025-012",
+      "name": "Summerset Median Overhaul",
+      "division_id": "RC",
+      "budget_text": "$1,832,651",
+      "percent_complete": 40.0,
+      "pm_name": "Marcus Rivera",
+      "pm_email": "jcallahan@rpmx.com"
+    },
+    {
+      "id": "BG-2025-013",
+      "name": "Cedar Run Sidewalk Repairs",
+      "division_id": "RW",
+      "budget_text": "$2,943,291",
+      "percent_complete": 23.4,
+      "pm_name": "Sarah Whitfield",
+      "pm_email": "swhitfield@rpmx.com"
+    },
+    {
+      "id": "BG-2025-014",
+      "name": "Ironwood Slope Stabilization",
+      "division_id": "LM",
+      "budget_text": "$1,871,551",
+      "percent_complete": 32.3,
+      "pm_name": "Sarah Whitfield",
+      "pm_email": "mrivera@rpmx.com"
+    },
+    {
+      "id": "BG-2025-015",
+      "name": "Wilcrest Culvert Replacement",
+      "division_id": "EX",
+      "budget_text": "$1,240,697",
+      "percent_complete": 82.0,
+      "pm_name": "Marcus Rivera",
+      "pm_email": "tbrandt@rpmx.com"
+    },
+    {
+      "id": "BG-2025-016",
+      "name": "Oakline Campus Grounds",
+      "division_id": "SD",
+      "budget_text": "$557,615",
+      "percent_complete": 27.0,
+      "pm_name": "Marcus Rivera",
+      "pm_email": "swhitfield@rpmx.com"
+    },
+    {
+      "id": "BG-2025-017",
+      "name": "Trinity Lot Regrade",
+      "division_id": "LM",
+      "budget_text": "$1,939,400",
+      "percent_complete": 87.6,
+      "pm_name": "Tyler Brandt",
+      "pm_email": "swhitfield@rpmx.com"
+    },
+    {
+      "id": "BG-2025-018",
+      "name": "Wellington Barrier Retrofit",
+      "division_id": "SD",
+      "budget_text": "$865,652",
+      "percent_complete": 30.2,
+      "pm_name": "Marcus Rivera",
+      "pm_email": "tbrandt@rpmx.com"
+    },
+    {
+      "id": "BG-2025-019",
+      "name": "Riverbend Landscape Contract",
+      "division_id": "RW",
+      "budget_text": "$1,955,207",
+      "percent_complete": 40.6,
+      "pm_name": "Sarah Whitfield",
+      "pm_email": "tbrandt@rpmx.com"
+    },
+    {
+      "id": "BG-2025-020",
+      "name": "Carson Interchange Drainage",
+      "division_id": "EX",
+      "budget_text": "$477,620",
+      "percent_complete": 85.5,
+      "pm_name": "Sarah Whitfield",
+      "pm_email": "swhitfield@rpmx.com"
+    },
+    {
+      "id": "BG-2025-021",
+      "name": "Mayfair Sports Complex Grounds",
+      "division_id": "LM",
+      "budget_text": "$2,781,520",
+      "percent_complete": 13.7,
+      "pm_name": "Tyler Brandt",
+      "pm_email": "tbrandt@rpmx.com"
+    },
+    {
+      "id": "BG-2025-022",
+      "name": "Mason Ridge Utility Tie-in",
+      "division_id": "RW",
+      "budget_text": "$1,334,507",
+      "percent_complete": 95.4,
+      "pm_name": "James Callahan",
+      "pm_email": "jcallahan@rpmx.com"
+    },
+    {
+      "id": "CR-2024-008",
+      "name": "Clearwater Reservoir Access Road",
+      "division_id": "RC",
+      "budget_text": "$720,000",
+      "percent_complete": 95.0,
+      "pm_name": "Tyler Brandt",
+      "pm_email": "tbrandt@rpmx.com"
+    },
+    {
+      "id": "ES-2024-009",
+      "name": "Elm Street Retaining Wall",
+      "division_id": "RW",
+      "budget_text": "$485,000",
+      "percent_complete": 72.0,
+      "pm_name": "Marcus Rivera",
+      "pm_email": "mrivera@rpmx.com"
+    },
+    {
+      "id": "EX-2024-022",
+      "name": "Highway 9 Interchange Grading",
+      "division_id": "EX",
+      "budget_text": "$2,180,000",
+      "percent_complete": 60.0,
+      "pm_name": "Sarah Whitfield",
+      "pm_email": "swhitfield@rpmx.com"
+    },
+    {
+      "id": "EX-2024-027",
+      "name": "Riverdale Flood Mitigation",
+      "division_id": "EX",
+      "budget_text": "$3,200,000",
+      "percent_complete": 22.0,
+      "pm_name": "Marcus Rivera",
+      "pm_email": "mrivera@rpmx.com"
+    },
+    {
+      "id": "LM-2024-003",
+      "name": "Greenfield Business Park Maint.",
+      "division_id": "LM",
+      "budget_text": "$156,000/yr",
+      "percent_complete": null,
+      "pm_name": "Tyler Brandt",
+      "pm_email": "tbrandt@rpmx.com"
+    },
+    {
+      "id": "MR-2024-015",
+      "name": "Maple Ridge Site Development",
+      "division_id": "SD",
+      "budget_text": "$1,240,000",
+      "percent_complete": 48.0,
+      "pm_name": "James Callahan",
+      "pm_email": "jcallahan@rpmx.com"
+    },
+    {
+      "id": "RC-2024-011",
+      "name": "County Road 42 Resurfacing",
+      "division_id": "RC",
+      "budget_text": "$890,000",
+      "percent_complete": 85.0,
+      "pm_name": "James Callahan",
+      "pm_email": "jcallahan@rpmx.com"
+    },
+    {
+      "id": "SD-2024-018",
+      "name": "Summit Office Park Phase 2",
+      "division_id": "SD",
+      "budget_text": "$1,650,000",
+      "percent_complete": 35.0,
+      "pm_name": "Sarah Whitfield",
+      "pm_email": "swhitfield@rpmx.com"
+    }
+  ]
+}

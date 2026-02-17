@@ -1,0 +1,345 @@
+from __future__ import annotations
+
+import asyncio
+from datetime import datetime
+from typing import Any, Optional
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
+from api.services.agent_registry import BY_ID
+from api.services.agent_runtime import run_agent_session, run_financial_query, EventEmitter
+from api.services.database import connect_db
+from api.services.llm import llm_chat, llm_enabled
+from api.services.session_manager import session_manager
+from api.services.skills import append_training_instruction, read_identity, read_skills, write_skills
+
+router = APIRouter(prefix="/api/agents", tags=["agents"])
+
+
+class RunResponse(BaseModel):
+    session_id: str
+
+
+class QueryRequest(BaseModel):
+    message: str
+    conversation_id: Optional[str] = None
+
+
+class QueryResponse(BaseModel):
+    session_id: str
+    conversation_id: str
+
+
+class ChatRequest(BaseModel):
+    message: str
+    apply: bool = False
+
+
+class SkillsUpdateRequest(BaseModel):
+    content: str
+
+
+async def draft_training_instruction(agent_id: str, message: str) -> str:
+    if not llm_enabled():
+        raise RuntimeError(
+            "Model-only runtime requires USE_REAL_LLM=true and OPENROUTER_API_KEY configured."
+        )
+
+    response = await llm_chat(
+        [
+            {
+                "role": "system",
+                "content": (
+                    "Rewrite user training guidance into one concise operational instruction for an AI agent. "
+                    "Return a single sentence and no markdown."
+                ),
+            },
+            {
+                "role": "user",
+                "content": f"Agent: {agent_id}\\nGuidance: {message}",
+            },
+        ],
+        temperature=0.2,
+        max_tokens=120,
+    )
+    text = response.strip()
+    if not text:
+        raise RuntimeError("Training model returned empty instruction")
+    return text
+
+
+async def fetchall(conn, query: str, params: tuple[Any, ...] = ()) -> list[Any]:
+    cursor = await conn.execute(query, params)
+    return await cursor.fetchall()
+
+
+async def fetchone(conn, query: str, params: tuple[Any, ...] = ()) -> Optional[Any]:
+    cursor = await conn.execute(query, params)
+    return await cursor.fetchone()
+
+
+@router.get("")
+async def list_agents() -> list[dict[str, Any]]:
+    conn = await connect_db()
+    try:
+        rows = await fetchall(
+            conn,
+            """
+            SELECT a.id, a.name, a.department, a.workspace_type,
+                   s.status, s.current_activity, s.last_run_at, s.cost_today, s.tasks_completed_today,
+                   COALESCE(r.review_count, 0) AS review_count
+            FROM agents a
+            JOIN agent_status s ON s.agent_id = a.id
+            LEFT JOIN (
+                SELECT agent_id, COUNT(*) AS review_count
+                FROM review_queue
+                WHERE status = 'open'
+                GROUP BY agent_id
+            ) r ON r.agent_id = a.id
+            ORDER BY a.name
+            """,
+        )
+        return [dict(row) for row in rows]
+    finally:
+        await conn.close()
+
+
+@router.get("/{agent_id}")
+async def get_agent(agent_id: str) -> dict[str, Any]:
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+
+    conn = await connect_db()
+    try:
+        row = await fetchone(
+            conn,
+            """
+            SELECT a.id, a.name, a.department, a.description, a.workspace_type,
+                   s.status, s.current_activity, s.last_run_at, s.cost_today, s.tasks_completed_today,
+                   COALESCE(r.review_count, 0) AS review_count
+            FROM agents a
+            JOIN agent_status s ON s.agent_id = a.id
+            LEFT JOIN (
+                SELECT agent_id, COUNT(*) AS review_count
+                FROM review_queue
+                WHERE status = 'open'
+                GROUP BY agent_id
+            ) r ON r.agent_id = a.id
+            WHERE a.id = ?
+            """,
+            (agent_id,),
+        )
+        if row is None:
+            raise HTTPException(status_code=404, detail="Agent not found")
+
+        latest = await session_manager.latest_for_agent(agent_id)
+        response = dict(row)
+        response["identity"] = read_identity(agent_id)
+        response["skills"] = read_skills(agent_id)
+        response["latest_output"] = latest.latest_output if latest else None
+        response["latest_session_id"] = latest.session_id if latest else None
+        return response
+    finally:
+        await conn.close()
+
+
+@router.post("/{agent_id}/run", response_model=RunResponse)
+async def run_agent(agent_id: str) -> RunResponse:
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+
+    # Clear previous run's communications and review items for this agent
+    conn = await connect_db()
+    try:
+        await conn.execute("DELETE FROM communications WHERE agent_id = ?", (agent_id,))
+        await conn.execute("DELETE FROM review_queue WHERE agent_id = ?", (agent_id,))
+        await conn.commit()
+    finally:
+        await conn.close()
+
+    session = await session_manager.create(agent_id)
+
+    async def execute() -> None:
+        try:
+            await run_agent_session(agent_id, session.session_id)
+        except Exception as exc:
+            await session_manager.append_event(
+                session.session_id,
+                {
+                    "type": "error",
+                    "payload": {"message": str(exc)},
+                    "session_id": session.session_id,
+                    "timestamp": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+                },
+            )
+            await session_manager.mark_done(session.session_id, output={"error": str(exc)})
+            return
+
+    asyncio.create_task(execute())
+    return RunResponse(session_id=session.session_id)
+
+
+@router.post("/financial_reporting/query", response_model=QueryResponse)
+async def financial_query(body: QueryRequest) -> QueryResponse:
+    agent_id = "financial_reporting"
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+
+    conversation = await session_manager.get_or_create_conversation(body.conversation_id, agent_id)
+    session = await session_manager.create(agent_id)
+
+    async def execute() -> None:
+        conn = await connect_db()
+        try:
+            emitter = EventEmitter(conn, session.session_id, agent_id)
+            await conn.execute(
+                "UPDATE agent_status SET status = 'working', current_activity = ? WHERE agent_id = ?",
+                (f"Analyzing: {body.message[:60]}", agent_id),
+            )
+            await conn.commit()
+
+            result = await run_financial_query(conn, emitter, body.message, conversation)
+
+            await conn.execute(
+                "UPDATE agent_status SET status = 'idle', current_activity = 'Ready', "
+                "last_run_at = ?, cost_today = cost_today + ? WHERE agent_id = ?",
+                (
+                    datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+                    emitter.total_cost,
+                    agent_id,
+                ),
+            )
+            await conn.commit()
+
+            await session_manager.append_event(
+                session.session_id,
+                {
+                    "type": "complete",
+                    "payload": {
+                        "output": result,
+                        "cost": round(emitter.total_cost, 4),
+                        "input_tokens": emitter.total_input_tokens,
+                        "output_tokens": emitter.total_output_tokens,
+                    },
+                    "session_id": session.session_id,
+                    "timestamp": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+                },
+            )
+        except Exception as exc:
+            await session_manager.append_event(
+                session.session_id,
+                {
+                    "type": "error",
+                    "payload": {"message": str(exc)},
+                    "session_id": session.session_id,
+                    "timestamp": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+                },
+            )
+            await session_manager.mark_done(session.session_id, output={"error": str(exc)})
+        finally:
+            await conn.close()
+
+    asyncio.create_task(execute())
+    return QueryResponse(session_id=session.session_id, conversation_id=conversation.conversation_id)
+
+
+@router.post("/{agent_id}/chat")
+async def training_chat(agent_id: str, body: ChatRequest) -> dict[str, Any]:
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+    if not llm_enabled():
+        raise HTTPException(
+            status_code=400,
+            detail="Model-only runtime requires USE_REAL_LLM=true and OPENROUTER_API_KEY configured.",
+        )
+
+    message = body.message.strip()
+    suggestion = await draft_training_instruction(agent_id, message)
+    updated_generic = None
+    if body.apply:
+        updated_generic = append_training_instruction(agent_id, suggestion)
+
+    return {
+        "response": (
+            "I interpreted your instruction and can apply it to the skills file."
+            if not body.apply
+            else "Training update applied to skills.md."
+        ),
+        "suggested_instruction": suggestion,
+        "applied": body.apply,
+        "skills": updated_generic,
+    }
+
+
+@router.get("/{agent_id}/skills")
+async def get_skills(agent_id: str) -> dict[str, Any]:
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+    return {"agent_id": agent_id, "skills": read_skills(agent_id)}
+
+
+@router.put("/{agent_id}/skills")
+async def put_skills(agent_id: str, body: SkillsUpdateRequest) -> dict[str, Any]:
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+    write_skills(agent_id, body.content)
+    return {"agent_id": agent_id, "skills": body.content, "updated_at": datetime.utcnow().isoformat() + "Z"}
+
+
+@router.get("/{agent_id}/review-queue")
+async def get_review_queue(agent_id: str) -> list[dict[str, Any]]:
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+
+    conn = await connect_db()
+    try:
+        rows = await fetchall(
+            conn,
+            """
+            SELECT id, agent_id, item_ref, reason_code, details, status, created_at, action, actioned_at
+            FROM review_queue
+            WHERE agent_id = ?
+            ORDER BY created_at DESC
+            """,
+            (agent_id,),
+        )
+        return [dict(row) for row in rows]
+    finally:
+        await conn.close()
+
+
+@router.get("/{agent_id}/activity")
+async def get_activity(agent_id: str, session_id: Optional[str] = None) -> list[dict[str, Any]]:
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+
+    conn = await connect_db()
+    try:
+        if session_id:
+            rows = await fetchall(
+                conn,
+                """
+                SELECT event_type, message, cost, input_tokens, output_tokens, timestamp, session_id
+                FROM activity_logs
+                WHERE agent_id = ? AND session_id = ?
+                ORDER BY id ASC
+                """,
+                (agent_id, session_id),
+            )
+        else:
+            rows = await fetchall(
+                conn,
+                """
+                SELECT event_type, message, cost, input_tokens, output_tokens, timestamp, session_id
+                FROM activity_logs
+                WHERE agent_id = ?
+                ORDER BY id DESC
+                LIMIT 200
+                """,
+                (agent_id,),
+            )
+
+        return [dict(row) for row in rows]
+    finally:
+        await conn.close()

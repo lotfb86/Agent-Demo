@@ -1,0 +1,184 @@
+{
+  "equipment": [
+    {
+      "unit": "2022 Ford F-550 #107",
+      "issue": "Oil change due in 2 days",
+      "action": "Generate work order and find downtime window.",
+      "severity": "medium"
+    },
+    {
+      "unit": "2021 Kenworth T370 #112",
+      "issue": "Oil change due in 3 days",
+      "action": "Generate work order and schedule low-utilization afternoon.",
+      "severity": "medium"
+    },
+    {
+      "unit": "2020 CAT 320 #319",
+      "issue": "DOT inspection due in 5 days",
+      "action": "Schedule inspection and notify ops manager.",
+      "severity": "high"
+    },
+    {
+      "unit": "2019 Peterbilt 348 #223",
+      "issue": "Brake inspection overdue by 6 days",
+      "action": "URGENT: remove from service immediately.",
+      "severity": "critical"
+    },
+    {
+      "unit": "2018 Komatsu 320 #300",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2019 CAT PC210 #301",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2020 Ford 210 #302",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2021 John Deere 210 #303",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2022 Komatsu 320 #304",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2023 Komatsu PC210 #305",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2024 Mack 320 #306",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2018 Mack T470 #307",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2019 CAT 320 #308",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2020 CAT 210 #309",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2021 John Deere LCF #310",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2022 Mack 320 #311",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2023 Mack 210 #312",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2024 Komatsu PC210 #313",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2018 Komatsu LCF #314",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2019 Chevrolet 210 #315",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2020 Chevrolet LCF #316",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2021 Ford 320 #317",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2022 John Deere PC210 #318",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2023 Chevrolet F-750 #319",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2024 Ford 210 #320",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2018 John Deere F-750 #321",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2019 CAT 320 #322",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2020 Chevrolet 320 #323",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2021 Ford F-750 #324",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    },
+    {
+      "unit": "2022 Mack F-750 #325",
+      "issue": "No maintenance due",
+      "action": "No action required.",
+      "severity": "none"
+    }
+  ]
+}

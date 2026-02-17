@@ -1,0 +1,44 @@
+{
+  "projects": [
+    {
+      "project_id": "MR-2024-015",
+      "project_name": "Maple Ridge Site Development",
+      "budget_used_percent": 45,
+      "percent_complete": 48,
+      "finding": "on_track",
+      "message": "On track. Budget 45% used, 48% complete."
+    },
+    {
+      "project_id": "EX-2024-022",
+      "project_name": "Highway 9 Interchange",
+      "budget_used_percent": 78,
+      "percent_complete": 60,
+      "finding": "at_risk",
+      "projected_overrun": 18400,
+      "message": "Budget 78% used but only 60% complete. Projected overrun $18,400."
+    },
+    {
+      "project_id": "SD-2024-018",
+      "project_name": "Summit Office Phase 2",
+      "days_behind": 3,
+      "productivity_gap_percent": 15,
+      "finding": "behind_schedule",
+      "message": "3 days behind schedule and productivity 15% below estimate."
+    },
+    {
+      "project_id": "RC-2024-011",
+      "project_name": "County Road 42 Resurfacing",
+      "days_ahead": 2,
+      "finding": "on_track",
+      "message": "On track and 2 days ahead of schedule."
+    },
+    {
+      "project_id": "EX-2024-027",
+      "project_name": "Riverdale Flood Mitigation",
+      "finding": "at_risk",
+      "change_order": "CO-045",
+      "change_order_amount": 256000,
+      "message": "At risk pending CO-045 approval. Within budget if approved."
+    }
+  ]
+}

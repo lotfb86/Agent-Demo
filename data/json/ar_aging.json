@@ -1,0 +1,39 @@
+{
+  "accounts": [
+    {
+      "customer_name": "Greenfield Development",
+      "days_out": 35,
+      "amount": 22400.0,
+      "is_retainage": 0,
+      "notes": ""
+    },
+    {
+      "customer_name": "Summit Property Group",
+      "days_out": 67,
+      "amount": 41800.0,
+      "is_retainage": 0,
+      "notes": ""
+    },
+    {
+      "customer_name": "Parkview Associates",
+      "days_out": 95,
+      "amount": 28500.0,
+      "is_retainage": 0,
+      "notes": "Multiple reminders sent"
+    },
+    {
+      "customer_name": "Riverside Municipal",
+      "days_out": 45,
+      "amount": 67200.0,
+      "is_retainage": 1,
+      "notes": "Retainage"
+    },
+    {
+      "customer_name": "Oak Valley Homes",
+      "days_out": 15,
+      "amount": 8900.0,
+      "is_retainage": 0,
+      "notes": "Within terms"
+    }
+  ]
+}

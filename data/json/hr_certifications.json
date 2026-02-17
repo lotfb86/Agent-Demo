@@ -1,0 +1,204 @@
+{
+  "employees": [
+    {
+      "name": "Jake Morrison",
+      "status": "expiring_osha",
+      "detail": "OSHA 10-Hour expires 2026-02-28"
+    },
+    {
+      "name": "Luis Herrera",
+      "status": "expiring_osha",
+      "detail": "OSHA 10-Hour expires 2026-03-05"
+    },
+    {
+      "name": "Tommy Pham",
+      "status": "expiring_osha",
+      "detail": "OSHA 10-Hour expires 2026-02-25"
+    },
+    {
+      "name": "Ana Reyes",
+      "status": "expiring_osha",
+      "detail": "OSHA 10-Hour expires 2026-03-01"
+    },
+    {
+      "name": "Mike Kowalski",
+      "status": "missing_cert",
+      "detail": "Missing Skid Steer Operator certification"
+    },
+    {
+      "name": "Chris Tate",
+      "status": "missing_cert",
+      "detail": "Missing Excavator Spotter certification"
+    },
+    {
+      "name": "Brandon Wells",
+      "status": "missing_orientation",
+      "detail": "Start date 2026-02-10 and orientation safety training incomplete"
+    },
+    {
+      "name": "Chase Bennett",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Evan Ortega",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Owen Davis",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Lucas Lopez",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Cole Bennett",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Chase Ortega",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Dylan Soto",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Noah Parker",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Aiden Howard",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Evan Bennett",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Lucas Davis",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Levi Parker",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Evan Soto",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Lucas Ortega",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Levi Reid",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Lucas Graham",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Wyatt Turner",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Brett Flores",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Evan Murray",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Brett Lopez",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Cole Reid",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Liam Turner",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Mason Davis",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Brett Fletcher",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Noah Bennett",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Aiden Bennett",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Liam Flores",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Liam Parker",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Owen Murray",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Caleb Soto",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Noah Morgan",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Levi Turner",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    },
+    {
+      "name": "Isaac Mills",
+      "status": "compliant",
+      "detail": "All required safety and equipment certifications current"
+    }
+  ]
+}

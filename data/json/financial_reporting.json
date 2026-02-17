@@ -1,0 +1,4299 @@
+{
+  "monthly_records": [
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 510000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 174000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 45000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 67000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 62000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 42000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 14500.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10200.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 460000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 149000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 41000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 59000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 54000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 36000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9500.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 190000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 49000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 43000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8400.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6400.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 290000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 88000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 31000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 32000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6200.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 16500.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9300.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 7800.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 431720.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 128512.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 39156.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 52208.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 47188.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 34136.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9036.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21084.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12048.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9337.2
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 512040.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 174696.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 45180.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 67268.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 62248.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 42168.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11044.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26104.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 14558.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10240.8
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 461840.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 149596.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 41164.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 59236.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 54216.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 36144.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9036.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23092.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13052.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9538.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 190760.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 49196.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13052.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19076.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 43172.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11044.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7028.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13052.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8433.6
+    },
+    {
+      "period": "2025-02",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6425.6
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 291160.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 88352.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22088.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 31124.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 32128.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19076.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6224.8
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 16566.0
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9337.2
+    },
+    {
+      "period": "2025-02",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 7831.2
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 433440.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 129024.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 39312.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 52416.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 47376.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 34272.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9072.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21168.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12096.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9374.4
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 514080.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 175392.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 45360.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 67536.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 62496.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 42336.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11088.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26208.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 14616.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10281.6
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 463680.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 150192.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 41328.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 59472.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 54432.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 36288.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9072.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23184.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13104.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9576.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 191520.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 49392.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13104.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19152.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 43344.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11088.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7056.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13104.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8467.2
+    },
+    {
+      "period": "2025-03",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6451.2
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 292320.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 88704.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22176.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 31248.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 32256.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19152.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6249.6
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 16632.0
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9374.4
+    },
+    {
+      "period": "2025-03",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 7862.4
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 435160.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 129536.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 39468.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 52624.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 47564.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 34408.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9108.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21252.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12144.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9411.6
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 516120.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 176088.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 45540.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 67804.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 62744.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 42504.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11132.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26312.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 14674.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10322.4
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 465520.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 150788.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 41492.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 59708.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 54648.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 36432.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9108.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23276.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13156.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9614.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 192280.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 49588.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13156.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19228.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 43516.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11132.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7084.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13156.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8500.8
+    },
+    {
+      "period": "2025-04",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6476.8
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 293480.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 89056.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22264.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 31372.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 32384.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19228.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6274.4
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 16698.0
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9411.6
+    },
+    {
+      "period": "2025-04",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 7893.6
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 436880.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 130048.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 39624.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 52832.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 47752.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 34544.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9144.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21336.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12192.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9448.8
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 518160.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 176784.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 45720.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 68072.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 62992.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 42672.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11176.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26416.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 14732.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10363.2
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 467360.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 151384.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 41656.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 59944.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 54864.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 36576.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9144.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23368.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13208.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9652.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 193040.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 49784.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13208.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19304.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 43688.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11176.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7112.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13208.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8534.4
+    },
+    {
+      "period": "2025-05",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6502.4
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 294640.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 89408.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22352.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 31496.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 32512.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19304.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6299.2
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 16764.0
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9448.8
+    },
+    {
+      "period": "2025-05",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 7924.8
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 438600.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 130560.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 39780.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 53040.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 47940.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 34680.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9180.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21420.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12240.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9486.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 520200.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 177480.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 45900.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 68340.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 63240.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 42840.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11220.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26520.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 14790.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10404.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 469200.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 151980.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 41820.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 60180.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 55080.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 36720.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9180.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23460.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13260.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9690.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 193800.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 49980.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13260.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19380.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 43860.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11220.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7140.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13260.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8568.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6528.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 295800.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 89760.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22440.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 31620.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 32640.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19380.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6324.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 16830.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9486.0
+    },
+    {
+      "period": "2025-06",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 7956.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 440320.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 131072.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 39936.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 53248.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 48128.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 34816.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9216.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21504.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12288.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9523.2
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 522240.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 178176.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 46080.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 68608.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 63488.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 43008.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11264.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26624.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 14848.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10444.8
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 471040.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 152576.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 41984.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 60416.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 55296.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 36864.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9216.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23552.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13312.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9728.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 194560.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 50176.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13312.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19456.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 44032.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11264.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7168.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13312.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8601.6
+    },
+    {
+      "period": "2025-07",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6553.6
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 296960.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 90112.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22528.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 31744.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 32768.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19456.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6348.8
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 16896.0
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9523.2
+    },
+    {
+      "period": "2025-07",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 7987.2
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 442040.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 131584.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 40092.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 53456.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 48316.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 34952.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9252.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21588.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12336.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9560.4
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 524280.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 178872.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 46260.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 68876.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 63736.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 43176.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11308.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26728.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 14906.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10485.6
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 472880.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 153172.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 42148.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 60652.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 55512.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 37008.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9252.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23644.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13364.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9766.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 195320.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 50372.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13364.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19532.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 44204.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11308.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7196.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13364.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8635.2
+    },
+    {
+      "period": "2025-08",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6579.2
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 298120.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 90464.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22616.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 31868.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 32896.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19532.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6373.6
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 16962.0
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9560.4
+    },
+    {
+      "period": "2025-08",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 8018.4
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 443760.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 132096.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 40248.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 53664.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 48504.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 35088.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9288.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21672.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12384.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9597.6
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 526320.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 179568.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 46440.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 69144.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 63984.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 43344.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11352.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26832.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 14964.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10526.4
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 474720.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 153768.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 42312.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 60888.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 55728.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 37152.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9288.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23736.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13416.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9804.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 196080.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 50568.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13416.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19608.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 44376.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11352.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7224.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13416.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8668.8
+    },
+    {
+      "period": "2025-09",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6604.8
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 299280.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 90816.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22704.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 31992.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 33024.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19608.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6398.4
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 17028.0
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9597.6
+    },
+    {
+      "period": "2025-09",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 8049.6
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 445480.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 132608.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 40404.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 53872.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 48692.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 35224.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9324.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21756.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12432.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9634.8
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 528360.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 180264.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 46620.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 69412.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 64232.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 43512.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11396.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 26936.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 15022.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10567.2
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 476560.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 154364.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 42476.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 61124.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 55944.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 37296.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9324.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23828.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13468.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9842.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 196840.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 50764.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13468.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19684.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 44548.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11396.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7252.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13468.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8702.4
+    },
+    {
+      "period": "2025-10",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6630.4
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 300440.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 91168.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22792.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 32116.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 33152.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19684.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6423.2
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 17094.0
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9634.8
+    },
+    {
+      "period": "2025-10",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 8080.8
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 447200.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 133120.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 40560.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 54080.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 48880.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 35360.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9360.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21840.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12480.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9672.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 530400.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 180960.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 46800.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 69680.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 64480.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 43680.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11440.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 27040.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 15080.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10608.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 478400.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 154960.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 42640.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 61360.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 56160.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 37440.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9360.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 23920.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13520.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9880.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 197600.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 50960.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13520.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19760.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 44720.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11440.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7280.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13520.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8736.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6656.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 301600.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 91520.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22880.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 32240.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 33280.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19760.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6448.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 17160.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9672.0
+    },
+    {
+      "period": "2025-11",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 8112.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 448920.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 133632.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 40716.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 54288.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 49068.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 35496.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9396.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21924.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12528.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9709.2
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 532440.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 181656.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 46980.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 69948.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 64728.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 43848.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11484.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 27144.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 15138.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10648.8
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 480240.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 155556.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 42804.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 61596.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 56376.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 37584.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9396.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 24012.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13572.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9918.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 198360.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 51156.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13572.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19836.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 44892.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11484.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7308.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13572.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8769.6
+    },
+    {
+      "period": "2025-12",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6681.6
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 302760.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 91872.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 22968.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 32364.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 33408.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19836.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6472.8
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 17226.0
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9709.2
+    },
+    {
+      "period": "2025-12",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 8143.2
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 534480.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 182352.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 47160.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 70216.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 64976.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 44016.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11528.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 27248.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 15196.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10689.6
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 482080.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 156152.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 42968.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 61832.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 56592.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 37728.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9432.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 24104.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13624.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9956.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 199120.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 51352.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13624.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19912.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 45064.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11528.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7336.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13624.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8803.2
+    },
+    {
+      "period": "2026-01",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6707.2
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 303920.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 92224.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 23056.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 32488.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 33536.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19912.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6497.6
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 17292.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9746.4
+    },
+    {
+      "period": "2026-01",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 8174.4
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 452360.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 134656.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 41028.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 54704.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 49444.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 35768.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9468.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 22092.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12624.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9783.6
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "4100",
+      "amount": 536520.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "5100",
+      "amount": 183048.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "5200",
+      "amount": 47340.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "5300",
+      "amount": 70484.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "5400",
+      "amount": 65224.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "5500",
+      "amount": 44184.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "5600",
+      "amount": 11572.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "6100",
+      "amount": 27352.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "6200",
+      "amount": 15254.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RC",
+      "gl_code": "6300",
+      "amount": 10730.4
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "4100",
+      "amount": 483920.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "5100",
+      "amount": 156748.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "5200",
+      "amount": 43132.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "5300",
+      "amount": 62068.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "5400",
+      "amount": 56808.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "5500",
+      "amount": 37872.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "5600",
+      "amount": 9468.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "6100",
+      "amount": 24196.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "6200",
+      "amount": 13676.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "SD",
+      "gl_code": "6300",
+      "amount": 9994.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "4200",
+      "amount": 199880.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "5100",
+      "amount": 51548.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "5200",
+      "amount": 13676.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "5300",
+      "amount": 19988.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "5400",
+      "amount": 45236.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "5500",
+      "amount": 11572.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "5600",
+      "amount": 7364.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "6100",
+      "amount": 13676.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "6200",
+      "amount": 8836.8
+    },
+    {
+      "period": "2026-02",
+      "division_id": "LM",
+      "gl_code": "6300",
+      "amount": 6732.8
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "4100",
+      "amount": 305080.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "5100",
+      "amount": 92576.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "5200",
+      "amount": 23144.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "5300",
+      "amount": 32612.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "5400",
+      "amount": 33664.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "5500",
+      "amount": 19988.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "5600",
+      "amount": 6522.4
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "6100",
+      "amount": 17358.0
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "6200",
+      "amount": 9783.6
+    },
+    {
+      "period": "2026-02",
+      "division_id": "RW",
+      "gl_code": "6300",
+      "amount": 8205.6
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 420000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 126000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 37800.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 50400.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 46200.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 33600.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 8400.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 21000.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 11500.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 8900.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "6400",
+      "amount": 6500.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "6500",
+      "amount": 5800.0
+    },
+    {
+      "period": "2025-01",
+      "division_id": "EX",
+      "gl_code": "6600",
+      "amount": 5100.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "4100",
+      "amount": 470400.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "5100",
+      "amount": 148680.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "5200",
+      "amount": 42336.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "5300",
+      "amount": 56448.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "5400",
+      "amount": 49896.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "5500",
+      "amount": 40992.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "5600",
+      "amount": 9408.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "6100",
+      "amount": 22680.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "6200",
+      "amount": 12420.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "6300",
+      "amount": 9612.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "6400",
+      "amount": 7020.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "6500",
+      "amount": 6264.0
+    },
+    {
+      "period": "2026-01",
+      "division_id": "EX",
+      "gl_code": "6600",
+      "amount": 5508.0
+    }
+  ],
+  "excavation_jan_comparison": {
+    "2025": {
+      "revenue": 420000,
+      "materials": 126000,
+      "equipment_rental": 37800,
+      "subcontractor": 50400,
+      "direct_labor": 46200,
+      "fuel": 33600,
+      "hauling": 8400,
+      "total_cogs": 302400,
+      "gross_profit": 117600,
+      "gross_margin_percent": 28.0,
+      "operating_expenses": 58800,
+      "net_income": 58800,
+      "net_margin_percent": 14.0
+    },
+    "2026": {
+      "revenue": 470400,
+      "materials": 148680,
+      "equipment_rental": 42336,
+      "subcontractor": 56448,
+      "direct_labor": 49896,
+      "fuel": 40992,
+      "hauling": 9408,
+      "total_cogs": 347760,
+      "gross_profit": 122640,
+      "gross_margin_percent": 26.1,
+      "operating_expenses": 63504,
+      "net_income": 59136,
+      "net_margin_percent": 12.6
+    }
+  },
+  "summary": {
+    "q4_2025_company": {
+      "revenue": 4610000,
+      "cogs": 3260250,
+      "gross_margin_percent": 29.3,
+      "operating_expenses": 681850,
+      "net_income": 667900,
+      "net_margin_percent": 14.5,
+      "divisions": {
+        "Excavation": {
+          "net_margin_percent": 14.2
+        },
+        "Road Construction": {
+          "net_margin_percent": 12.5
+        },
+        "Site Development": {
+          "net_margin_percent": 16.0
+        },
+        "Landscaping Maintenance": {
+          "net_margin_percent": 13.0
+        },
+        "Retaining Walls": {
+          "net_margin_percent": 16.0
+        }
+      }
+    }
+  }
+}

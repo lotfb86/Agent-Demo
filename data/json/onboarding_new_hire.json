@@ -1,0 +1,26 @@
+{
+  "new_hire": {
+    "name": "Marcus Johnson",
+    "role": "Equipment Operator",
+    "division": "Excavation",
+    "start_date": "2026-02-24",
+    "hiring_manager": "Sarah Whitfield",
+    "documents_required": [
+      "W-4",
+      "I-9",
+      "Direct Deposit",
+      "Handbook Acknowledgment"
+    ],
+    "training_required": [
+      "OSHA 10-Hour",
+      "Equipment Operator Cert",
+      "Site Safety Orientation"
+    ],
+    "equipment_needs": [
+      "Hard hat",
+      "Safety vest",
+      "Steel-toe boots",
+      "Radio"
+    ]
+  }
+}

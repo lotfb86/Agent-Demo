@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+.pytest_cache/
+
+# SQLite and runtime artifacts
+*.db
+*.db-shm
+*.db-wal
+logs/
+
+# Node/frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS
+.DS_Store
+
+# Local env
+.env
+
+# Claude Code local settings
+.claude/settings.local.json

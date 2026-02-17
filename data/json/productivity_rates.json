@@ -1,0 +1,27 @@
+{
+  "contract_input": {
+    "turf_acres": 2.5,
+    "edging_linear_feet": 1200,
+    "shrubs": 45,
+    "trees": 12,
+    "service_window": "April-October",
+    "visits": 28,
+    "distance_miles": 22,
+    "overhead_rate": 0.15,
+    "target_margin": 0.25
+  },
+  "productivity_rates": {
+    "mowing_hours_per_acre": 0.95,
+    "edging_hours_per_100ft": 0.22,
+    "shrub_hours_each": 0.08,
+    "tree_hours_each": 0.14,
+    "labor_rate_per_hour": 62.0,
+    "vehicle_cost_per_visit": 46.0,
+    "materials_per_visit": 18.0
+  },
+  "expected_output": {
+    "per_visit": 399,
+    "monthly": 694,
+    "annual": 9715
+  }
+}

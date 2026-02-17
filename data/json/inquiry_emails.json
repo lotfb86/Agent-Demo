@@ -1,0 +1,52 @@
+{
+  "emails": [
+    {
+      "from": "accounts@greenfield.com",
+      "subject": "Invoice #7744 payment status",
+      "body": "Checking status on Invoice #7744. Please advise remittance timeline.",
+      "expected_route": "Accounts Receivable"
+    },
+    {
+      "from": "facilities@northhillsmed.com",
+      "subject": "Missed weekly maintenance",
+      "body": "Our weekly maintenance was missed yesterday at North Hills Medical campus. Grass is overgrown and the client is unhappy. Please send a crew ASAP.",
+      "expected_route": "Dispatch"
+    },
+    {
+      "from": "jreynolds@summitoffice.com",
+      "subject": "Quote for additional landscaping",
+      "body": "Need a quote for expanded landscape scope at Summit Office Park. Adding irrigation to the east courtyard and new plantings along the main entrance.",
+      "expected_route": "Estimating"
+    },
+    {
+      "from": "mthompson@durhampublic.org",
+      "subject": "Certificate of Insurance needed",
+      "body": "We need an updated COI for the Durham Public Schools contract renewal. Please send to our risk management office by Friday.",
+      "expected_route": "Management"
+    },
+    {
+      "from": "procurement@trianglemed.com",
+      "subject": "PO-2024-1205 discrepancy",
+      "body": "Invoice amount for PO-2024-1205 is $2,400 higher than the purchase order. Please review and provide a corrected invoice or explanation for the overage.",
+      "expected_route": "Accounts Receivable"
+    },
+    {
+      "from": "ops@carytowncenter.com",
+      "subject": "Emergency tree removal needed",
+      "body": "A large oak branch fell in the parking lot after last night's storm. Need emergency removal before stores open at 9am tomorrow. This is urgent.",
+      "expected_route": "Dispatch"
+    },
+    {
+      "from": "swhitfield@rpmx.com",
+      "subject": "New hire equipment for Marcus Johnson",
+      "body": "Marcus Johnson starts next Monday in the Excavation division. Please make sure his PPE kit (hard hat, vest, boots, radio) is ready for pickup Friday.",
+      "expected_route": "Operations"
+    },
+    {
+      "from": "legal@mapleridgedev.com",
+      "subject": "Change order #3 for site work",
+      "body": "Attached is change order #3 for the Maple Ridge site work project. Additional storm drainage required per revised civil drawings. Please provide pricing within 48 hours.",
+      "expected_route": "Estimating"
+    }
+  ]
+}

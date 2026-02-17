@@ -1,0 +1,1080 @@
+
+RPMX CONSTRUCTION
+Human Emulator Platform
+Development Specification
+Agent-First Architecture • Real Data Processing • Manus-Style UI
+Prepared by Ruh AI
+February 2026
+CONFIDENTIAL
+
+1. What We Are Building
+This platform demonstrates a single proposition: AI agents can do the actual work of construction back-office employees. Not assist them. Not generate suggestions. Do the work. The platform must make that proposition feel inevitable to a construction company executive watching it run.
+We are building 11 AI agents that each perform a real job function inside a fictional construction company called RPMX Construction. Each agent processes real-format data (PDF invoices, ERP-structured JSON, email content), makes decisions, takes actions, and produces visible output. A simple UI lets you watch them work, review their decisions, and train them to behave differently—all through natural language conversation.
+
+1.1 The Three Things Competitors Cannot Do
+Every AP automation vendor (Stampli, AvidXchange, Tipalti) demos a workflow engine with pre-coded rules. This platform shows three things they cannot:
+	•	Agents that reason. The PO Match Agent doesn’t follow a decision tree. It reads an invoice PDF, considers context, weighs confidence, and makes a judgment call—exactly like a human AP clerk.
+	•	Training through conversation. When the presenter tells the agent to start emailing project managers about price variances, the agent’s behavior changes immediately. No developer. No configuration screen. Just a conversation.
+	•	Transparent operations. Every action the agent takes is visible, explainable, and auditable. The client can see what the agent did, why it did it, what it cost, and override any decision.
+
+1.2 The Demo Narrative
+The demo tells a story in four beats:
+	•	The Command Center. The user opens the platform and sees every agent across every department—a digital workforce, all visible at a glance.
+	•	The Agent at Work. They drill into the PO Match Agent and watch it process invoice PDFs in real time. It reads the document, matches it to a PO, flags exceptions, posts to Vista. It works like their best AP clerk.
+	•	The Training Moment. They talk to the agent and teach it a new behavior. They watch it work differently on the next invoice. This is the moment competitors cannot replicate.
+	•	The Full Workforce. They see agents across AR, accounting, procurement, scheduling, safety, HR—all operating the same way. This isn’t one tool for one problem. It’s a digital workforce.
+
+KEY PRINCIPLE
+These are real agents doing real work with stubbed data connections. The UI is a window into their work, not the product itself. If the agent would process a PDF in production, it processes a real PDF here. If it would receive API data, it gets data structured exactly like that API response. The only thing stubbed is the connection—not the data and not the work.
+
+2. Architecture
+The platform is built in four layers. Each layer is independently testable. Agents must work from the command line before any UI is built.
+
+Layer
+Technology
+Responsibility
+Agent Runtime
+Claude Agent SDK (Python)
+Runs agents, manages tool execution, handles the agentic loop (reason → tool call → observe result → reason again), streams output
+Orchestration API
+FastAPI + WebSocket
+Routes agent sessions, serves seed data, manages skills files, streams agent output to frontend
+Data Layer
+SQLite + PDF files + JSON files
+Stores seed data. Agents receive data in production-realistic formats: PDF invoices as files, ERP data as JSON, emails as formatted text.
+Frontend
+React + Tailwind CSS
+Thin presentation layer. Two views: Command Center and Agent Workspace. Consumes WebSocket streams.
+
+2.1 How Agents Run
+Agents run server-side via the Claude Agent SDK. The SDK handles the agentic loop automatically. We define tools as Python functions exposed through MCP (Model Context Protocol) servers. The agent decides which tools to call based on its system prompt and skills file. Here is the flow when the user clicks “Run” on an agent:
+	•	The frontend sends a POST to the orchestration API: “Run PO Match Agent on invoice queue.”
+	•	The API creates a Claude Agent SDK session with the agent’s system prompt, skills file content, and MCP tool server.
+	•	The SDK begins the agentic loop. Claude reads the first invoice via the read_invoice tool, then decides what to do next.
+	•	Each tool call and result is streamed back to the API via the SDK’s async iterator.
+	•	The API forwards these events over WebSocket to the frontend, which renders them in the agent’s workspace.
+	•	When the agent flags an exception, it appears in the review queue. When it sends a notification, it’s logged to the communications log.
+	•	When the agent finishes all tasks, the session ends and metrics update.
+
+2.2 Agent Anatomy
+Every agent in the system is composed of four parts:
+Component
+Format
+Purpose
+Identity (System Prompt)
+Markdown
+Who the agent is, its role, its department, its core behavioral rules. Set once, rarely changed.
+Skills File
+Markdown (.md)
+How the agent does its job. Step-by-step procedures, decision thresholds, escalation rules. Updated through training conversations.
+Tools
+Python functions (MCP)
+What the agent can do. Each tool is a discrete action: read a PDF, search purchase orders, send a notification, post to Vista.
+State / Memory
+Session context
+What the agent knows right now. Current invoice, matched PO, running totals. Managed by the SDK.
+
+THE SKILLS FILE IS THE TRAINING SURFACE
+When a user “trains” an agent, they have a conversation that results in the skills file being updated. The agent reads the updated skills file on its next run and behaves differently. No code changes. No redeployment. No ML retraining. Just updated instructions in natural language. The skills file is visible in the UI. When the presenter trains the agent, the audience literally watches the markdown file change. Then they watch the agent behave differently.
+
+2.3 The Skills File Pattern
+This is the most important architectural pattern in the system. It is directly inspired by the SKILL.md pattern used in Claude Code and similar agent frameworks. A markdown file containing natural-language instructions gets injected into the agent’s context at runtime.
+
+Skills File Structure Example (PO Match Agent)
+# PO Match Agent — Skills & Procedures
+## Core Matching Process
+For each invoice in my queue: 1) Extract the PO number if present on the invoice. 2) Search for the matching PO in the purchase order database. 3) If exact PO match found, compare line items and amounts. If amounts match within 2% tolerance, mark matched and assign coding. If amounts differ by more than 2%, flag as price variance exception. 4) If no PO number on invoice, attempt fuzzy match by vendor + amount. 5) For all matched invoices, post coding to Vista.
+## Exception Handling
+Price variance: Route to human review with full comparison. No PO found: Route to Randy Eisenhardt for review. Duplicate detection: Flag and route to human review.
+## Notifications
+Send daily summary to AP manager at end of processing.
+
+How Training Works
+	•	Conversation: The presenter opens the training chat and types: “When you find a price variance over $1,000, also send an email to the project manager for that job.”
+	•	Agent Confirmation: The agent responds with its understanding: “I’ll add a notification step. When I detect a price variance exceeding $1,000, I’ll send an email to the PM assigned to that job with invoice and PO details. Shall I include the variance amount and percentage?”
+	•	Skills File Update: On confirmation, the backend appends the new instruction to the skills file. The UI shows the skills file updating so the audience can see what changed.
+	•	Behavior Change: The next time the agent processes an invoice with a price variance, it reads the updated skills file, follows the new instruction, and sends the email. The email appears in the communication log.
+
+Skills File Storage
+Each agent’s skills file is stored on disk as a markdown file. The original version is preserved as skills_original.md for resets. The working copy (skills.md) is what the agent reads at runtime and what training modifies. The orchestration API provides GET and PUT endpoints for reading and updating skills files.
+
+2.4 Token Cost Tracking
+Every Claude Agent SDK session reports token usage. The orchestration layer captures input tokens, output tokens, and cache reads for each agent action. These are converted to dollar amounts using current API pricing and displayed in the UI. This is a selling point—the client can see that processing an invoice costs $0.003, making the ROI argument trivially easy.
+
+3. The UI: Two Views
+The entire platform is two views. A Command Center that shows all active agents and their status, and an Agent Workspace that shows a single agent doing its job. No sidebar navigation, no department dashboards, no login screen. Keep it clean and simple.
+The UI pattern follows what Manus AI established as the dominant design for AI agent interfaces: the user delegates a task, then watches the agent execute it. There’s a task queue showing planned work, a live activity stream showing what the agent is currently doing, and the output of the work it has completed. That’s it.
+
+3.1 View 1: Command Center
+This is the landing page. It shows every Human Emulator across the entire company. Think of it as a dispatch board—a live status board showing who’s working on what.
+
+Layout
+Top bar: RPMX Construction branding and a summary line: “8 agents active • 3 items need review • 12 tasks completed today.”
+Below that: a clean list or card grid of all 11 agents. Group by department using simple section headers (Financial, Operations, HR, etc.). The grouping is visual, not navigational—no expandable sidebar, no nested routes per department.
+Clicking any agent card opens the Agent Workspace.
+
+Agent Card Contents
+Element
+Description
+Agent Name
+e.g., PO Match Agent, AR Follow-Up Agent
+Department Tag
+Small label: AP, AR, Accounting, Procurement, etc.
+Status Indicator
+Green dot = working, Blue = idle, Amber = needs review, Red = error
+Current Activity
+One line: “Processing invoice #9002” or “Last run: 12 min ago, 6 invoices processed”
+Review Queue Badge
+Number badge if items need human review. Clickable.
+Cost
+Small text: “$0.04 today” showing token cost of work done
+
+3.2 View 2: Agent Workspace
+This is the Manus-style split view. When you click into an agent, you see its workspace. This is where the work happens.
+
+Left Panel (~40% width): Activity & Task Queue
+A vertical timeline of everything the agent has done and is doing. Each entry shows what tool was called, what data was read or written, what decision was made, and what it cost. New entries appear at the top as the agent works in real time.
+If the agent has a queue of work (like 6 invoices to process), the queue is shown at the top of this panel with a progress indicator (e.g., “Invoice 3 of 6”).
+
+Right Panel (~60% width): The Work
+This is the actual artifact of the agent’s work. This changes based on what the agent is doing:
+	•	PO Match Agent: The invoice PDF displayed alongside the matched PO data. The user sees the actual document the agent is reading.
+	•	Financial Reporting Agent: The P&L report or comparison the agent is building.
+	•	Schedule Optimizer: The route map or schedule grid the agent has produced.
+	•	AR Follow-Up Agent: The email being drafted to a customer.
+	•	Any agent: The output of its current work, displayed in a contextually appropriate format.
+
+THE WORKSPACE IS THE KEY
+The workspace shows the WORK—the invoice being analyzed, the email being drafted, the report being built. The activity log on the left is secondary context. The work product on the right is what matters. This is what separates this from a generic activity feed.
+
+Additional Workspace Panels
+These are accessible as tabs or slide-out panels within the workspace:
+	•	Review Queue: Items the agent has flagged for human review. Each item shows the agent’s analysis, the relevant data, and action buttons (Approve, Reject, Escalate). Not a separate page.
+	•	Training Chat: A chat interface for talking to the agent and teaching it new behaviors. When training updates the skills file, the change is visible. Can be a slide-out panel or tab.
+	•	Skills File: A read-only view of the agent’s current instructions in markdown. Shows what changed after training. Tab behind the training chat.
+	•	Communications Log: Emails and notifications the agent has sent during its session. Each entry shows recipient, subject, and content.
+
+Back Navigation
+A clear back arrow or breadcrumb at the top of the workspace returns to the Command Center. Keep navigation flat and obvious.
+
+4. Data: Real Formats, Stubbed Connections
+In production, the PO Match Agent would receive a PDF invoice, OCR it, extract fields, and then match against a PO in the ERP system. This platform does the same thing—the only difference is the data comes from local files instead of a live system.
+
+4.1 The Rule
+For every piece of data an agent touches, ask: “How would this data arrive in the real system?” Then provide it in that exact format.
+
+Data Type
+Real-World Format
+What We Provide
+Vendor invoices
+PDF received via email or AP inbox
+Actual PDF files with realistic layouts, vendor info, line items, totals, PO references
+Purchase orders
+ERP API response (Vista, Sage)
+JSON structured to match ERP API format. Real field names, real nesting.
+Customer aging data
+ERP report export
+JSON or CSV matching ERP export format
+Vendor compliance records
+Vendor portal / document mgmt
+JSON with vendor records, cert expiry dates, document status flags
+Job site data
+Dispatch system with GPS
+JSON with lat/lng, job specs, SLA windows, crew assignments
+Employee certifications
+HR system records
+JSON matching HRIS export format
+Equipment maintenance
+Fleet management system
+JSON with service schedules, mileage, inspection status
+Financial data
+General ledger export
+JSON or CSV with account codes, amounts, periods, divisions
+Customer emails
+Email inbox / helpdesk
+Realistic email-formatted text with headers, body, sender info
+
+4.2 Invoice PDFs
+The PO Match Agent’s demo is the centerpiece. It processes 7 invoices. Each must be a real PDF document with a realistic layout: vendor name/address block (simulating letterhead), “Invoice” title, invoice number, date, bill-to block (RPMX Construction, 4200 Westgate Blvd, Suite 300, Raleigh, NC 27607), line items table with description/quantity/unit price/line total, subtotal, total amount, PO reference (where applicable), and payment terms (Net 30).
+The agent receives these PDFs, reads them using Claude’s vision capability (sending the PDF as an image), extracts the relevant fields, and proceeds with matching. This is what a human AP clerk does—looking at a document and processing it. Not reading a database row.
+
+WHY PDFs MATTER FOR THE SALE
+When the client watches the agent read a PDF invoice, they see their own process. They send PDF invoices. Their AP clerks read PDF invoices. Showing the agent doing the same thing makes the technology feel immediately applicable. It removes the abstraction.
+
+4.3 API-Format Data
+For data that would come from an API in production (ERP records, HR data, fleet data), provide JSON files structured to match the real API format. Use field names, nesting patterns, and data types that Vista, Sage, Viewpoint, or other construction ERPs actually use. When we eventually swap the stubbed data for a real API integration, the agent’s tools change but its processing logic doesn’t.
+
+5. The 11 Agents
+Every agent in this platform actually runs. No static placeholders, no fixture data, no fake activity logs. All 11 are showcase agents with full implementations.
+
+Agent
+Department
+Data Format
+Demo Summary
+PO Match Agent
+Accounts Payable
+PDF invoices + JSON POs
+6 invoices + training + post-training test
+AR Follow-Up Agent
+Accounts Receivable
+JSON aging data
+5 customers, different actions each
+Financial Reporting Agent
+General Accounting
+JSON GL export
+Conversational P&L queries
+Vendor Compliance Monitor
+Procurement
+JSON vendor records
+50-vendor scan, 7 issues found
+Schedule Optimizer
+Scheduling
+JSON dispatch + GPS
+12 jobs, 3 crews, 22% drive time reduction
+Progress Tracking Agent
+Project Mgmt
+JSON project data
+5 projects, 2 at-risk identified
+Maintenance Scheduler
+Fleet & Equipment
+JSON fleet records
+30 equipment items, 4 issues found
+Training Compliance Agent
+Safety
+JSON HR/cert data
+40 employees, 7 compliance issues
+Onboarding Agent
+Human Resources
+JSON new hire record
+Marcus Johnson new hire workflow
+Cost Estimator
+Estimating
+JSON productivity rates
+2.5-acre landscaping contract estimate
+Inquiry Router
+Customer Service
+Email-formatted text
+3 customer emails routed correctly
+
+5.1 PO Match Agent (Primary Showcase)
+This is the centerpiece agent. It reads PDF invoices, matches them to purchase orders, assigns GL coding, flags exceptions, and posts to the ERP system. The demo processes 6 invoices plus a 7th post-training test.
+
+Identity Prompt
+You are the PO Match Agent for RPMX Construction. You are a senior accounts payable specialist responsible for matching incoming invoices to purchase orders. You work with precision and attention to detail. You process invoices methodically, one at a time, and you always explain your reasoning. You have access to RPMX’s invoice files, purchase order database, project records, and chart of accounts. You can post approved invoices to the Vista ERP system. When you are uncertain, you flag items for human review rather than guessing. You never approve an invoice you are not confident about. After each invoice, report what you did, the result, and your confidence level.
+
+Tools
+Tool Name
+Input
+Output
+Description
+read_invoice
+file_path
+Extracted invoice data
+Reads a PDF invoice file using vision. Extracts vendor, amount, PO reference, line items, date.
+search_purchase_orders
+po_number OR vendor + amount
+List of matching POs
+Searches POs by exact number or fuzzy match on vendor name + amount. Returns matches with confidence scores.
+get_project_details
+project_id
+Project object
+Retrieves project name, division, cost codes, PM name and email for coding and notification.
+assign_coding
+invoice_id, job_id, gl_code
+Confirmation
+Updates the invoice record with job assignment and GL code.
+flag_exception
+invoice_id, reason_code, details
+Exception record
+Creates an exception record, updates status, adds to human review queue.
+mark_complete
+invoice_id
+Confirmation
+Marks invoice as matched and coded. Moves to ready-for-approval.
+post_to_vista
+invoice_id
+Stubbed confirmation
+Simulates posting to Vista. Shows loading state, waits 1–2 seconds, confirms.
+send_notification
+recipient, subject, body
+Logged communication
+Logs an email/notification to the communications log.
+check_duplicate
+po_number
+List of matched invoices
+Checks if a PO has already been matched to another invoice.
+
+Demo Scenario: 7 Invoices
+#
+Vendor
+Amount
+PO #
+Expected Behavior
+1
+Martin Materials LLC
+$12,450.00
+PO-2024-0892
+Clean match. Amounts match exactly. Code to Job MR-2024-015, GL 5100. Post to Vista.
+2
+Southeast Grading Co.
+$47,250.00
+PO-2024-0756
+Price variance. PO is $45,000. Variance $2,250 (5%). Flag exception, route to review.
+3
+Quick Stop Fuel & Supply
+$387.50
+None
+No PO found. No fuzzy match possible. Flag and route to Randy Eisenhardt.
+4
+Blue Ridge Equipment Rental
+$8,200.00
+PO-2024-1102
+Clean match. Code to Elm Street Retaining Wall, GL 5200. Post to Vista.
+5
+Consolidated Concrete Inc.
+$6,780.00
+None
+Fuzzy match success. Matches PO-2024-0998 by vendor name + exact amount. High confidence.
+6
+Martin Materials LLC
+$12,450.00
+PO-2024-0892
+Duplicate detection. PO already matched to Invoice #1. Flag as potential duplicate.
+7*
+Piedmont Lumber & Supply
+$14,820.00
+PO-2024-1187
+POST-TRAINING: Variance $1,620 (12.3%). Flags exception AND sends email to PM Marcus Rivera.
+* Invoice #7 is the post-training test. After processing invoices 1–6, the presenter trains the agent: “When you find a price variance over $1,000, send an email to the project manager.” Then invoice #7 triggers both the exception AND the new notification behavior.
+
+Invoice PDF Specifications
+Each of the 7 invoices must be a real PDF file. Layout: vendor name/address block at top, invoice number and date, bill-to RPMX Construction (4200 Westgate Blvd, Suite 300, Raleigh, NC 27607), line items table, subtotal, total, PO reference where applicable, Net 30 terms.
+
+Invoice
+Line Items on PDF
+INV-9001
+Gravel 500 tons @ $18.90/ton ($9,450) + Sand 200 tons @ $15.00/ton ($3,000)
+INV-9002
+Site grading Phase 2 — lump sum $47,250.00
+INV-9003
+Diesel 250 gal @ $1.55/gal ($387.50)
+INV-9004
+CAT 320 Excavator rental, 2 weeks @ $4,100/wk ($8,200)
+INV-9005
+Ready-mix concrete 60 yards @ $113.00/yd ($6,780)
+INV-9006
+Gravel 500 tons @ $18.90/ton ($9,450) + Sand 200 tons @ $15.00/ton ($3,000) [duplicate]
+INV-9007
+Treated lumber 4x6x16, 400 pieces @ $37.05 ($14,820)
+
+What the Workspace Shows
+As the agent processes each invoice, the right panel displays the actual invoice PDF alongside the matched PO data. The user sees the real document the agent is reading. The left panel shows the agent’s reasoning chain: “Reading invoice from Martin Materials LLC… Found PO reference PO-2024-0892… Searching purchase orders… Match found, amounts match exactly… Assigning GL code 5100… Posting to Vista.”
+
+QA Gate
+	•	Invoice 1: Status matched, GL 5100, Vista post confirmed.
+	•	Invoice 2: Status exception, reason: price variance 5%, in review queue.
+	•	Invoice 3: Status exception, reason: no PO found, routed to Randy Eisenhardt.
+	•	Invoice 4: Status matched, GL 5200, Vista post confirmed.
+	•	Invoice 5: Status matched, method: vendor name + amount fuzzy match, confidence: high.
+	•	Invoice 6: Status exception, reason: duplicate PO match, in review queue.
+	•	Invoice 7: Status exception, notification email sent to PM Marcus Rivera (mrivera@rpmx.com), email in comms log.
+	•	Token costs reported per invoice. Total cost reported at end.
+	•	Run the full scenario 5 times consecutively. All 5 runs produce correct results.
+
+5.2 AR Follow-Up Agent
+Processes accounts receivable aging data and takes the appropriate collection action for each customer based on how overdue their balance is.
+
+Tools
+Tool Name
+Description
+query_aging_data
+Pulls open invoices and aging status. Accepts optional filters for aging bucket.
+determine_action
+Applies follow-up rules from skills file to decide action based on aging bucket and account history.
+send_customer_email
+Drafts and logs a customer reminder email. Different templates for 30, 60, and 90+ day reminders.
+create_internal_task
+Creates a task record for the AR team with description, priority, and due date.
+escalate_account
+Moves an account to the collections escalation queue with full history documentation.
+log_activity
+Records all actions taken for audit trail purposes.
+
+Demo Scenario: 5 Customers
+Customer
+Days Out
+Amount
+Expected Action
+Greenfield Development
+35 days
+$22,400
+Send 30-day polite reminder email.
+Summit Property Group
+67 days
+$41,800
+Send firm reminder email AND create internal follow-up task.
+Parkview Associates
+95 days
+$28,500
+Escalate to collections queue with full history.
+Riverside Municipal
+45 days
+$67,200
+Skip — balance is retainage, not delinquent.
+Oak Valley Homes
+15 days
+$8,900
+No action — within payment terms.
+
+QA Gate
+	•	Agent correctly categorizes all 5 customers and takes the appropriate action.
+	•	Reminder emails appear in communications log with correct content and tone.
+	•	Parkview Associates appears in collections queue with history.
+	•	Riverside Municipal is skipped with correct reasoning (retainage).
+	•	Run 5 times — all runs produce correct results.
+
+5.3 Financial Reporting Agent
+Unique because its demo is conversational, not batch-processing. The presenter has a back-and-forth dialogue asking for reports.
+
+Tools
+Tool Name
+Description
+query_financial_data
+Queries revenue, expenses, and job costs. Supports filtering by division, project, time period, GL account.
+generate_report
+Assembles queried data into a formatted report structure (P&L, balance sheet, job cost summary).
+compare_periods
+Compares two time periods and calculates variances (dollar and percentage).
+generate_narrative
+Produces a written summary highlighting key trends and concerns.
+
+Demo Scenario
+	•	Presenter: “Pull me a P&L for the Excavation division for January 2026.” → Agent produces formatted P&L.
+	•	Presenter: “How does that compare to January last year?” → Agent produces side-by-side comparison with variance narrative.
+	•	Presenter: “Combine all divisions and give me a company-wide summary for Q4 2025.” → Agent produces multi-division P&L with consolidated totals.
+
+The Excavation Jan 2025 vs Jan 2026 comparison must show: revenue up 12%, material costs up 18%, fuel costs up 22%, gross margin compressed from 28% to 26.1%, net income barely grew (+0.6%) despite strong top-line performance. The agent’s narrative should highlight margin compression from cost inflation. See Section 7 (Seed Data) for exact financial figures.
+
+What the Workspace Shows
+The right panel displays the report as the agent builds it—a formatted P&L table with rows for each line item, comparison columns, and variance calculations. The left panel shows the agent’s reasoning and the conversational exchange.
+
+5.4 Vendor Compliance Monitor
+Scans all 50 vendors and identifies compliance issues: expiring insurance, missing W-9s, expiring contracts, expired insurance.
+
+Demo Findings (assume demo date February 13, 2026)
+Finding
+Vendor(s)
+Agent Action
+Insurance expiring within 14 days
+Southeast Grading (Feb 24), Piedmont Lumber (Feb 18), Summit Environmental (Feb 20)
+Send renewal request emails to each vendor.
+Insurance expired
+Carolina Steel Fabricators (expired Jan 28)
+URGENT. Create alert, recommend PO hold.
+Missing W-9
+Tri-State Paving
+Create alert, send document request email.
+Contract expiring within 30 days
+Tri-State Paving (Mar 31), Valley Forge Welding (Mar 15)
+Create procurement tasks for Randy to review renewal terms.
+
+5.5 Schedule Optimizer
+Loads 12 landscaping maintenance jobs across 3 crews in the Raleigh-Durham, NC area. Optimizes routes by geography and crew skills. Produces a schedule with approximately 22% drive time reduction compared to unoptimized sequential assignment.
+The 12 jobs are clustered in 3 geographic zones (North Raleigh/Wake Forest, Cary/Apex, South Durham/RTP). The optimizer assigns jobs to crews based on required skills (tree work, heavy mowing, general maintenance) and geographic proximity.
+
+What the Workspace Shows
+The right panel displays a map view with job site pins color-coded by crew assignment and route lines showing the optimized order. The left panel shows the agent’s reasoning about skill matching and geographic clustering.
+
+5.6 Progress Tracking Agent
+Reviews 5 active projects and identifies budget/schedule risks.
+Project
+Finding
+Maple Ridge Site Development (MR-2024-015)
+On track. Budget 45% used, 48% complete. No action.
+Highway 9 Interchange (EX-2024-022)
+At risk. Budget 78% used but only 60% complete. Projected overrun $18,400. Notify PM.
+Summit Office Phase 2 (SD-2024-018)
+Behind schedule. 3 days behind, crew productivity 15% below estimate. Recommend crew review.
+County Road 42 Resurfacing (RC-2024-011)
+On track. 2 days ahead of schedule.
+Riverdale Flood Mitigation (EX-2024-027)
+At risk. Pending Change Order #CO-045 ($256,000). Within budget if CO approved.
+
+5.7 Maintenance Scheduler
+Scans 30 equipment items and identifies maintenance needs.
+Equipment
+Issue
+Agent Action
+2022 Ford F-550 #107
+Oil change due in 2 days
+Generate work order, find downtime window.
+2021 Kenworth T370 #112
+Oil change due in 3 days
+Generate work order, schedule during low-utilization afternoon.
+2020 CAT 320 #319
+DOT inspection due in 5 days
+Schedule inspection, flag to ops manager.
+2019 Peterbilt 348 #223
+Brake inspection OVERDUE by 6 days
+URGENT. Recommend immediate removal from service.
+
+5.8 Training Compliance Agent
+Checks 40 employees and finds 7 compliance issues: 4 expiring OSHA 10-Hour certifications (Jake Morrison Feb 28, Luis Herrera Mar 5, Tommy Pham Feb 25, Ana Reyes Mar 1), 2 missing equipment certifications (Mike Kowalski missing Skid Steer Operator cert, Chris Tate missing Excavator Spotter cert), and 1 new hire (Brandon Wells, start date Feb 10) without completed orientation safety training.
+
+5.9 Onboarding Agent
+Onboards a new hire: Marcus Johnson, Equipment Operator, Excavation division, start date February 24, 2026. Hiring manager Sarah Whitfield. Agent generates offer letter, sends welcome email, tracks required documents (W-4, I-9, Direct Deposit, Handbook Acknowledgment), schedules orientation, assigns required safety training (OSHA 10-Hour, Equipment Operator Cert, Site Safety Orientation), and assigns equipment needs (hard hat, safety vest, steel-toe boots, radio).
+
+5.10 Cost Estimator
+Estimates a 2.5-acre landscaping maintenance contract. Input: 2.5 acres turf, 1,200 linear feet edging, 45 shrubs, 12 trees, bi-weekly service April–October (28 visits), 22 miles from dispatch yard, 15% overhead rate, 25% target margin. Agent calculates labor hours and costs using productivity rate tables, adds materials, vehicle costs, overhead, and margin to produce per-visit (~$399), monthly (~$694), and annual (~$9,715) pricing.
+
+5.11 Inquiry Router
+Routes 3 customer emails to the correct department:
+From
+Subject
+Routing
+accounts@greenfield.com
+Invoice #7744 payment status
+AR department. Extract invoice reference.
+facilities@northhillsmed.com
+Missed weekly maintenance
+Dispatch. Create service request with urgency flag.
+jreynolds@summitoffice.com
+Quote for additional landscaping
+Estimating. Flag as new business opportunity.
+
+6. Tech Stack & Project Structure
+
+6.1 Stack
+Layer
+Technology
+Notes
+Agent Runtime
+Claude Agent SDK (Python)
+Handles the agentic loop, tool execution, streaming. Use claude-sonnet-4-20250514 for all agents.
+Orchestration
+FastAPI + WebSocket + uvicorn
+REST endpoints for agent management, WebSocket for live streaming.
+Data Layer
+SQLite + PDF files + JSON files
+SQLite for relational seed data. Invoice PDFs as files. API-format data as JSON files.
+Frontend
+React + Tailwind CSS + Vite
+Minimal. Two views. React state + context only, no external state management library.
+PDF Rendering
+pdf.js or browser native
+For displaying invoice PDFs in the agent workspace.
+MCP
+Model Context Protocol SDK
+Tools defined as Python functions using MCP server pattern.
+
+6.2 PDF Reading Approach
+The PO Match Agent reads invoice PDFs using Claude’s vision capability: convert the PDF page to an image and send it to the model as part of the tool call. The agent “looks at” the invoice and extracts fields. This is more impressive for the demo than OCR because the audience sees the agent doing what a human does—reading a document.
+
+6.3 Project Structure
+rpmx-demo/
+├── agents/                    # Agent definitions
+│   ├── po_match/
+│   │   ├── identity.md        # System prompt
+│   │   ├── skills.md          # Current procedures (training modifies this)
+│   │   ├── skills_original.md # Original procedures (for reset)
+│   │   └── tools.py           # MCP tool definitions
+│   ├── ar_followup/
+│   ├── financial_reporting/
+│   └── ... (11 agents total)
+├── api/                       # FastAPI orchestration layer
+│   ├── main.py
+│   ├── routes/
+│   ├── services/
+│   └── websocket/
+├── data/                      # Seed data
+│   ├── schema.sql
+│   ├── seed.sql
+│   ├── rpmx.db
+│   ├── invoices/              # PDF invoice files
+│   │   ├── INV-9001.pdf
+│   │   └── ... (7 PDFs)
+│   └── json/                  # API-format seed data
+│       ├── purchase_orders.json
+│       ├── vendors.json
+│       └── ...
+├── frontend/                  # React app
+├── scripts/
+│   ├── run_agent.py           # CLI runner for testing
+│   └── reset_demo.py          # Reset seed data
+└── tests/
+
+6.4 API Endpoints
+Method
+Path
+Purpose
+GET
+/api/agents
+List all 11 agents with current status
+GET
+/api/agents/{id}
+Get agent details including skills file content
+POST
+/api/agents/{id}/run
+Start an agent session. Returns session_id.
+POST
+/api/agents/{id}/chat
+Send a training message. Returns agent response.
+GET
+/api/agents/{id}/skills
+Get raw skills file content
+PUT
+/api/agents/{id}/skills
+Update skills file (called after training confirmation)
+GET
+/api/agents/{id}/review-queue
+Get items flagged for human review
+POST
+/api/review-queue/{id}/action
+Take action on a review item (approve, reject, escalate)
+GET
+/api/agents/{id}/activity
+Get activity log for an agent session
+GET
+/api/communications
+Get communication log entries
+POST
+/api/demo/reset
+Reset all data and skills files to initial state
+
+WebSocket
+ws://host/ws/agent/{session_id} — Streams agent activity events for a running session. Events include: tool_call, tool_result, reasoning, status_change, communication_sent, error, complete. Each event is a JSON object with type, payload, session_id, and timestamp fields.
+
+6.5 Environment Setup
+A new developer should go from git clone to running agents in under 30 minutes.
+
+Prerequisites
+	•	Python 3.11+ (3.12 recommended)
+	•	Node.js 20+
+	•	Anthropic API key with access to Claude Sonnet 4
+
+.env File
+Variable
+Required
+Default
+Description
+ANTHROPIC_API_KEY
+Yes
+(none)
+Claude API key
+CLAUDE_MODEL
+No
+claude-sonnet-4-20250514
+Model for agent sessions
+DATABASE_PATH
+No
+./data/rpmx.db
+Path to SQLite database
+API_PORT
+No
+8000
+FastAPI server port
+FRONTEND_URL
+No
+http://localhost:5173
+Frontend URL for CORS
+SKILLS_DIR
+No
+./agents
+Path to agent directories
+
+Quick Start
+	•	git clone <repo-url> && cd rpmx-demo
+	•	Copy .env.example to .env, add ANTHROPIC_API_KEY
+	•	python -m venv .venv && source .venv/bin/activate
+	•	pip install -r requirements.txt
+	•	python scripts/reset_demo.py
+	•	python scripts/run_agent.py po_match  (verify agent works from CLI)
+	•	uvicorn api.main:app --reload
+	•	cd frontend && npm install && npm run dev
+	•	Open http://localhost:5173
+
+7. Seed Data
+The seed data creates a realistic construction company called RPMX Construction. All data is fictional but internally consistent and realistic. There are two tiers: demo-critical records that must be exact (agent scenarios depend on specific values), and background data that fills out the database to look like a real company.
+
+7.1 Company: RPMX Construction
+Five divisions: Excavation, Road Construction, Site Development, Landscaping Maintenance, Retaining Walls. Approximately 40 employees, 50 vendors, 30 projects, 200 invoices, 150 purchase orders, 20 customers, 30 equipment items, 50 job sites.
+
+7.2 Chart of Accounts
+GL Code
+Name
+Type
+Category
+4100
+Contract Revenue
+Revenue
+Revenue
+4200
+Service Revenue
+Revenue
+Revenue
+4300
+T&M Revenue
+Revenue
+Revenue
+5100
+Materials
+Expense
+COGS — Direct
+5200
+Equipment Rental
+Expense
+COGS — Direct
+5300
+Subcontractor Costs
+Expense
+COGS — Direct
+5400
+Direct Labor
+Expense
+COGS — Direct
+5500
+Fuel & Lubricants
+Expense
+COGS — Direct
+5600
+Hauling & Trucking
+Expense
+COGS — Direct
+5700
+Permits & Fees
+Expense
+COGS — Direct
+6100
+Salaries — Office
+Expense
+Operating
+6200
+Benefits & Insurance
+Expense
+Operating
+6300
+Rent & Utilities
+Expense
+Operating
+6400
+Vehicle Expense
+Expense
+Operating
+6500
+Professional Services
+Expense
+Operating
+6600
+Office Supplies
+Expense
+Operating
+6700
+Depreciation
+Expense
+Operating
+6800
+Repairs & Maintenance
+Expense
+Operating
+
+7.3 Demo-Critical Projects
+Project ID
+Name
+Division
+Budget
+% Complete
+PM
+PM Email
+MR-2024-015
+Maple Ridge Site Development
+SD
+$1,240,000
+48%
+James Callahan
+jcallahan@rpmx.com
+EX-2024-022
+Highway 9 Interchange Grading
+EX
+$2,180,000
+60%
+Sarah Whitfield
+swhitfield@rpmx.com
+ES-2024-009
+Elm Street Retaining Wall
+RW
+$485,000
+72%
+Marcus Rivera
+mrivera@rpmx.com
+RC-2024-011
+County Road 42 Resurfacing
+RC
+$890,000
+85%
+James Callahan
+jcallahan@rpmx.com
+LM-2024-003
+Greenfield Business Park Maint.
+LM
+$156,000/yr
+N/A
+Tyler Brandt
+tbrandt@rpmx.com
+SD-2024-018
+Summit Office Park Phase 2
+SD
+$1,650,000
+35%
+Sarah Whitfield
+swhitfield@rpmx.com
+EX-2024-027
+Riverdale Flood Mitigation
+EX
+$3,200,000
+22%
+Marcus Rivera
+mrivera@rpmx.com
+CR-2024-008
+Clearwater Reservoir Access Road
+RC
+$720,000
+95%
+Tyler Brandt
+tbrandt@rpmx.com
+
+7.4 Demo-Critical Purchase Orders
+PO Number
+Vendor
+Amount
+Job
+GL Code
+PO-2024-0892
+Martin Materials LLC
+$12,450.00
+MR-2024-015
+5100
+PO-2024-0756
+Southeast Grading Co.
+$45,000.00
+EX-2024-022
+5300
+PO-2024-1102
+Blue Ridge Equipment Rental
+$8,200.00
+ES-2024-009
+5200
+PO-2024-0998
+Consolidated Concrete
+$6,780.00
+MR-2024-015
+5100
+PO-2024-1187
+Piedmont Lumber & Supply
+$13,200.00
+ES-2024-009
+5100
+
+CRITICAL: PO-2024-0756 AMOUNT MISMATCH
+PO-2024-0756 is $45,000.00 but Invoice #9002 is $47,250.00. This $2,250 (5%) variance is the price variance exception the agent must detect. Do NOT make these amounts match. Similarly, PO-2024-1187 is $13,200.00 but Invoice #9007 is $14,820.00 ($1,620 / 12.3% variance) for the post-training test.
+
+7.5 Demo-Critical Vendors
+11 vendors have specific roles in demo scenarios (invoices, compliance findings). 39 additional background vendors fill out the database. Background vendors should all have valid W-9s and non-expiring insurance/contracts so only demo-critical vendors trigger compliance alerts. See the Vendor Compliance Monitor scenario (Section 5.4) for the specific compliance findings and dates.
+
+7.6 Financial Data for Reporting Agent
+Monthly revenue and expense records for all 5 divisions, January 2025 through February 2026 (14 months). The Excavation division January comparison must show specific values:
+
+Line Item
+Jan 2025
+Jan 2026
+Variance
+Revenue (4100)
+$420,000
+$470,400
++12.0%
+Materials (5100)
+$126,000
+$148,680
++18.0%
+Equipment Rental (5200)
+$37,800
+$42,336
++12.0%
+Subcontractor (5300)
+$50,400
+$56,448
++12.0%
+Direct Labor (5400)
+$46,200
+$49,896
++8.0%
+Fuel (5500)
+$33,600
+$40,992
++22.0%
+Hauling (5600)
+$8,400
+$9,408
++12.0%
+TOTAL COGS
+$302,400
+$347,760
++15.0%
+GROSS PROFIT
+$117,600
+$122,640
++4.3%
+Gross Margin %
+28.0%
+26.1%
+−1.9 pts
+Operating Expenses
+$58,800
+$63,504
++8.0%
+NET INCOME
+$58,800
+$59,136
++0.6%
+Net Margin %
+14.0%
+12.6%
+−1.4 pts
+
+Q4 2025 company-wide consolidated: Revenue $4,610,000, COGS $3,260,250, Gross Margin 29.3%, Operating Expenses $681,850, Net Income $667,900, Net Margin 14.5%. Broken out by division: Excavation (14.2% net), Road Construction (12.5%), Site Development (16.0%), Landscaping Maintenance (13.0%), Retaining Walls (16.0%).
+
+7.7 Scheduling Data
+12 job sites in the Raleigh-Durham, NC area clustered in 3 geographic zones. 3 crews with different skills. Pre-calculated travel times between all 13 locations (12 sites + yard = 169 entries). Expected optimization: Crew A (tree work certified) takes tree jobs + fill, Crew B (heavy mowing) takes heavy mow jobs, Crew C (general) takes remaining. Total optimized drive time ~115 min vs ~148 min unoptimized = ~22% reduction. All coordinates must be real Raleigh-Durham area locations.
+
+7.8 Data Integrity Rules
+Run these checks after data generation. All must pass before proceeding:
+	•	Every invoice.vendor_id exists in vendors table.
+	•	Every invoice.po_reference (where not null) exists in purchase_orders.
+	•	Every PO vendor_id exists in vendors, every PO job_id exists in projects.
+	•	Every PO gl_code exists in gl_accounts.
+	•	Every project division matches a valid division ID.
+	•	All dollar amounts use realistic non-round numbers (e.g., $12,450.00 not $12,000.00).
+	•	No placeholder text, “Test Vendor 1” names, or obviously fake data.
+	•	Vendor names follow construction patterns: [Location] + [Trade] + [Entity Type] (e.g., “Piedmont Concrete Supply”).
+
+8. Build Phases
+
+Phase 1: Agents That Work (Week 1–2)
+Build agents that work from the command line. No UI.
+
+Deliverables
+	•	Project scaffolding: directory structure, virtual environment, dependencies, .env config, hello-world Claude Agent SDK test.
+	•	Seed data layer: schema.sql, seed.sql, reset_demo.py, data integrity verification script.
+	•	Invoice PDFs: Create all 7 PDF invoice files with realistic layouts.
+	•	MCP tool framework: base tool pattern with database access, communication logging, cost tracking, stub integration pattern.
+	•	PO Match Agent: identity.md, skills.md, all 9 tools including the PDF-reading read_invoice tool. Run full 7-invoice scenario from CLI.
+	•	Remaining 10 agents: each with identity, skills, tools, and demo scenario data in production formats (JSON files, email text).
+	•	run_agent.py: CLI script that runs any agent and prints output to terminal.
+
+PHASE 1 EXIT GATE
+Every showcase agent runs its demo scenario from the command line with correct output. All 11 agents work. The PO Match Agent reads actual PDF invoices. Token costs are reported. The training test changes behavior. If this doesn’t work perfectly, nothing else matters. Run the PO Match scenario 5 times—all 5 must succeed.
+
+Phase 2: The UI (Week 2–3)
+Build the two-view frontend and connect it to the orchestration layer.
+
+Deliverables
+	•	FastAPI orchestration: all REST and WebSocket endpoints, agent session manager, event streaming.
+	•	Command Center view: all 11 agents displayed with status, current activity, review queue badges, cost.
+	•	Agent Workspace view: Manus-style split panel. Left: activity log + task queue. Right: work artifact (invoice PDF, report, map, email draft).
+	•	Review queue panel: agent analysis + source data + action buttons (Approve, Reject, Escalate).
+	•	Training chat panel: send messages, receive responses, see skills file update.
+	•	Skills file viewer: read-only markdown view, highlights changes after training.
+	•	Communications log: all agent emails/notifications visible with content.
+
+PHASE 2 EXIT GATE
+A user can open the command center, see all 11 agents, click into PO Match Agent, run it, and watch it process 6 invoice PDFs in real time with the invoice visible in the workspace. Review queue works. Training chat works. Skills file updates are visible. Run 2–3 other showcase agents and verify they display correctly in the workspace.
+
+Phase 3: Polish & Demo Prep (Week 3–4)
+
+Deliverables
+	•	Demo reset: accessible from the UI. Drops and recreates database, restores all skills files, clears logs. Under 5 seconds.
+	•	Error handling: Claude API retries (exponential backoff, max 3 attempts), WebSocket reconnection, meaningful loading states (“Analyzing invoice…” not a spinner).
+	•	Recorded playback fallback: record full event stream during successful run; if API is unreachable on demo day, replay events at original timing.
+	•	Visual polish: no placeholder text, no broken layouts, invoice PDFs render cleanly, consistent typography and spacing.
+	•	Five-run reliability test: run complete demo 5 times after reset. All 5 succeed.
+
+PHASE 3 EXIT GATE
+Run the full demo 5 times. All 5 succeed. Reset works in under 5 seconds. A non-technical person watching the demo believes these agents can do AP work, can be trained without a developer, and can scale across the operation.
+
+9. Demo Flow
+The demo is flexible and presenter-driven, not rigidly scripted. Total time: approximately 35 minutes, leaving ample room for questions and ad-hoc exploration.
+
+Step
+Action
+~Time
+What the Audience Sees
+1
+Open Command Center
+1 min
+All 11 agents visible. Digital workforce at a glance.
+2
+Run PO Match Agent
+8 min
+Agent reads 6 invoice PDFs. Invoices visible in workspace. Reasoning in activity log. Matches, flags, posts.
+3
+Review queue
+3 min
+Price variance: invoice vs PO side-by-side. Approve one, reject one.
+4
+Train the agent
+5 min
+THE MOMENT. Chat, skills file updates live, run invoice #7, new email triggers.
+5
+AR Follow-Up
+4 min
+5 customer accounts. Emails sent, escalation, retainage skip.
+6
+Financial Reporting
+4 min
+Conversational P&L. Ask for comparison, company-wide.
+7
+2–3 more agents
+8 min
+Vendor Compliance, Scheduling, or whatever resonates with the room.
+8
+Return to Command Center
+2 min
+All agents updated. “This is your digital workforce.”
+
+Pre-Demo Checklist
+	•	Run demo reset (python scripts/reset_demo.py or from UI).
+	•	Verify 6 invoices in pending queue, skills file in original state, comms log empty.
+	•	Run PO Match agent once to warm up Claude API connection. Verify completion.
+	•	Reset again after warmup.
+	•	Check browser zoom 100%, notifications silenced, backup tab open.
+	•	Wired internet or dedicated hotspot (never conference Wi-Fi).
+
+10. Success Criteria
+
+Agent Quality
+	•	Every agent produces correct output for its demo scenario on 5 consecutive runs.
+	•	PO Match Agent correctly handles all 7 invoice types (clean, variance, no PO, fuzzy, duplicate, post-training, post-training + email).
+	•	Training moment works: skills file update changes agent behavior on the next invoice.
+	•	Agent reasoning is visible, coherent, and sounds like a competent human explaining their work.
+	•	Token costs displayed and in expected range (under $0.01 per invoice action).
+
+UI Quality
+	•	Command Center shows all 11 agents with correct status.
+	•	Agent Workspace displays work artifacts (invoice PDFs, reports, maps) alongside activity.
+	•	Live agent activity streams update in real time via WebSocket.
+	•	Review queue works: actions taken, items removed, status updates.
+	•	Training chat responsive, skills file viewer updates live.
+	•	Communication log captures all agent emails/notifications.
+	•	No placeholder text, broken layouts, or visual inconsistencies.
+
+Reliability
+	•	Demo reset completes in under 5 seconds and restores all data correctly.
+	•	Full demo completes in 30–40 minutes without errors.
+	•	No agent produces an error or hallucinated response during the demo.
+	•	Recorded playback fallback is tested and ready.
+
+The Ultimate Test
+After watching the demo, the client should believe three things:
+	•	These agents can actually do the work of their AP department.
+	•	They can train the agents themselves, without calling a developer.
+	•	This could scale across their entire operation.
+If all three beliefs are formed, the demo succeeds regardless of any other criteria.
