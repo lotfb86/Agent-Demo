@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 from datetime import datetime
 from typing import Any, Optional
 
@@ -100,7 +101,15 @@ async def list_agents() -> list[dict[str, Any]]:
             ORDER BY a.name
             """,
         )
-        return [dict(row) for row in rows]
+        result = []
+        for row in rows:
+            agent = dict(row)
+            meta = BY_ID.get(agent["id"])
+            if meta:
+                agent["tool_count"] = len(meta.tools)
+                agent["description"] = meta.description
+            result.append(agent)
+        return result
     finally:
         await conn.close()
 
@@ -134,9 +143,13 @@ async def get_agent(agent_id: str) -> dict[str, Any]:
             raise HTTPException(status_code=404, detail="Agent not found")
 
         latest = await session_manager.latest_for_agent(agent_id)
+        agent_meta = BY_ID[agent_id]
         response = dict(row)
         response["identity"] = read_identity(agent_id)
         response["skills"] = read_skills(agent_id)
+        response["tools"] = list(agent_meta.tools)
+        response["agent_description"] = agent_meta.description
+        response["tool_count"] = len(agent_meta.tools)
         response["latest_output"] = latest.latest_output if latest else None
         response["latest_session_id"] = latest.session_id if latest else None
         return response
@@ -218,9 +231,15 @@ async def financial_query(body: QueryRequest) -> QueryResponse:
                     "type": "complete",
                     "payload": {
                         "output": result,
-                        "cost": round(emitter.total_cost, 4),
-                        "input_tokens": emitter.total_input_tokens,
-                        "output_tokens": emitter.total_output_tokens,
+                        "metrics": {
+                            "cost": round(emitter.total_cost, 6),
+                            "raw_cost": round(emitter.total_raw_cost, 6),
+                            "multiplier": emitter._multiplier,
+                            "input_tokens": emitter.total_input_tokens,
+                            "output_tokens": emitter.total_output_tokens,
+                            "units_processed": 1,
+                            "cost_per_unit": round(emitter.total_cost, 6),
+                        },
                     },
                     "session_id": session.session_id,
                     "timestamp": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
@@ -269,6 +288,89 @@ async def training_chat(agent_id: str, body: ChatRequest) -> dict[str, Any]:
         "suggested_instruction": suggestion,
         "applied": body.apply,
         "skills": updated_generic,
+    }
+
+
+class AgentAskRequest(BaseModel):
+    message: str
+    conversation_id: Optional[str] = None
+
+
+@router.post("/{agent_id}/ask")
+async def ask_agent(agent_id: str, body: AgentAskRequest) -> dict[str, Any]:
+    """Chat with any agent about its last run and work context."""
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+    if not llm_enabled():
+        raise HTTPException(status_code=400, detail="LLM not enabled")
+
+    # Build context from last run
+    latest = await session_manager.latest_for_agent(agent_id)
+    latest_output = latest.latest_output if latest else None
+    latest_session_id = latest.session_id if latest else None
+
+    # Get recent activity logs for this agent's last session
+    activity_context = ""
+    if latest_session_id:
+        conn = await connect_db()
+        try:
+            rows = await fetchall(
+                conn,
+                """SELECT event_type, message, timestamp
+                   FROM activity_logs
+                   WHERE agent_id = ? AND session_id = ?
+                   ORDER BY id ASC LIMIT 50""",
+                (agent_id, latest_session_id),
+            )
+            activity_context = "\n".join(
+                f"[{row['event_type']}] {row['message']}" for row in rows
+            )
+        finally:
+            await conn.close()
+
+    # Build or retrieve conversation
+    conversation = await session_manager.get_or_create_conversation(
+        body.conversation_id, agent_id
+    )
+
+    identity = read_identity(agent_id)
+    skills = read_skills(agent_id)
+
+    output_summary = ""
+    if latest_output:
+        try:
+            output_summary = json.dumps(latest_output, indent=2, default=str)[:3000]
+        except Exception:
+            output_summary = str(latest_output)[:3000]
+
+    system_prompt = (
+        f"{identity}\n\n"
+        f"Your skills and procedures:\n{skills}\n\n"
+        f"You just completed a run. Here is a summary of what you did:\n"
+        f"{output_summary or 'No recent run data.'}\n\n"
+        f"Activity log from your last run:\n{activity_context[:2000]}\n\n"
+        f"Answer the user's question about your work. Be specific and reference actual data "
+        f"from your run (invoice numbers, amounts, vendor names, customer names, decisions made). "
+        f"If you flagged an exception, explain why. If you matched an invoice, explain the logic. "
+        f"Be conversational and helpful."
+    )
+
+    messages = [{"role": "system", "content": system_prompt}]
+    # Add conversation history
+    for msg in conversation.messages[-6:]:
+        messages.append(msg)
+    messages.append({"role": "user", "content": body.message})
+
+    response_text = await llm_chat(
+        messages, temperature=0.3, max_tokens=600
+    )
+
+    conversation.append_message("user", body.message)
+    conversation.append_message("assistant", response_text)
+
+    return {
+        "response": response_text,
+        "conversation_id": conversation.conversation_id,
     }
 
 

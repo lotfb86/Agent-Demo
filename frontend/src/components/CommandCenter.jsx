@@ -135,7 +135,8 @@ export default function CommandCenter() {
                             </span>
                           </div>
 
-                          <p className="mt-3 text-sm text-rpmx-steel">
+                          <p className="mt-1 text-[10px] text-rpmx-steel/70">{agent.tool_count || 0} tools connected</p>
+                          <p className="mt-2 text-sm text-rpmx-steel">
                             {agent.current_activity}
                             {isWorking && <span className="ml-1 animate-pulse">...</span>}
                           </p>
@@ -147,7 +148,7 @@ export default function CommandCenter() {
                             ) : (
                               <span className="text-[10px] text-rpmx-steel/60">Not yet run</span>
                             )}</span>
-                            <span className="font-mono">${Number(agent.cost_today || 0).toFixed(2)} today</span>
+                            <span className="font-mono">${Number(agent.cost_today || 0).toFixed(2)}</span>
                           </div>
                         </button>
                       )

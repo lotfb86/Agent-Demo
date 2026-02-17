@@ -1403,7 +1403,7 @@ async def run_ar_followup(conn, emitter: EventEmitter) -> dict[str, Any]:
     )
     await asyncio.sleep(0.2)
 
-    model_plan = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id=agent_id,
         objective=(
             "Choose AR follow-up actions for each account. "
@@ -1427,6 +1427,8 @@ async def run_ar_followup(conn, emitter: EventEmitter) -> dict[str, Any]:
             },
         ),
     )
+    model_plan = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
     actions = model_plan.get("actions")
     if not isinstance(actions, list):
@@ -1575,7 +1577,7 @@ async def run_financial_reporting(conn, emitter: EventEmitter) -> dict[str, Any]
     await emitter.emit_tool_call("generate_report", {"prompts": 3, "scope": "Excavation + company-wide"})
     await asyncio.sleep(0.1)
 
-    report = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="financial_reporting",
         objective=(
             "Generate conversational financial-report outputs in strict JSON. "
@@ -1591,6 +1593,8 @@ async def run_financial_reporting(conn, emitter: EventEmitter) -> dict[str, Any]
         temperature=0.1,
         validator=validate_financial_report,
     )
+    report = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
     conversation = report.get("conversation", [])
     for idx, item in enumerate(conversation):
@@ -1706,7 +1710,7 @@ async def run_financial_query(
             f"{m['role'].upper()}: {m['content']}" for m in conversation.messages[-6:]
         )
 
-    intent_result = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="financial_reporting",
         objective=(
             "Classify the user's financial query and extract parameters.\n"
@@ -1736,6 +1740,8 @@ async def run_financial_query(
         max_tokens=400,
         temperature=0.0,
     )
+    intent_result = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
     intent = intent_result.get("intent", "custom_query")
     division = intent_result.get("division")
@@ -1805,7 +1811,7 @@ async def run_financial_query(
     if "summary" in payload:
         report_context["summary"] = payload["summary"]
 
-    report_data = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="financial_reporting",
         objective=(
             f"The user asked: \"{user_message}\"\n"
@@ -1825,6 +1831,8 @@ async def run_financial_query(
         max_tokens=1800,
         temperature=0.1,
     )
+    report_data = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
     await emitter.emit_tool_result(
         "aggregate_results",
@@ -1877,7 +1885,7 @@ async def run_vendor_compliance(conn, emitter: EventEmitter) -> dict[str, Any]:
     )
     await asyncio.sleep(0.2)
 
-    model_plan = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="vendor_compliance",
         objective=(
             "Scan vendor compliance and return JSON with key findings (array). "
@@ -1890,6 +1898,9 @@ async def run_vendor_compliance(conn, emitter: EventEmitter) -> dict[str, Any]:
         temperature=0.1,
         validator=validate_vendor_compliance_findings,
     )
+    model_plan = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
+
     findings = model_plan.get("findings")
     if not isinstance(findings, list):
         raise RuntimeError("vendor_compliance: model output missing findings[]")
@@ -1989,7 +2000,7 @@ async def run_schedule_optimizer(conn, emitter: EventEmitter) -> dict[str, Any]:
     await emitter.emit_tool_call("optimize_routes", {"algorithm": "proximity_cluster", "jobs": len(jobs)})
     await asyncio.sleep(0.1)
 
-    result = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="schedule_optimizer",
         objective=(
             "Optimize crew assignments and routes. Return JSON with keys: "
@@ -2001,6 +2012,8 @@ async def run_schedule_optimizer(conn, emitter: EventEmitter) -> dict[str, Any]:
         temperature=0.1,
         validator=validate_schedule_output,
     )
+    result = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
     assignments = result.get("assignments", {})
     for crew_id, job_ids in assignments.items():
@@ -2092,7 +2105,7 @@ async def run_progress_tracking(conn, emitter: EventEmitter) -> dict[str, Any]:
     await emitter.emit_tool_call("generate_dashboard", {"projects": len(projects)})
     await asyncio.sleep(0.15)
 
-    model_plan = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="progress_tracking",
         objective=(
             "Analyze construction project progress data and return a JSON dashboard report. Include:\n"
@@ -2114,6 +2127,9 @@ async def run_progress_tracking(conn, emitter: EventEmitter) -> dict[str, Any]:
         temperature=0.1,
         validator=validate_progress_findings,
     )
+    model_plan = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
+
     findings = model_plan.get("findings")
     if not isinstance(findings, list):
         raise RuntimeError("progress_tracking: model output missing findings[]")
@@ -2166,7 +2182,7 @@ async def run_maintenance_scheduler(conn, emitter: EventEmitter) -> dict[str, An
     )
     await asyncio.sleep(0.2)
 
-    model_plan = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="maintenance_scheduler",
         objective=(
             "Analyze equipment maintenance records and return JSON with key issues (array). "
@@ -2177,6 +2193,9 @@ async def run_maintenance_scheduler(conn, emitter: EventEmitter) -> dict[str, An
         temperature=0.1,
         validator=validate_maintenance_issues,
     )
+    model_plan = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
+
     issues = model_plan.get("issues")
     if not isinstance(issues, list):
         raise RuntimeError("maintenance_scheduler: model output missing issues[]")
@@ -2251,7 +2270,7 @@ async def run_training_compliance(conn, emitter: EventEmitter) -> dict[str, Any]
     )
     await asyncio.sleep(0.2)
 
-    model_plan = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="training_compliance",
         objective=(
             "Review employee certification compliance. Return JSON with key issues (array). "
@@ -2262,6 +2281,9 @@ async def run_training_compliance(conn, emitter: EventEmitter) -> dict[str, Any]
         temperature=0.1,
         validator=validate_training_issues,
     )
+    model_plan = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
+
     issues = model_plan.get("issues")
     if not isinstance(issues, list):
         raise RuntimeError("training_compliance: model output missing issues[]")
@@ -2344,7 +2366,7 @@ async def run_onboarding(conn, emitter: EventEmitter) -> dict[str, Any]:
     await emitter.emit_tool_call("run_onboarding_workflow", {"hire": hire_name})
     await asyncio.sleep(0.1)
 
-    plan = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="onboarding",
         objective=(
             "Create onboarding workflow output. Return JSON with keys: "
@@ -2363,6 +2385,8 @@ async def run_onboarding(conn, emitter: EventEmitter) -> dict[str, Any]:
         temperature=0.1,
         validator=validate_onboarding_plan,
     )
+    plan = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
     hire = plan.get("hire")
     checklist = plan.get("checklist")
@@ -2553,7 +2577,7 @@ async def run_cost_estimator(conn, emitter: EventEmitter) -> dict[str, Any]:
     await asyncio.sleep(0.15)
 
     # --- LLM call to produce the full structured estimate ---
-    result = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="cost_estimator",
         objective=(
             "Build a detailed construction cost estimate. The data includes scope_items with "
@@ -2579,6 +2603,8 @@ async def run_cost_estimator(conn, emitter: EventEmitter) -> dict[str, Any]:
         temperature=0.1,
         validator=validate_cost_estimate,
     )
+    result = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
     grand_total = result.get("grand_total", 0)
     await emitter.emit_tool_result(
@@ -2634,7 +2660,7 @@ async def run_inquiry_router(conn, emitter: EventEmitter) -> dict[str, Any]:
     await emitter.emit_tool_call("route_inquiries", {"emails": len(emails)})
     await asyncio.sleep(0.1)
 
-    plan = await llm_json_response(
+    _llm = await llm_json_response(
         agent_id="inquiry_router",
         objective=(
             "Route customer inquiries. Return JSON with key routes (array). "
@@ -2645,6 +2671,9 @@ async def run_inquiry_router(conn, emitter: EventEmitter) -> dict[str, Any]:
         temperature=0.1,
         validator=validate_inquiry_routes,
     )
+    plan = _llm.data
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
+
     routes = plan.get("routes")
     if not isinstance(routes, list):
         raise RuntimeError("inquiry_router: model output missing routes[]")
@@ -2754,6 +2783,9 @@ async def run_agent_session(agent_id: str, session_id: str) -> RunResult:
         runner = RUNNERS[agent_id]
         output = await runner(conn, emitter)
 
+        tasks_completed = infer_completed_tasks(output)
+        cost_per_unit = round(emitter.total_cost / max(tasks_completed, 1), 6)
+
         await emitter.emit(
             "complete",
             {
@@ -2761,14 +2793,16 @@ async def run_agent_session(agent_id: str, session_id: str) -> RunResult:
                 "output": output,
                 "metrics": {
                     "cost": round(emitter.total_cost, 6),
+                    "raw_cost": round(emitter.total_raw_cost, 6),
+                    "multiplier": emitter._multiplier,
                     "input_tokens": emitter.total_input_tokens,
                     "output_tokens": emitter.total_output_tokens,
+                    "units_processed": tasks_completed,
+                    "cost_per_unit": cost_per_unit,
                 },
             },
             message=f"{agent_id} completed run",
         )
-
-        tasks_completed = infer_completed_tasks(output)
         await update_agent_status(
             conn,
             agent_id,

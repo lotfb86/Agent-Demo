@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { apiGet, apiPost, apiPut, wsUrl } from '../api'
 import ArtifactRenderer from './ArtifactRenderer'
 
-const TABS = ['work', 'review', 'comms']
-const FINANCIAL_TABS = ['work', 'history', 'comms']
+const TABS = ['work', 'review', 'comms', 'chat', 'training', 'profile']
+const FINANCIAL_TABS = ['work', 'history', 'comms', 'chat', 'training', 'profile']
 
 const TOOL_LABELS = {
   // PO Match
@@ -66,6 +66,97 @@ const TOOL_LABELS = {
   load_inquiry_emails: 'Loading Inbox',
   route_inquiries: 'Routing Inquiries',
   route_email: 'Routing Email',
+  // Generic / additional
+  llm_analysis: 'LLM Analysis',
+  classify_intent: 'Classifying Intent',
+  classify_inquiry: 'Classifying Inquiry',
+  send_collection_email: 'Sending Collection Email',
+  create_internal_task: 'Creating Internal Task',
+  send_renewal_request: 'Sending Renewal Request',
+  create_compliance_task: 'Creating Compliance Task',
+  load_project_data: 'Loading Project Data',
+  analyze_project_health: 'Analyzing Project Health',
+  track_project_health: 'Tracking Project Health',
+  schedule_maintenance: 'Scheduling Maintenance',
+  send_welcome_email: 'Sending Welcome Email',
+  apply_labor_rates: 'Applying Labor Rates',
+}
+
+const TOOL_DESCRIPTIONS = {
+  // PO Match
+  read_invoice: 'Extract vendor, amount, PO reference, and line items from PDF invoice',
+  search_purchase_orders: 'Find matching POs by number, vendor name, or amount',
+  select_po: 'Choose the best-matching purchase order for an invoice',
+  check_duplicate: 'Verify no other invoice already matched to this PO',
+  assign_coding: 'Assign GL account code and job ID to the invoice',
+  mark_complete: 'Mark invoice as successfully matched',
+  post_to_vista: 'Post approved invoice to Vista ERP system',
+  flag_exception: 'Route invoice to human review queue with reason',
+  get_project_details: 'Look up project manager and job details',
+  send_notification: 'Email stakeholder about invoice status or variance',
+  complete_invoice: 'Finalize invoice processing with confidence score',
+  // AR Follow-Up
+  scan_ar_aging: 'Load aging buckets and identify overdue accounts',
+  determine_action: 'Choose collection action based on aging tier',
+  send_collection_email: 'Send polite or firm reminder email to customer',
+  create_internal_task: 'Create follow-up task for internal team',
+  escalate_account: 'Move account to collections queue',
+  // Financial Reporting
+  classify_intent: 'Determine report type from user request',
+  connect_vista_api: 'Establish connection to Vista accounting system',
+  query_financial_data: 'Pull GL records for the requested period',
+  aggregate_results: 'Summarize financial data by division or category',
+  generate_report: 'Build structured P&L or expense report',
+  compile_narrative: 'Write executive summary with margin analysis',
+  load_financial_data: 'Load raw financial data from Vista export',
+  // Vendor Compliance
+  scan_vendor_records: 'Load all vendor documents and expiry dates',
+  check_vendor: 'Audit one vendor for insurance, W-9, and contract status',
+  send_renewal_request: 'Email vendor requesting updated documents',
+  create_compliance_task: 'Create compliance remediation or renewal task',
+  // Schedule Optimizer
+  load_dispatch_data: 'Load job locations, crew skills, and yard position',
+  optimize_routes: 'Calculate optimal crew-to-job assignments by proximity',
+  assign_crew: 'Finalize and save crew route assignments',
+  // Progress Tracking
+  load_project_data: 'Load budget, schedule, and completion data per project',
+  analyze_project_health: 'Compare burn rate to completion percentage',
+  track_project_health: 'Flag at-risk projects with recommendations',
+  // Maintenance Scheduler
+  scan_maintenance_records: 'Load fleet service history and due dates',
+  inspect_unit: 'Check one unit for overdue or upcoming maintenance',
+  schedule_maintenance: 'Create work order with priority and timing',
+  // Training Compliance
+  audit_employee_certifications: 'Load all employee cert records',
+  check_employee: 'Check one employee for OSHA, equipment, and orientation',
+  // Onboarding
+  load_new_hire: 'Load new employee details and requirements',
+  prepare_documents: 'Track required HR documents and completion status',
+  prepare_training: 'Schedule orientation and assign required training',
+  prepare_equipment: 'Assign PPE and equipment needs by role',
+  send_welcome_email: 'Send onboarding notification to hiring manager',
+  // Cost Estimator
+  load_takeoff_data: 'Parse scope quantities from the contract',
+  apply_labor_rates: 'Calculate labor hours and cost per line item',
+  apply_markups: 'Add overhead, profit, contingency, and bond',
+  generate_estimate: 'Produce the final estimate with assumptions',
+  // Inquiry Router
+  classify_inquiry: 'Identify inquiry type and extract key references',
+  route_email: 'Route to correct department with priority and context',
+}
+
+const CHAT_PROMPTS = {
+  po_match: ['Why the exceptions?', 'Match confidence levels', 'Any duplicate POs?'],
+  ar_followup: ['Which accounts were escalated?', 'Why skip retainage?', 'Email tone summary'],
+  financial_reporting: ['Margin trends?', 'Biggest cost driver?', 'Division comparison'],
+  vendor_compliance: ['Which vendors need PO holds?', 'Expiring this week?', 'Missing W-9s?'],
+  schedule_optimizer: ['Drive time saved?', 'Why that crew assignment?', 'Unassigned jobs?'],
+  progress_tracking: ['Which projects at risk?', 'Budget concerns?', 'Schedule slippage?'],
+  maintenance_scheduler: ["What's critical?", 'Overdue inspections?', 'Next scheduled?'],
+  training_compliance: ['Who needs training now?', 'OSHA expirations?', 'New hires missing certs?'],
+  onboarding: ["What's still pending?", 'Equipment needed?', 'Orientation scheduled?'],
+  cost_estimator: ['Break down the estimate', 'What assumptions?', 'Markup percentages?'],
+  inquiry_router: ['How were emails classified?', 'Urgent items?', 'Routing accuracy?'],
 }
 
 function fmtMoney(value) {
@@ -264,18 +355,46 @@ function CommunicationEvent({ event }) {
   )
 }
 
-function CompleteEvent({ event }) {
+const UNIT_LABELS = {
+  po_match: 'invoice',
+  ar_followup: 'account',
+  inquiry_router: 'email',
+  financial_reporting: 'report',
+  vendor_compliance: 'vendor audited',
+  schedule_optimizer: 'route optimized',
+  progress_tracking: 'project analyzed',
+  maintenance_scheduler: 'unit inspected',
+  training_compliance: 'employee checked',
+  onboarding: 'hire onboarded',
+  cost_estimator: 'estimate',
+}
+
+function CompleteEvent({ event, agentId }) {
   const metrics = event.payload?.metrics || {}
-  const cost = Number(metrics.cost || 0).toFixed(2)
+  const totalCost = Number(metrics.cost || 0)
+  const units = metrics.units_processed || 1
+  const costPerUnit = Number(metrics.cost_per_unit || (totalCost / units))
+  const unitLabel = UNIT_LABELS[agentId] || 'item'
+  const unitLabelPlural = units === 1 ? unitLabel : unitLabel + 's'
+  const statusText = `${units} ${unitLabelPlural} processed`
   return (
     <div className="rounded-lg bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 px-3 py-3 text-xs animate-fade-in">
-      <div className="flex items-center gap-2">
-        <IconCheck />
-        <span className="font-semibold text-emerald-800">Run Complete</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <IconCheck />
+          <span className="font-semibold text-emerald-800">Run Complete</span>
+        </div>
+        <span className="text-rpmx-steel">{statusText}</span>
       </div>
-      <p className="mt-1.5 text-rpmx-steel">
-        Cost: ${cost} | Tokens: {metrics.input_tokens || 0} in / {metrics.output_tokens || 0} out
-      </p>
+      <div className="mt-2 flex items-baseline gap-4">
+        <div>
+          <span className="text-rpmx-steel">Cost per {unitLabel}: </span>
+          <b className="text-base text-rpmx-ink">${costPerUnit < 0.01 ? costPerUnit.toFixed(4) : costPerUnit.toFixed(2)}</b>
+        </div>
+        <div className="text-rpmx-steel">
+          Total: <b className="text-rpmx-ink">${totalCost < 0.01 ? totalCost.toFixed(4) : totalCost.toFixed(2)}</b>
+        </div>
+      </div>
     </div>
   )
 }
@@ -447,6 +566,13 @@ export default function AgentWorkspace() {
   const chatScrollRef = useRef(null)
   const isFinancial = agentId === 'financial_reporting'
 
+  // Agent chat state (Phase 3: chat about last run for all agents)
+  const [agentConvoId, setAgentConvoId] = useState(null)
+  const [agentChatMsgs, setAgentChatMsgs] = useState([])
+  const [agentChatInput, setAgentChatInput] = useState('')
+  const [agentChatLoading, setAgentChatLoading] = useState(false)
+  const agentChatRef = useRef(null)
+
   async function loadAgent() {
     const data = await apiGet(`/api/agents/${agentId}`)
     setAgent(data)
@@ -475,6 +601,9 @@ export default function AgentWorkspace() {
       }
     }
     bootstrap()
+    // Reset chat/training state on agent change
+    setAgentChatMsgs([]); setAgentConvoId(null); setAgentChatInput('')
+    setChatLog([]); setPendingSuggestion(''); setTab('work')
     return () => {
       mounted = false
       if (wsRef.current) { wsRef.current.close(); wsRef.current = null }
@@ -492,6 +621,12 @@ export default function AgentWorkspace() {
     if (!node) return
     node.scrollTop = node.scrollHeight
   }, [chatMessages, activity])
+
+  useEffect(() => {
+    const node = agentChatRef.current
+    if (!node) return
+    node.scrollTop = node.scrollHeight
+  }, [agentChatMsgs])
 
   useEffect(() => {
     if (!sessionId) return
@@ -616,6 +751,26 @@ export default function AgentWorkspace() {
       if (result.skills) setSkills(result.skills)
       setChatLog((prev) => [...prev, { role: 'agent', text: 'Training rule applied to skills.md.' }])
     } catch (err) { setError(err.message) }
+  }
+
+  async function sendAgentChat() {
+    if (!agentChatInput.trim() || agentChatLoading) return
+    const message = agentChatInput.trim()
+    setAgentChatMsgs((prev) => [...prev, { role: 'user', content: message }])
+    setAgentChatInput('')
+    setAgentChatLoading(true)
+    try {
+      const data = await apiPost(`/api/agents/${agentId}/ask`, {
+        message,
+        conversation_id: agentConvoId,
+      })
+      setAgentChatMsgs((prev) => [...prev, { role: 'assistant', content: data.response }])
+      if (data.conversation_id) setAgentConvoId(data.conversation_id)
+    } catch (err) {
+      setAgentChatMsgs((prev) => [...prev, { role: 'assistant', content: `Error: ${err.message}` }])
+    } finally {
+      setAgentChatLoading(false)
+    }
   }
 
   async function actReviewItem(itemId, action) {
@@ -770,7 +925,7 @@ export default function AgentWorkspace() {
                             if (ev.type === 'tool_call') return <ToolCallEvent key={item.key} event={ev} />
                             if (ev.type === 'tool_result') return <ToolResultEvent key={item.key} event={ev} />
                             if (ev.type === 'code_block') return <CodeBlockBubble key={item.key} language={ev.payload?.language || 'sql'} code={ev.payload?.code || ''} />
-                            if (ev.type === 'complete') return <CompleteEvent key={item.key} event={ev} />
+                            if (ev.type === 'complete') return <CompleteEvent key={item.key} event={ev} agentId={agentId} />
                             if (ev.type === 'error') return <ErrorEvent key={item.key} event={ev} />
                             return null
                           })}
@@ -847,7 +1002,7 @@ export default function AgentWorkspace() {
                 if (ev.type === 'tool_result') return <ToolResultEvent key={item.key} event={ev} />
                 if (ev.type === 'status_change') return <StatusChangeEvent key={item.key} event={ev} />
                 if (ev.type === 'communication_sent') return <CommunicationEvent key={item.key} event={ev} />
-                if (ev.type === 'complete') return <CompleteEvent key={item.key} event={ev} />
+                if (ev.type === 'complete') return <CompleteEvent key={item.key} event={ev} agentId={agentId} />
                 if (ev.type === 'error') return <ErrorEvent key={item.key} event={ev} />
                 return null
               })}
@@ -952,67 +1107,204 @@ export default function AgentWorkspace() {
               )
             )}
 
-            {tab === 'training' && (
-              <div className="grid gap-3 lg:grid-cols-[1fr_auto]">
-                <div className="space-y-3">
-                  <div className="max-h-[50vh] space-y-2 overflow-auto rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas p-3">
-                    {chatLog.length === 0 && (
-                      <p className="text-sm text-rpmx-steel">
-                        Teach new behavior in plain language. For PO Match, try: &quot;When you find a price variance over $1,000, send an email to the project manager.&quot;
-                      </p>
-                    )}
-                    {chatLog.map((msg, idx) => (
-                      <div key={idx} className={`rounded-lg px-3 py-2 text-sm ${msg.role === 'user' ? 'bg-white' : 'bg-[#fdf4ef]'}`}>
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel">{msg.role}</p>
-                        <p className="mt-0.5">{msg.text}</p>
+            {/* ── CHAT tab: conversation with agent about its work ── */}
+            {tab === 'chat' && (
+              <div className="flex h-full flex-col" style={{ minHeight: '50vh' }}>
+                <div ref={agentChatRef} className="flex-1 space-y-3 overflow-auto p-1">
+                  {agentChatMsgs.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-10">
+                      <div className="rounded-full bg-rpmx-signal/10 p-3 mb-3">
+                        <svg className="h-6 w-6 text-rpmx-signal" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                        </svg>
                       </div>
-                    ))}
-                  </div>
+                      <h3 className="text-sm font-semibold text-rpmx-ink">Ask {agent?.name || 'Agent'}</h3>
+                      <p className="mt-1 text-xs text-rpmx-steel text-center max-w-xs">
+                        Ask questions about this agent&apos;s last run, decisions, and work output.
+                      </p>
+                      <div className="mt-4 flex flex-wrap justify-center gap-2">
+                        {(CHAT_PROMPTS[agentId] || []).map((prompt) => (
+                          <button
+                            key={prompt}
+                            onClick={() => { setAgentChatInput(prompt) }}
+                            className="rounded-full border border-rpmx-signal/30 bg-rpmx-signal/5 px-3 py-1.5 text-xs text-rpmx-signal hover:bg-rpmx-signal/10 transition-colors"
+                          >
+                            {prompt}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {agentChatMsgs.map((msg, idx) => (
+                    msg.role === 'user' ? (
+                      <div key={idx} className="flex justify-end">
+                        <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-rpmx-signal/10 border border-rpmx-signal/20 px-4 py-2.5 text-sm text-rpmx-ink">
+                          {msg.content}
+                        </div>
+                      </div>
+                    ) : (
+                      <div key={idx} className="flex justify-start">
+                        <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-white border border-rpmx-slate/50 px-4 py-2.5 text-sm text-rpmx-ink shadow-sm whitespace-pre-wrap">
+                          {msg.content}
+                        </div>
+                      </div>
+                    )
+                  ))}
+                  {agentChatLoading && <ThinkingIndicator />}
+                </div>
+                <div className="border-t border-rpmx-slate/40 px-1 pt-3 mt-2">
                   <div className="flex gap-2">
                     <input
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && sendTraining(false)}
-                      placeholder="Teach a new procedure..."
-                      className="w-full rounded-lg border border-rpmx-slate px-3 py-2 text-sm focus:border-rpmx-signal focus:outline-none focus:ring-1 focus:ring-rpmx-signal/30"
+                      value={agentChatInput}
+                      onChange={(e) => setAgentChatInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && sendAgentChat()}
+                      placeholder={`Ask ${agent?.name || 'agent'} about its work...`}
+                      disabled={agentChatLoading}
+                      className="w-full rounded-xl border border-rpmx-slate bg-white px-4 py-2.5 text-sm focus:border-rpmx-signal focus:outline-none focus:ring-1 focus:ring-rpmx-signal/30 disabled:opacity-60"
                     />
-                    <button onClick={() => sendTraining(false)} className="rounded-lg border border-rpmx-slate bg-white px-3 py-2 text-sm hover:bg-rpmx-canvas">
-                      Send
+                    <button
+                      onClick={sendAgentChat}
+                      disabled={agentChatLoading || !agentChatInput.trim()}
+                      className="rounded-xl bg-rpmx-signal px-4 py-2.5 text-sm font-semibold text-white hover:brightness-95 disabled:opacity-50 transition-all"
+                    >
+                      Ask
                     </button>
                   </div>
-                </div>
-                <div className="w-full min-w-44 rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas p-3 text-sm">
-                  <p className="font-semibold">Pending Rule</p>
-                  <p className="mt-2 text-xs text-rpmx-steel">{pendingSuggestion || 'No pending suggestion.'}</p>
-                  <button
-                    onClick={applySuggestion}
-                    disabled={!pendingSuggestion}
-                    className="mt-4 w-full rounded-lg bg-rpmx-signal px-3 py-2 text-xs font-semibold text-white disabled:opacity-50 hover:brightness-95 transition-all"
-                  >
-                    Apply to skills.md
-                  </button>
                 </div>
               </div>
             )}
 
-            {tab === 'skills' && (
-              <div className="flex h-full flex-col">
-                <div className="mb-2 flex justify-end">
-                  <button
-                    onClick={async () => {
-                      const data = await apiPut(`/api/agents/${agentId}/skills`, { content: skills })
-                      setSkills(data.skills)
-                    }}
-                    className="rounded-lg border border-rpmx-slate bg-white px-3 py-1 text-xs hover:bg-rpmx-canvas"
-                  >
-                    Save Skills
-                  </button>
+            {/* ── TRAINING tab: coach agent + edit skills ── */}
+            {tab === 'training' && (
+              <div className="flex flex-col" style={{ minHeight: '50vh' }}>
+                <div className="grid gap-4 lg:grid-cols-2 flex-1">
+                  {/* Left: Coaching chat */}
+                  <div className="flex flex-col">
+                    <h4 className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel mb-2">Coach this Agent</h4>
+                    <div className="flex-1 space-y-2 overflow-auto rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas p-3 mb-2" style={{ maxHeight: '40vh' }}>
+                      {chatLog.length === 0 && (
+                        <div className="py-4 text-center">
+                          <p className="text-xs text-rpmx-steel">Teach new behavior in plain language.</p>
+                          <p className="mt-1 text-[10px] text-rpmx-steel/60">
+                            Example: &quot;When you find a price variance over $1,000, send an email to the project manager.&quot;
+                          </p>
+                        </div>
+                      )}
+                      {chatLog.map((msg, idx) => (
+                        <div key={idx} className={`rounded-lg px-3 py-2 text-sm ${msg.role === 'user' ? 'bg-white border border-rpmx-slate/30' : 'bg-[#fdf4ef] border border-orange-100'}`}>
+                          <p className="text-[9px] font-semibold uppercase tracking-wider text-rpmx-steel">{msg.role === 'user' ? 'You' : 'Agent'}</p>
+                          <p className="mt-0.5 text-xs">{msg.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {pendingSuggestion && (
+                      <div className="mb-2 rounded-xl border-2 border-rpmx-signal/40 bg-rpmx-signal/5 p-3">
+                        <p className="text-[9px] font-semibold uppercase tracking-wider text-rpmx-signal">Pending Training Rule</p>
+                        <p className="mt-1 text-xs text-rpmx-ink">{pendingSuggestion}</p>
+                        <div className="mt-2 flex gap-2">
+                          <button onClick={applySuggestion} className="rounded-lg bg-rpmx-signal px-3 py-1.5 text-xs font-semibold text-white hover:brightness-95 transition-all">Apply to Skills</button>
+                          <button onClick={() => setPendingSuggestion('')} className="rounded-lg border border-rpmx-slate bg-white px-3 py-1.5 text-xs hover:bg-rpmx-canvas">Discard</button>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <input
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && sendTraining(false)}
+                        placeholder="Teach a new procedure..."
+                        className="w-full rounded-xl border border-rpmx-slate bg-white px-4 py-2.5 text-sm focus:border-rpmx-signal focus:outline-none focus:ring-1 focus:ring-rpmx-signal/30"
+                      />
+                      <button onClick={() => sendTraining(false)} className="rounded-xl bg-rpmx-signal px-4 py-2.5 text-sm font-semibold text-white hover:brightness-95 transition-all">Send</button>
+                    </div>
+                  </div>
+                  {/* Right: Skills editor */}
+                  <div className="flex flex-col">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel">Skills File</h4>
+                      <button
+                        onClick={async () => {
+                          const data = await apiPut(`/api/agents/${agentId}/skills`, { content: skills })
+                          setSkills(data.skills)
+                        }}
+                        className="rounded-lg border border-rpmx-slate bg-white px-3 py-1 text-xs hover:bg-rpmx-canvas"
+                      >
+                        Save Skills
+                      </button>
+                    </div>
+                    <textarea
+                      value={skills}
+                      onChange={(e) => setSkills(e.target.value)}
+                      className="flex-1 min-h-[40vh] w-full rounded-xl border border-rpmx-slate bg-white p-3 font-mono text-[11px] leading-relaxed focus:border-rpmx-signal focus:outline-none resize-none"
+                    />
+                  </div>
                 </div>
-                <textarea
-                  value={skills}
-                  onChange={(e) => setSkills(e.target.value)}
-                  className="flex-1 min-h-[50vh] w-full rounded-lg border border-rpmx-slate bg-white p-3 font-mono text-xs focus:border-rpmx-signal focus:outline-none"
-                />
+              </div>
+            )}
+
+            {/* ── PROFILE tab: agent identity, tools, skills ── */}
+            {tab === 'profile' && (
+              <div className="space-y-4 overflow-auto" style={{ maxHeight: '70vh' }}>
+                {/* Identity card */}
+                <div className="rounded-xl border border-rpmx-slate/70 bg-gradient-to-r from-indigo-50/50 to-blue-50/50 p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold text-rpmx-ink">{agent?.name}</h3>
+                      <p className="mt-0.5 text-xs text-rpmx-steel">{agent?.department}</p>
+                    </div>
+                    <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-[10px] font-semibold text-indigo-700">{agent?.workspace_type}</span>
+                  </div>
+                  <p className="mt-2 text-xs text-rpmx-ink/80">{agent?.agent_description || 'No description available.'}</p>
+                </div>
+
+                {/* Connected Tools */}
+                <div>
+                  <h4 className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel mb-2">
+                    Connected Tools ({agent?.tools?.length || 0})
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(agent?.tools || []).map((tool) => (
+                      <div key={tool} className="rounded-lg border border-rpmx-slate/50 bg-white px-3 py-2 hover:border-rpmx-signal/30 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <svg className="h-3.5 w-3.5 text-rpmx-signal flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17l-5.384 3.164A1 1 0 015 17.482V6.518a1 1 0 011.036-.852L11.42 8.83m0 6.34l5.964 3.508A1 1 0 0018.5 17.834V6.166a1 1 0 00-1.116-.852L11.42 8.83m0 6.34V8.83" />
+                          </svg>
+                          <span className="text-xs font-semibold text-rpmx-ink">{TOOL_LABELS[tool] || tool.replace(/_/g, ' ')}</span>
+                        </div>
+                        <p className="mt-0.5 text-[10px] text-rpmx-steel leading-snug">{TOOL_DESCRIPTIONS[tool] || ''}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Skills summary */}
+                <div>
+                  <h4 className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel mb-2">Skills & Procedures</h4>
+                  <div className="rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas p-4 text-xs space-y-3">
+                    {(skills || '').split(/\n##\s+/).map((section, idx) => {
+                      if (idx === 0) {
+                        const lines = section.split('\n')
+                        const title = lines[0]?.replace(/^#\s*/, '') || 'Overview'
+                        const body = lines.slice(1).join('\n').trim()
+                        return (
+                          <div key={idx}>
+                            <h5 className="font-semibold text-rpmx-ink">{title}</h5>
+                            {body && <p className="mt-1 text-rpmx-steel whitespace-pre-wrap leading-relaxed">{body}</p>}
+                          </div>
+                        )
+                      }
+                      const lines = section.split('\n')
+                      const heading = lines[0]?.trim()
+                      const body = lines.slice(1).join('\n').trim()
+                      return (
+                        <div key={idx} className="pt-2 border-t border-rpmx-slate/30">
+                          <h5 className="font-semibold text-rpmx-ink">{heading}</h5>
+                          {body && <p className="mt-1 text-rpmx-steel whitespace-pre-wrap leading-relaxed">{body}</p>}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
