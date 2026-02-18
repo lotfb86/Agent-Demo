@@ -32,6 +32,7 @@ INSERT INTO gl_accounts (code, name, type, category) VALUES
   ('5500', 'Fuel & Lubricants', 'Expense', 'COGS — Direct'),
   ('5600', 'Hauling & Trucking', 'Expense', 'COGS — Direct'),
   ('5700', 'Permits & Fees', 'Expense', 'COGS — Direct'),
+  ('5800', 'Equipment Maintenance', 'Expense', 'COGS — Direct'),
   ('6100', 'Salaries — Office', 'Expense', 'Operating'),
   ('6200', 'Benefits & Insurance', 'Expense', 'Operating'),
   ('6300', 'Rent & Utilities', 'Expense', 'Operating'),

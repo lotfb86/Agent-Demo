@@ -155,6 +155,16 @@ class EventEmitter:
     async def emit_reasoning(self, text: str) -> None:
         await self.emit("reasoning", {"text": text}, message=text)
 
+    async def emit_thinking(self, text: str) -> None:
+        """Lightweight thinking event — streams to frontend only (no DB persist, no token cost)."""
+        event = {
+            "type": "thinking",
+            "payload": {"text": text},
+            "session_id": self.session_id,
+            "timestamp": utc_now(),
+        }
+        await session_manager.append_event(self.session_id, event)
+
     async def emit_tool_call(self, tool_name: str, args: dict[str, Any]) -> None:
         await self.emit("tool_call", {"tool": tool_name, "args": args}, message=f"Tool call: {tool_name}")
 
@@ -410,6 +420,7 @@ async def llm_json_response(
     max_tokens: int = 1200,
     temperature: float = 0.1,
     validator: Optional[Callable[[dict[str, Any]], list[str]]] = None,
+    model: Optional[str] = None,
 ) -> LLMResult:
     """Call the LLM to produce structured JSON. Returns LLMResult with accumulated real token usage."""
     if not llm_enabled():
@@ -423,7 +434,7 @@ async def llm_json_response(
 
     async def _tracked_chat(messages, *, temp=0.2, mtokens=max_tokens) -> str:
         nonlocal _acc_prompt, _acc_completion
-        resp = await llm_chat_with_usage(messages, temperature=temp, max_tokens=mtokens)
+        resp = await llm_chat_with_usage(messages, temperature=temp, max_tokens=mtokens, model=model)
         _acc_prompt += resp.prompt_tokens
         _acc_completion += resp.completion_tokens
         return resp.text
@@ -645,28 +656,51 @@ def validate_ar_single_account(payload: dict[str, Any]) -> list[str]:
 
 
 def validate_financial_report(payload: dict[str, Any]) -> list[str]:
+    """Validate batch-mode financial report (executive dashboard with sections)."""
     errors: list[str] = []
-    expected_prompts = [
-        "Pull me a P&L for the Excavation division for January 2026.",
-        "How does that compare to January last year?",
-        "Combine all divisions and give me a company-wide summary for Q4 2025.",
-    ]
-    conversation = payload.get("conversation")
-    if not isinstance(conversation, list) or len(conversation) != 3:
-        errors.append("conversation must be an array with exactly 3 entries")
+    if not _is_non_empty_string(payload.get("report_title")):
+        errors.append("report_title is required")
+    sections = payload.get("sections")
+    if not isinstance(sections, list) or len(sections) < 1:
+        errors.append("sections must be a non-empty array")
     else:
-        for idx, row in enumerate(conversation):
-            if not isinstance(row, dict):
-                errors.append(f"conversation[{idx}] must be object")
+        valid_types = {"kpi_grid", "table", "chart", "narrative"}
+        for idx, sec in enumerate(sections):
+            if not isinstance(sec, dict):
+                errors.append(f"sections[{idx}] must be object")
                 continue
-            if not _is_non_empty_string(row.get("prompt")):
-                errors.append(f"conversation[{idx}].prompt is required")
-            elif str(row.get("prompt")).strip() != expected_prompts[idx]:
-                errors.append(f"conversation[{idx}].prompt must match demo prompt")
-            if row.get("result") is None:
-                errors.append(f"conversation[{idx}].result is required")
-    if not _is_non_empty_string(payload.get("narrative")):
-        errors.append("narrative is required")
+            stype = sec.get("type")
+            if stype not in valid_types:
+                errors.append(f"sections[{idx}].type must be one of {valid_types}")
+            if stype == "table":
+                if not isinstance(sec.get("columns"), list):
+                    errors.append(f"sections[{idx}] table needs columns array")
+                if not isinstance(sec.get("rows"), list):
+                    errors.append(f"sections[{idx}] table needs rows array")
+            elif stype == "chart":
+                if not sec.get("chart_type"):
+                    errors.append(f"sections[{idx}] chart needs chart_type")
+                if not isinstance(sec.get("data"), dict):
+                    errors.append(f"sections[{idx}] chart needs data object")
+            elif stype == "narrative":
+                if not _is_non_empty_string(sec.get("content")):
+                    errors.append(f"sections[{idx}] narrative needs content")
+            elif stype == "kpi_grid":
+                if not isinstance(sec.get("metrics"), list):
+                    errors.append(f"sections[{idx}] kpi_grid needs metrics array")
+    return errors
+
+
+def validate_financial_query_report(payload: dict[str, Any]) -> list[str]:
+    """Validate chat-mode financial query report (same sections schema)."""
+    errors: list[str] = []
+    if not _is_non_empty_string(payload.get("report_title")):
+        errors.append("report_title is required")
+    if not _is_non_empty_string(payload.get("response_text")):
+        errors.append("response_text is required")
+    sections = payload.get("sections")
+    if not isinstance(sections, list) or len(sections) < 1:
+        errors.append("sections must be a non-empty array")
     return errors
 
 
@@ -750,19 +784,16 @@ def validate_schedule_output(payload: dict[str, Any]) -> list[str]:
 
 
 def validate_progress_findings(payload: dict[str, Any]) -> list[str]:
+    """Legacy validator kept for backward compatibility."""
+    return validate_progress_report(payload)
+
+
+def validate_progress_report(payload: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    # KPI summary
-    kpi = payload.get("kpi_summary")
-    if not isinstance(kpi, dict):
-        errors.append("kpi_summary must be object")
-    else:
-        for field in ["total_budget", "total_spent", "on_track_count", "at_risk_count"]:
-            if not _is_number(kpi.get(field)):
-                errors.append(f"kpi_summary.{field} must be numeric")
     # Findings
     findings = payload.get("findings")
     if not isinstance(findings, list):
-        return errors + ["findings must be an array"]
+        return ["findings must be an array"]
     for idx, row in enumerate(findings):
         if not isinstance(row, dict):
             errors.append(f"findings[{idx}] must be object")
@@ -773,16 +804,16 @@ def validate_progress_findings(payload: dict[str, Any]) -> list[str]:
             errors.append(f"findings[{idx}].project_name is required")
         if not _is_non_empty_string(row.get("finding")):
             errors.append(f"findings[{idx}].finding is required")
-        if not _is_non_empty_string(row.get("message")):
-            errors.append(f"findings[{idx}].message is required")
+        if not _is_non_empty_string(row.get("executive_summary")):
+            errors.append(f"findings[{idx}].executive_summary is required")
+        if not _is_non_empty_string(row.get("root_cause_analysis")):
+            errors.append(f"findings[{idx}].root_cause_analysis is required")
         if not isinstance(row.get("create_task"), bool):
             errors.append(f"findings[{idx}].create_task must be boolean")
-        # New dashboard fields
-        for num_field in ["budget_total", "actual_spent"]:
-            if not _is_number(row.get(num_field)):
-                errors.append(f"findings[{idx}].{num_field} must be numeric")
         if not _is_non_empty_string(row.get("status_color")):
             errors.append(f"findings[{idx}].status_color is required (green/amber/red)")
+        if not _is_non_empty_string(row.get("recommendation")):
+            errors.append(f"findings[{idx}].recommendation is required")
     return errors
 
 
@@ -915,6 +946,88 @@ def validate_cost_estimate(payload: dict[str, Any]) -> list[str]:
     if not isinstance(payload.get("exclusions"), list):
         errors.append("exclusions must be an array")
     return errors
+
+
+def validate_cost_category(payload: dict[str, Any]) -> list[str]:
+    """Validate a single category pricing result from the LLM."""
+    errors: list[str] = []
+    if not _is_non_empty_string(payload.get("category")):
+        errors.append("category is required")
+    line_items = payload.get("line_items")
+    if not isinstance(line_items, list) or len(line_items) == 0:
+        errors.append("line_items must be non-empty array")
+    else:
+        for idx, li in enumerate(line_items):
+            if not isinstance(li, dict):
+                errors.append(f"line_items[{idx}] must be object")
+                continue
+            if not _is_non_empty_string(li.get("item")):
+                errors.append(f"line_items[{idx}].item is required")
+            for field in ["labor_cost", "material_cost", "equipment_cost", "subtotal"]:
+                if not _is_number(li.get(field)):
+                    errors.append(f"line_items[{idx}].{field} must be numeric")
+    if not _is_number(payload.get("category_subtotal")):
+        errors.append("category_subtotal must be numeric")
+    return errors
+
+
+def validate_proposal_narrative(payload: dict[str, Any]) -> list[str]:
+    """Validate the proposal narrative LLM output."""
+    errors: list[str] = []
+    if not _is_non_empty_string(payload.get("scope_narrative")):
+        errors.append("scope_narrative is required")
+    if not isinstance(payload.get("assumptions"), list) or len(payload.get("assumptions", [])) < 4:
+        errors.append("assumptions must have at least 4 items")
+    if not isinstance(payload.get("exclusions"), list) or len(payload.get("exclusions", [])) < 3:
+        errors.append("exclusions must have at least 3 items")
+    if not _is_non_empty_string(payload.get("schedule_statement")):
+        errors.append("schedule_statement is required")
+    if not _is_non_empty_string(payload.get("validity_statement")):
+        errors.append("validity_statement is required")
+    return errors
+
+
+async def cost_estimate_price_category(
+    *,
+    agent_id: str,
+    category: str,
+    items: list[dict[str, Any]],
+    cost_db: dict[str, Any],
+    category_index: int,
+    total_categories: int,
+    model: Optional[str] = None,
+) -> LLMResult:
+    """Ask the LLM to price one category of takeoff items against cost rates."""
+    category_costs = cost_db.get(category, {})
+
+    objective = (
+        f"Price the '{category}' section of a construction takeoff (category {category_index} "
+        f"of {total_categories}). For each item, use the rates from the cost database and calculate: "
+        f"labor_cost = quantity × labor_rate, "
+        f"material_cost = quantity × material_rate, "
+        f"equipment_cost = quantity × equipment_rate, "
+        f"subtotal = labor_cost + material_cost + equipment_cost. "
+        f"Return JSON with keys: "
+        f"category (string '{category}'), "
+        f"line_items (array of objects with: item, quantity, unit, labor_cost, material_cost, "
+        f"equipment_cost, subtotal), "
+        f"category_subtotal (sum of all subtotals), "
+        f"category_notes (1-2 sentences about key cost considerations for this scope category)."
+    )
+
+    return await llm_json_response(
+        agent_id=agent_id,
+        objective=objective,
+        context_payload={
+            "category": category,
+            "items": items,
+            "cost_rates": category_costs,
+        },
+        max_tokens=1500,
+        temperature=0.1,
+        validator=validate_cost_category,
+        model=model,
+    )
 
 
 def validate_inquiry_routes(payload: dict[str, Any]) -> list[str]:
@@ -1615,102 +1728,290 @@ async def run_ar_followup(conn, emitter: EventEmitter) -> dict[str, Any]:
 
 
 async def run_financial_reporting(conn, emitter: EventEmitter) -> dict[str, Any]:
+    """Batch mode: Generate an Executive Dashboard report with sections."""
     payload = await load_json("financial_reporting.json")
+    gl_records = payload.get("monthly_gl", [])
 
     await emitter.emit_reasoning(
-        "Loading financial data including P&L statements across all divisions. "
-        "I need to generate three conversational report responses and an executive narrative."
+        "Loading financial data for RPMX Construction Group ($850M annual revenue). "
+        "Generating executive dashboard with KPIs, P&L summary, and division performance."
     )
     await asyncio.sleep(0.3)
 
-    await emitter.emit_tool_call("load_financial_data", {"divisions": list(payload.get("divisions", {}).keys()) if isinstance(payload.get("divisions"), dict) else []})
+    divisions = list(DIVISION_NAMES.keys())
+    await emitter.emit_tool_call("load_financial_data", {"divisions": divisions})
     await asyncio.sleep(0.2)
-
     await emitter.emit_tool_result(
         "load_financial_data",
-        {"status": "loaded"},
-        "Loaded P&L data for all divisions across multiple periods.",
+        {"status": "loaded", "gl_records": len(gl_records)},
+        f"Loaded {len(gl_records)} GL records across {len(divisions)} divisions.",
     )
     await asyncio.sleep(0.2)
 
+    # Pre-compute data for the dashboard
+    q4_records = _filter_gl(gl_records, None, "2025-10", "2025-12")
+    company_pnl = _compute_pnl(q4_records)
+    q_trend = _quarterly_trend(gl_records, "gross_margin")
+    rev_trend = _quarterly_trend(gl_records, "revenue")
+
+    div_performance = {}
+    for d in DIVISION_NAMES:
+        d_recs = _filter_gl(gl_records, d, "2025-10", "2025-12")
+        d_pnl = _compute_pnl(d_recs)
+        div_performance[DIVISION_NAMES[d]] = {
+            "revenue": d_pnl["revenue"],
+            "gross_margin_pct": d_pnl["gross_margin_pct"],
+            "net_margin_pct": d_pnl["net_margin_pct"],
+        }
+
+    ar = payload.get("ar_aging_snapshot", [])
+    bl = payload.get("backlog", [])
+    cf = payload.get("cash_flow", [])
+    targets = payload.get("kpi_targets", {})
+    monthly_rev = company_pnl["revenue"] / 3
+
+    computed_data = {
+        "company_pnl": company_pnl,
+        "division_performance": div_performance,
+        "quarterly_margin_trend": q_trend,
+        "quarterly_revenue_trend": rev_trend,
+        "kpis": {
+            "q4_revenue": company_pnl["revenue"],
+            "gross_margin_pct": company_pnl["gross_margin_pct"],
+            "net_margin_pct": company_pnl["net_margin_pct"],
+            "overhead_ratio": _compute_overhead_ratio(q4_records),
+            "dso": _compute_dso(ar, monthly_rev),
+            "total_backlog": sum(b["contracted_backlog"] for b in bl),
+            "cash_balance": cf[-1]["ending_cash_balance"] if cf else 0,
+        },
+        "targets": targets,
+    }
+
     await emitter.emit_reasoning(
-        "Step 1: Generating Excavation division P&L for January 2026. "
-        "Step 2: Comparing against January 2025 year-over-year. "
-        "Step 3: Consolidating all divisions for Q4 2025 company-wide summary."
+        "Computing Q4 2025 P&L, division performance, margin trends, "
+        "and key performance indicators."
     )
     await asyncio.sleep(0.3)
 
-    await emitter.emit_tool_call("generate_report", {"prompts": 3, "scope": "Excavation + company-wide"})
+    await emitter.emit_tool_call("generate_report", {"type": "executive_dashboard", "period": "Q4 2025"})
     await asyncio.sleep(0.1)
 
     _llm = await llm_json_response(
         agent_id="financial_reporting",
         objective=(
-            "Generate conversational financial-report outputs in strict JSON. "
-            "Return keys: conversation (array length 3) and narrative (string). "
-            "Conversation prompts MUST be exactly:\n"
-            "1) Pull me a P&L for the Excavation division for January 2026.\n"
-            "2) How does that compare to January last year?\n"
-            "3) Combine all divisions and give me a company-wide summary for Q4 2025.\n"
-            "Each conversation item must include prompt and result. Keep results concise but complete."
+            "Generate an Executive Dashboard report for RPMX Construction Group, Q4 2025.\n"
+            "You have been given pre-computed financial data. Numbers MUST exactly match.\n\n"
+            "Return strict JSON with these keys:\n"
+            "- report_title: 'Executive Dashboard — Q4 2025'\n"
+            "- report_type: 'kpi_dashboard'\n"
+            "- sections: array of 4 sections:\n"
+            "  1. kpi_grid: 6-8 key metrics (revenue, gross margin, net margin, overhead ratio, DSO, backlog, cash balance)\n"
+            "  2. table: Division Performance table with columns: Division, Revenue, Gross Margin %, Net Margin %\n"
+            "  3. chart: line chart of quarterly gross margin trend\n"
+            "  4. narrative: Executive summary paragraph highlighting performance, trends, and concerns\n"
+            "- division_name: 'Company-Wide'\n"
+            "- period_label: 'Q4 2025'\n\n"
+            "Currency values should be raw numbers. Percent values like 18.5 (not 0.185).\n"
+            "The narrative should sound like a CFO briefing — professional, insightful, action-oriented."
         ),
-        context_payload=payload,
-        max_tokens=2400,
+        context_payload=computed_data,
+        max_tokens=3000,
         temperature=0.1,
         validator=validate_financial_report,
     )
     report = _llm.data
-    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "Dashboard generated"}, message="Dashboard generated", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
-    conversation = report.get("conversation", [])
-    for idx, item in enumerate(conversation):
-        prompt_text = item.get("prompt", f"Report query {idx + 1}")
-        await emitter.emit_reasoning(f"Report {idx + 1} of 3: \"{prompt_text}\"")
-        await asyncio.sleep(0.2)
-        await emitter.emit_tool_result(
-            "generate_report",
-            {"prompt": prompt_text, "result": item.get("result", "")},
-            f"Generated response for: {prompt_text[:60]}",
-        )
-        await asyncio.sleep(0.15)
-
-    if report.get("narrative"):
-        await emitter.emit_reasoning("Compiling executive narrative summary across all report queries.")
-        await asyncio.sleep(0.15)
-        await emitter.emit_tool_result(
-            "compile_narrative",
-            {"narrative": report["narrative"]},
-            "Compiled executive narrative summary.",
-        )
+    await emitter.emit_tool_result(
+        "generate_report",
+        {"report_type": "kpi_dashboard"},
+        "Executive Dashboard generated.",
+    )
 
     return report
 
 
 # ---------------------------------------------------------------------------
-# Financial Reporting — Chat-driven query handler
+# Financial Reporting — Chat-driven query handler (v2 — sections-based)
 # ---------------------------------------------------------------------------
 
 DIVISION_NAMES = {
-    "EX": "Excavation", "RC": "Road Construction", "SD": "Site Development",
-    "LM": "Landscaping Maintenance", "RW": "Retaining Walls",
+    "EX": "Excavation & Earthwork",
+    "RC": "Road & Highway Construction",
+    "SD": "Site Development",
+    "LM": "Landscape & Maintenance",
+    "RW": "Retaining Walls & Structures",
 }
-GL_DESCRIPTIONS = {
-    "4100": "Contract Revenue", "4200": "Service Revenue",
-    "5100": "Materials", "5200": "Equipment Rental", "5300": "Subcontractor",
-    "5400": "Direct Labor", "5500": "Fuel", "5600": "Hauling",
-    "6100": "Office Expenses", "6200": "Insurance", "6300": "Vehicle/Fleet",
-    "6400": "IT & Software", "6500": "Professional Fees", "6600": "Misc Expenses",
+DIVISION_SHORT = {
+    "EX": "Excavation", "RC": "Roads", "SD": "Site Dev",
+    "LM": "Landscape", "RW": "Walls",
+}
+GL_CATEGORIES = {
+    "revenue": ["4100", "4200", "4300"],
+    "cogs": ["5100", "5200", "5300", "5400", "5500", "5600", "5700", "5800"],
+    "opex": ["6100", "6200", "6300", "6400", "6500", "6600"],
+}
+GL_DESCRIPTIONS: dict[str, str] = {
+    "4100": "Contract Revenue", "4200": "Service Revenue", "4300": "Change Order Revenue",
+    "5100": "Materials", "5200": "Equipment Rental", "5300": "Subcontractor Costs",
+    "5400": "Direct Labor", "5500": "Fuel & Lubricants", "5600": "Hauling & Freight",
+    "5700": "Permits & Fees", "5800": "Equipment Maintenance",
+    "6100": "Office & Admin", "6200": "Insurance", "6300": "Vehicle & Fleet",
+    "6400": "IT & Software", "6500": "Professional Fees", "6600": "Depreciation",
 }
 
 
-def _filter_monthly_records(records: list[dict], division: str | None, period: str | None) -> list[dict]:
-    """Filter monthly_records by division and/or period prefix."""
+# ── Deterministic computation helpers ──
+
+def _filter_gl(records: list[dict], division: str | None = None,
+               period_start: str | None = None, period_end: str | None = None,
+               gl_codes: list[str] | None = None) -> list[dict]:
+    """Filter GL records by division, period range, and/or GL code list."""
     out = records
     if division and division != "all":
         out = [r for r in out if r["division_id"] == division]
-    if period:
-        out = [r for r in out if r["period"].startswith(period)]
+    if period_start:
+        out = [r for r in out if r["period"] >= period_start]
+    if period_end:
+        out = [r for r in out if r["period"] <= period_end]
+    if gl_codes:
+        out = [r for r in out if r["gl_code"] in gl_codes]
     return out
+
+
+def _sum_by_gl(records: list[dict]) -> dict[str, float]:
+    """Sum amounts grouped by GL code."""
+    totals: dict[str, float] = {}
+    for r in records:
+        totals[r["gl_code"]] = totals.get(r["gl_code"], 0.0) + r["amount"]
+    return {k: round(v, 2) for k, v in totals.items()}
+
+
+def _sum_by_division(records: list[dict]) -> dict[str, float]:
+    """Sum amounts grouped by division_id."""
+    totals: dict[str, float] = {}
+    for r in records:
+        totals[r["division_id"]] = totals.get(r["division_id"], 0.0) + r["amount"]
+    return {k: round(v, 2) for k, v in totals.items()}
+
+
+def _sum_by_period(records: list[dict]) -> dict[str, float]:
+    """Sum amounts grouped by period."""
+    totals: dict[str, float] = {}
+    for r in records:
+        totals[r["period"]] = totals.get(r["period"], 0.0) + r["amount"]
+    return {k: round(v, 2) for k, v in sorted(totals.items())}
+
+
+def _compute_pnl(gl_records: list[dict]) -> dict[str, Any]:
+    """Compute a full P&L structure from GL records."""
+    by_gl = _sum_by_gl(gl_records)
+    revenue = sum(by_gl.get(c, 0) for c in GL_CATEGORIES["revenue"])
+    cogs_items = {GL_DESCRIPTIONS.get(c, c): by_gl.get(c, 0) for c in GL_CATEGORIES["cogs"] if by_gl.get(c, 0) != 0}
+    cogs_total = sum(cogs_items.values())
+    gross_profit = revenue - cogs_total
+    gross_margin = round((gross_profit / revenue * 100) if revenue else 0, 1)
+    opex_items = {GL_DESCRIPTIONS.get(c, c): by_gl.get(c, 0) for c in GL_CATEGORIES["opex"] if by_gl.get(c, 0) != 0}
+    opex_total = sum(opex_items.values())
+    net_income = gross_profit - opex_total
+    net_margin = round((net_income / revenue * 100) if revenue else 0, 1)
+    return {
+        "revenue": round(revenue, 2),
+        "cogs_breakdown": {k: round(v, 2) for k, v in cogs_items.items()},
+        "cogs_total": round(cogs_total, 2),
+        "gross_profit": round(gross_profit, 2),
+        "gross_margin_pct": gross_margin,
+        "opex_breakdown": {k: round(v, 2) for k, v in opex_items.items()},
+        "opex_total": round(opex_total, 2),
+        "net_income": round(net_income, 2),
+        "net_margin_pct": net_margin,
+    }
+
+
+def _compute_variance(current: dict[str, Any], prior: dict[str, Any]) -> dict[str, Any]:
+    """Compute dollar and % variance between two P&L dicts."""
+    result = {}
+    for key in ["revenue", "cogs_total", "gross_profit", "opex_total", "net_income"]:
+        c_val = current.get(key, 0)
+        p_val = prior.get(key, 0)
+        diff = round(c_val - p_val, 2)
+        pct = round((diff / p_val * 100) if p_val else 0, 1)
+        result[key] = {"current": c_val, "prior": p_val, "variance": diff, "variance_pct": pct}
+    for key in ["gross_margin_pct", "net_margin_pct"]:
+        c_val = current.get(key, 0)
+        p_val = prior.get(key, 0)
+        result[key] = {"current": c_val, "prior": p_val, "change_bps": round((c_val - p_val) * 100)}
+    return result
+
+
+def _period_range_for_quarter(quarter_str: str) -> tuple[str, str]:
+    """Convert '2025-Q4' → ('2025-10', '2025-12')."""
+    parts = quarter_str.split("-Q")
+    year = parts[0]
+    q = int(parts[1])
+    start_month = (q - 1) * 3 + 1
+    end_month = q * 3
+    return f"{year}-{start_month:02d}", f"{year}-{end_month:02d}"
+
+
+def _period_range_for_year(year_str: str) -> tuple[str, str]:
+    """Convert '2025' → ('2025-01', '2025-12')."""
+    return f"{year_str}-01", f"{year_str}-12"
+
+
+def _resolve_period_range(period: str | None) -> tuple[str | None, str | None]:
+    """Resolve period string to start/end range."""
+    if not period:
+        return None, None
+    if "-Q" in period:
+        return _period_range_for_quarter(period)
+    if len(period) == 4:  # just year
+        return _period_range_for_year(period)
+    # YYYY-MM single month
+    return period, period
+
+
+def _compute_dso(ar_snapshot: list[dict], monthly_rev: float) -> float:
+    """Days Sales Outstanding = total AR / average daily revenue."""
+    total_ar = sum(a["total_outstanding"] for a in ar_snapshot)
+    daily_rev = monthly_rev / 30 if monthly_rev else 1
+    return round(total_ar / daily_rev, 1)
+
+
+def _compute_overhead_ratio(gl_records: list[dict]) -> float:
+    """OpEx as % of revenue."""
+    by_gl = _sum_by_gl(gl_records)
+    revenue = sum(by_gl.get(c, 0) for c in GL_CATEGORIES["revenue"])
+    opex = sum(by_gl.get(c, 0) for c in GL_CATEGORIES["opex"])
+    return round((opex / revenue * 100) if revenue else 0, 1)
+
+
+def _quarterly_trend(gl_records: list[dict], metric: str = "gross_margin") -> list[dict]:
+    """Compute quarterly trend for a given metric across all available data."""
+    from collections import defaultdict
+    by_q: dict[str, list[dict]] = defaultdict(list)
+    for r in gl_records:
+        y = r["period"][:4]
+        m = int(r["period"][5:7])
+        q = (m - 1) // 3 + 1
+        q_label = f"{y}-Q{q}"
+        by_q[q_label].append(r)
+
+    result = []
+    for q_label in sorted(by_q.keys()):
+        pnl = _compute_pnl(by_q[q_label])
+        if metric == "gross_margin":
+            result.append({"quarter": q_label, "value": pnl["gross_margin_pct"]})
+        elif metric == "net_margin":
+            result.append({"quarter": q_label, "value": pnl["net_margin_pct"]})
+        elif metric == "revenue":
+            result.append({"quarter": q_label, "value": pnl["revenue"]})
+        elif metric == "overhead":
+            oh = round((pnl["opex_total"] / pnl["revenue"] * 100) if pnl["revenue"] else 0, 1)
+            result.append({"quarter": q_label, "value": oh})
+        else:
+            result.append({"quarter": q_label, "value": pnl.get(metric, 0)})
+    return result
 
 
 def _build_simulated_sql(intent: str, division: str | None, period: str | None, gl_filter: str | None) -> str:
@@ -1719,13 +2020,13 @@ def _build_simulated_sql(intent: str, division: str | None, period: str | None, 
     where_clauses = []
     if division and division != "all":
         where_clauses.append(f"division_id = '{division}'")
-    if period:
-        where_clauses.append(f"period LIKE '{period}%'")
+    if period and period != "latest":
+        where_clauses.append(f"period >= '{period}'")
     if gl_filter:
         where_clauses.append(f"gl_code = '{gl_filter}'")
     where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
-    if intent == "comparison":
+    if intent in ("comparison", "margin_analysis"):
         return (
             f"-- Year-over-year comparison for {div_name}\n"
             f"SELECT period, gl_code,\n"
@@ -1735,6 +2036,33 @@ def _build_simulated_sql(intent: str, division: str | None, period: str | None, 
             f"WHERE {where_sql}\n"
             f"GROUP BY period, gl_code\n"
             f"ORDER BY period, gl_code;"
+        )
+    if intent == "job_costing":
+        return (
+            f"-- Job cost detail for {div_name}\n"
+            f"SELECT j.job_id, j.name, j.contract_value,\n"
+            f"       j.percent_complete, j.costs_total\n"
+            f"FROM vista_jobs j\n"
+            f"WHERE j.division_id = '{division or 'ALL'}'\n"
+            f"ORDER BY j.contract_value DESC;"
+        )
+    if intent == "ar_analysis":
+        return (
+            f"-- AR aging analysis\n"
+            f"SELECT customer, division_id,\n"
+            f"       current_amt, days_1_30, days_31_60, days_61_90, days_over_90\n"
+            f"FROM vista_ar_aging\n"
+            f"WHERE {where_sql}\n"
+            f"ORDER BY total_outstanding DESC;"
+        )
+    if intent == "cash_flow":
+        return (
+            f"-- Cash flow analysis\n"
+            f"SELECT period, operating_cash_in, operating_cash_out,\n"
+            f"       capital_expenditures, net_cash_flow, ending_cash_balance\n"
+            f"FROM vista_cash_flow\n"
+            f"WHERE {where_sql}\n"
+            f"ORDER BY period;"
         )
     return (
         f"-- P&L query for {div_name}\n"
@@ -1753,20 +2081,22 @@ async def run_financial_query(
     user_message: str,
     conversation: "ConversationContext",
 ) -> dict[str, Any]:
-    """Chat-driven financial reporting: classify intent, query data, generate report."""
+    """Chat-driven financial reporting: classify intent → compute data → generate sectioned report."""
     from .session_manager import ConversationContext  # avoid circular at module-level
 
     payload = await load_json("financial_reporting.json")
-    records = payload.get("monthly_records", [])
+    gl_records = payload.get("monthly_gl", [])
+    budget_records = payload.get("monthly_budget", [])
+    gl_chart = payload.get("gl_chart", {})
 
-    # --- Step 1: Emit initial reasoning ---
+    # --- Phase 1: Emit initial reasoning ---
     await emitter.emit_reasoning(
         f"Analyzing your request: \"{user_message[:100]}\" — "
         "I'll classify your intent, query the relevant financial data, and generate a report."
     )
     await asyncio.sleep(0.3)
 
-    # --- Step 2: Intent classification (LLM) ---
+    # --- Phase 1b: Intent classification (LLM call 1) ---
     await emitter.emit_tool_call("classify_intent", {"message": user_message[:80]})
     await asyncio.sleep(0.2)
 
@@ -1776,138 +2106,388 @@ async def run_financial_query(
             f"{m['role'].upper()}: {m['content']}" for m in conversation.messages[-6:]
         )
 
+    available_divisions = ", ".join(f"{k}={v}" for k, v in DIVISION_NAMES.items())
+    available_jobs = ", ".join(j["job_id"] + "=" + j["name"] for j in payload.get("jobs", [])[:15])
+
     _llm = await llm_json_response(
         agent_id="financial_reporting",
         objective=(
             "Classify the user's financial query and extract parameters.\n"
             "Return strict JSON with these keys:\n"
-            "- intent: one of p_and_l, comparison, expense_analysis, job_costing, custom_query, clarification_needed\n"
+            "- intent: one of p_and_l, comparison, expense_analysis, job_costing, ar_analysis, "
+            "backlog, cash_flow, margin_analysis, budget_variance, kpi_dashboard, custom_query, clarification_needed\n"
             "- division: one of EX, RC, SD, LM, RW, all, or null\n"
-            "- period: YYYY-MM or YYYY-Q# format, or null\n"
-            "- compare_period: YYYY-MM or YYYY-Q# format, or null (only for comparisons)\n"
+            "- period_start: YYYY-MM format for the start of the period range, or null\n"
+            "- period_end: YYYY-MM format for the end of the period range, or null\n"
+            "- compare_period_start: YYYY-MM for comparison start, or null\n"
+            "- compare_period_end: YYYY-MM for comparison end, or null\n"
             "- gl_filter: a GL code like 5500, or null\n"
+            "- gl_category: revenue, cogs, or opex — or null\n"
+            "- job_id: a job ID like J-1001, or null\n"
+            "- aggregation: monthly, quarterly, or annual — default quarterly\n"
             "- clarification_question: a follow-up question string if intent is clarification_needed, else null\n\n"
-            "Division lookup: EX=Excavation, RC=Road Construction, SD=Site Development, "
-            "LM=Landscaping Maintenance, RW=Retaining Walls\n"
-            "Available periods: 2025-01 through 2026-02\n"
-            "GL codes: 4100=Contract Revenue, 4200=Service Revenue, 5100=Materials, "
-            "5200=Equipment Rental, 5300=Subcontractor, 5400=Direct Labor, "
-            "5500=Fuel, 5600=Hauling, 6100-6600=Operating Expenses\n\n"
-            "Examples:\n"
-            '- "Pull me a P&L for Excavation for January 2026" → intent=p_and_l, division=EX, period=2026-01\n'
-            '- "How does that compare to last year?" → intent=comparison (use context for division/period)\n'
-            '- "How much did we spend on fuel?" → intent=expense_analysis, gl_filter=5500\n'
-            '- "Give me job costs" → intent=clarification_needed (which division? which period?)\n'
+            "IMPORTANT DATE RULES:\n"
+            "- Today is January 2026. The most recent complete quarter is Q4 2025 (2025-10 to 2025-12).\n"
+            "- The most recent complete fiscal year is FY 2025 (2025-01 to 2025-12).\n"
+            "- For 'last N months' → count back N months from 2026-01 (e.g. 'last 6 months' → 2025-08 to 2026-01)\n"
+            "- For 'this year' or 'YTD 2025' → 2025-01 to 2025-12\n"
+            "- For 'Q4 2025' → 2025-10 to 2025-12\n"
+            "- For 'Q3 2025' → 2025-07 to 2025-09\n"
+            "- For a single month like 'October 2025' → 2025-10 to 2025-10\n"
+            "- For year-over-year → set period_start/end to current period AND compare_period_start/end to prior year equivalent\n"
+            "- If no period is specified, use smart defaults based on intent:\n"
+            "  * p_and_l/budget_variance → most recent quarter: 2025-10 to 2025-12\n"
+            "  * comparison → current year vs prior year: period 2025-01..2025-12, compare 2024-01..2024-12\n"
+            "  * cash_flow → last 12 months: 2025-02 to 2026-01\n"
+            "  * margin_analysis → all available (null, let backend handle)\n"
+            "  * expense_analysis → last 12 months: 2025-02 to 2026-01\n"
+            "  * kpi_dashboard → null (backend uses latest)\n"
+            "  * ar_analysis/backlog/job_costing → null (point-in-time data)\n\n"
+            f"Division lookup: {available_divisions}\n"
+            "Available periods: 2024-01 through 2026-01\n"
+            f"Sample jobs: {available_jobs}\n"
+            "GL codes: 4100=Contract Revenue, 4200=Service Revenue, 4300=Change Orders, "
+            "5100=Materials, 5200=Equipment Rental, 5300=Subcontractor, 5400=Direct Labor, "
+            "5500=Fuel, 5600=Hauling, 5700=Permits, 5800=Equip Maintenance, "
+            "6100=Office/Admin, 6200=Insurance, 6300=Vehicle/Fleet, 6400=IT, 6500=Prof Fees, 6600=Depreciation\n\n"
+            "Intent guide:\n"
+            "- P&L questions → p_and_l\n"
+            "- Year-over-year, compare periods → comparison\n"
+            "- Cost breakdown, specific cost line, comparing cost categories → expense_analysis\n"
+            "  NOTE: For expense_analysis, if the user asks about MULTIPLE cost types (e.g. 'labor vs subcontractor'),\n"
+            "  leave gl_filter null and set gl_category to the broader category (cogs or opex), or leave both null\n"
+            "  to get ALL expenses. The backend will include all relevant GL codes.\n"
+            "- Specific project costs → job_costing\n"
+            "- Receivables, DSO, collections → ar_analysis\n"
+            "- Backlog, pipeline → backlog\n"
+            "- Cash position, cash flow → cash_flow\n"
+            "- Margin trends, profitability → margin_analysis\n"
+            "- Budget vs actual → budget_variance\n"
+            "- Dashboard, KPIs, overview → kpi_dashboard\n"
+            "- Anything else specific → custom_query\n"
         ),
         context_payload={
             "user_message": user_message,
             "conversation_history": history_for_llm,
         },
-        max_tokens=400,
+        max_tokens=500,
         temperature=0.0,
     )
     intent_result = _llm.data
-    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "Intent classified"}, message="Intent classified", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
     intent = intent_result.get("intent", "custom_query")
     division = intent_result.get("division")
-    period = intent_result.get("period")
-    compare_period = intent_result.get("compare_period")
+    # Support both new range format and old single-period format
+    p_start = intent_result.get("period_start")
+    p_end = intent_result.get("period_end")
+    # Fallback for old single-period format
+    if not p_start and not p_end:
+        old_period = intent_result.get("period")
+        if old_period:
+            p_start, p_end = _resolve_period_range(old_period)
+    compare_p_start = intent_result.get("compare_period_start")
+    compare_p_end = intent_result.get("compare_period_end")
+    if not compare_p_start and not compare_p_end:
+        old_cp = intent_result.get("compare_period")
+        if old_cp:
+            compare_p_start, compare_p_end = _resolve_period_range(old_cp)
     gl_filter = intent_result.get("gl_filter")
+    gl_category = intent_result.get("gl_category")
+    job_id = intent_result.get("job_id")
+    aggregation = intent_result.get("aggregation", "quarterly")
+    # Build a human-readable period label for display
+    if intent in ("ar_analysis", "backlog", "job_costing") and not p_start:
+        period_display = "As of January 2026"
+    else:
+        period_display = f"{p_start} to {p_end}" if p_start and p_end and p_start != p_end else (p_start or "latest")
 
+    div_label = DIVISION_NAMES.get(division, division or "all divisions") if division else "all divisions"
     await emitter.emit_tool_result(
         "classify_intent",
-        {"intent": intent, "division": division, "period": period},
-        f"Classified as {intent}" + (f" for {DIVISION_NAMES.get(division, division or 'all divisions')}" if division else ""),
+        {"intent": intent, "division": division, "period": period_display},
+        f"Classified as {intent} for {div_label}",
     )
     await asyncio.sleep(0.2)
 
     # --- Handle clarification ---
     if intent == "clarification_needed":
         question = intent_result.get("clarification_question") or (
-            "Could you be more specific? For example, which division and time period are you interested in?"
+            "Could you be more specific? For example, which division, time period, or metric are you interested in?"
         )
         conversation.append_message("user", user_message)
         conversation.append_message("assistant", question)
         await emitter.emit_agent_message(question, msg_type="clarification")
         return {"type": "clarification", "question": question}
 
-    # --- Step 3: Data access simulation ---
+    # --- Phase 2: Deterministic data computation (NO LLM) ---
     await emitter.emit_reasoning(
         f"Connecting to Vista ERP to pull financial data"
-        + (f" for {DIVISION_NAMES.get(division, 'all divisions')}" if division else "")
-        + (f", period {period}" if period else "")
+        + (f" for {div_label}" if division else "")
+        + (f", period {period_display}" if p_start else "")
         + "."
     )
     await asyncio.sleep(0.3)
 
-    await emitter.emit_tool_call("connect_vista_api", {"module": "General Ledger", "connection": "vista-prod-01"})
-    await asyncio.sleep(0.4)
-    await emitter.emit_tool_result("connect_vista_api", {"status": "connected"}, "Connected to Vista GL module.")
+    await emitter.emit_tool_call("query_gl_data", {"intent": intent, "division": division, "period": period_display})
     await asyncio.sleep(0.2)
 
-    # Build and display SQL query
-    sql_query = _build_simulated_sql(intent, division, period, gl_filter)
-    await emitter.emit_tool_call("query_financial_data", {"query_type": intent, "division": division, "period": period})
-    await asyncio.sleep(0.2)
+    sql_query = _build_simulated_sql(intent, division, p_start or "latest", gl_filter)
     await emitter.emit_code_block("sql", sql_query)
     await asyncio.sleep(0.3)
 
-    # Actually filter data
-    filtered = _filter_monthly_records(records, division, period)
-    row_count = len(filtered)
+    # Build computed_data dict that the LLM will use to structure the report
+    computed_data: dict[str, Any] = {"intent": intent}
+
+    if intent in ("p_and_l", "custom_query"):
+        filtered = _filter_gl(gl_records, division, p_start, p_end)
+        computed_data["pnl"] = _compute_pnl(filtered)
+        computed_data["record_count"] = len(filtered)
+        # Add per-division breakdown for company-wide P&L
+        if not division or division == "all":
+            div_pnls = {}
+            for d_code, d_name in DIVISION_NAMES.items():
+                d_filtered = _filter_gl(gl_records, d_code, p_start, p_end)
+                d_pnl = _compute_pnl(d_filtered)
+                div_pnls[d_name] = {"revenue": d_pnl["revenue"], "gross_profit": d_pnl["gross_profit"],
+                                     "gross_margin_pct": d_pnl["gross_margin_pct"], "net_income": d_pnl["net_income"]}
+            computed_data["division_breakdown"] = div_pnls
+
+    elif intent == "comparison":
+        filtered_current = _filter_gl(gl_records, division, p_start, p_end)
+        current_pnl = _compute_pnl(filtered_current)
+        # Determine prior period from compare_p_start/compare_p_end, or default to prior year
+        cp_s = compare_p_start
+        cp_e = compare_p_end
+        if not cp_s and p_start:
+            try:
+                y = int(p_start[:4]) - 1
+                cp_s = f"{y}{p_start[4:]}"
+                cp_e = f"{y}{p_end[4:]}" if p_end else None
+            except Exception:
+                cp_s, cp_e = None, None
+        filtered_prior = _filter_gl(gl_records, division, cp_s, cp_e)
+        prior_pnl = _compute_pnl(filtered_prior)
+        computed_data["current_pnl"] = current_pnl
+        computed_data["prior_pnl"] = prior_pnl
+        computed_data["variance"] = _compute_variance(current_pnl, prior_pnl)
+        computed_data["current_period_label"] = f"{p_start} to {p_end}" if p_start else "current"
+        computed_data["prior_period_label"] = f"{cp_s} to {cp_e}" if cp_s else "prior year"
+
+    elif intent == "expense_analysis":
+        gl_list = None
+        if gl_filter:
+            gl_list = [gl_filter]
+        elif gl_category:
+            gl_list = GL_CATEGORIES.get(gl_category)
+        else:
+            gl_list = GL_CATEGORIES["cogs"] + GL_CATEGORIES["opex"]
+        filtered = _filter_gl(gl_records, division, p_start, p_end, gl_list)
+        computed_data["expense_by_gl"] = {GL_DESCRIPTIONS.get(k, k): v for k, v in _sum_by_gl(filtered).items()}
+        computed_data["expense_by_division"] = {DIVISION_NAMES.get(k, k): v for k, v in _sum_by_division(filtered).items()}
+        computed_data["total"] = round(sum(_sum_by_gl(filtered).values()), 2)
+        # Monthly trend for the filtered expense codes
+        computed_data["monthly_trend"] = _sum_by_period(filtered)
+
+    elif intent == "job_costing":
+        jobs = payload.get("jobs", [])
+        if job_id:
+            jobs = [j for j in jobs if j["job_id"] == job_id]
+        elif division and division != "all":
+            jobs = [j for j in jobs if j["division_id"] == division]
+        computed_data["jobs"] = jobs
+
+    elif intent == "ar_analysis":
+        ar = payload.get("ar_aging_snapshot", [])
+        if division and division != "all":
+            ar = [a for a in ar if a["division_id"] == division]
+        total_ar = sum(a["total_outstanding"] for a in ar)
+        # Get last 3 months of revenue for DSO - use the most recent available
+        all_periods = sorted(set(r["period"] for r in gl_records))
+        recent_3 = all_periods[-3:] if len(all_periods) >= 3 else all_periods
+        dso_rev_start = recent_3[0] if recent_3 else "2025-10"
+        dso_rev_end = recent_3[-1] if recent_3 else "2025-12"
+        recent_rev = _filter_gl(gl_records, division, dso_rev_start, dso_rev_end, GL_CATEGORIES["revenue"])
+        monthly_rev = sum(r["amount"] for r in recent_rev) / len(recent_3) if recent_rev else 1
+        computed_data["ar_accounts"] = ar
+        computed_data["total_ar"] = total_ar
+        computed_data["dso"] = _compute_dso(ar, monthly_rev)
+        # Aging summary for chart
+        aging_summary = {"Current": 0, "1-30 Days": 0, "31-60 Days": 0, "61-90 Days": 0, "Over 90 Days": 0}
+        for a in ar:
+            aging_summary["Current"] += a.get("current", 0)
+            aging_summary["1-30 Days"] += a.get("days_1_30", 0)
+            aging_summary["31-60 Days"] += a.get("days_31_60", 0)
+            aging_summary["61-90 Days"] += a.get("days_61_90", 0)
+            aging_summary["Over 90 Days"] += a.get("days_over_90", 0)
+        computed_data["aging_summary"] = {k: round(v, 2) for k, v in aging_summary.items()}
+
+    elif intent == "backlog":
+        bl = payload.get("backlog", [])
+        if division and division != "all":
+            bl = [b for b in bl if b["division_id"] == division]
+        # Map division IDs to names in backlog records
+        for b in bl:
+            b["division_name"] = DIVISION_NAMES.get(b.get("division_id", ""), b.get("division_id", ""))
+        computed_data["backlog"] = bl
+        computed_data["total_backlog"] = sum(b["contracted_backlog"] for b in bl)
+        computed_data["total_pipeline"] = sum(b["proposal_pipeline"] for b in bl)
+
+    elif intent == "cash_flow":
+        cf = payload.get("cash_flow", [])
+        if p_start:
+            cf = [c for c in cf if c["period"] >= p_start]
+        if p_end:
+            cf = [c for c in cf if c["period"] <= p_end]
+        computed_data["cash_flow"] = cf
+        if cf:
+            computed_data["total_net_cash_flow"] = round(sum(c["net_cash_flow"] for c in cf), 2)
+            computed_data["ending_balance"] = cf[-1]["ending_cash_balance"]
+            computed_data["starting_balance"] = cf[0]["ending_cash_balance"] - cf[0]["net_cash_flow"]
+
+    elif intent == "margin_analysis":
+        computed_data["quarterly_gross_margin"] = _quarterly_trend(gl_records, "gross_margin")
+        computed_data["quarterly_net_margin"] = _quarterly_trend(gl_records, "net_margin")
+        computed_data["quarterly_revenue"] = _quarterly_trend(gl_records, "revenue")
+        if division and division != "all":
+            div_records = _filter_gl(gl_records, division)
+            computed_data["division_gross_margin"] = _quarterly_trend(div_records, "gross_margin")
+        # Also per-division current
+        div_margins = {}
+        for d in DIVISION_NAMES:
+            d_recs = _filter_gl(gl_records, d, p_start, p_end)
+            d_pnl = _compute_pnl(d_recs)
+            div_margins[DIVISION_NAMES[d]] = {"gross_margin": d_pnl["gross_margin_pct"], "net_margin": d_pnl["net_margin_pct"],
+                                              "revenue": d_pnl["revenue"]}
+        computed_data["division_margins"] = div_margins
+
+    elif intent == "budget_variance":
+        filtered_actual = _filter_gl(gl_records, division, p_start, p_end)
+        filtered_budget = _filter_gl(budget_records, division, p_start, p_end)
+        actual_by_gl = _sum_by_gl(filtered_actual)
+        budget_by_gl = {}
+        for r in filtered_budget:
+            budget_by_gl[r["gl_code"]] = budget_by_gl.get(r["gl_code"], 0.0) + r.get("budget_amount", 0)
+        variance_lines = []
+        for gl in sorted(set(list(actual_by_gl.keys()) + list(budget_by_gl.keys()))):
+            act = actual_by_gl.get(gl, 0)
+            bud = budget_by_gl.get(gl, 0)
+            var_d = round(act - bud, 2)
+            var_p = round((var_d / bud * 100) if bud else 0, 1)
+            variance_lines.append({
+                "gl_code": gl,
+                "description": GL_DESCRIPTIONS.get(gl, gl),
+                "actual": round(act, 2),
+                "budget": round(bud, 2),
+                "variance": var_d,
+                "variance_pct": var_p,
+            })
+        computed_data["budget_variance_lines"] = variance_lines
+        computed_data["total_actual"] = round(sum(v["actual"] for v in variance_lines), 2)
+        computed_data["total_budget"] = round(sum(v["budget"] for v in variance_lines), 2)
+
+    elif intent == "kpi_dashboard":
+        # Full company P&L for most recent quarter
+        recent_q = _filter_gl(gl_records, None, "2025-10", "2025-12")
+        pnl = _compute_pnl(recent_q)
+        monthly_rev = pnl["revenue"] / 3 if pnl["revenue"] else 1
+        ar = payload.get("ar_aging_snapshot", [])
+        bl = payload.get("backlog", [])
+        cf = payload.get("cash_flow", [])
+        targets = payload.get("kpi_targets", {})
+        computed_data["kpis"] = {
+            "quarterly_revenue": pnl["revenue"],
+            "gross_margin_pct": pnl["gross_margin_pct"],
+            "net_margin_pct": pnl["net_margin_pct"],
+            "overhead_ratio": _compute_overhead_ratio(recent_q),
+            "dso": _compute_dso(ar, monthly_rev),
+            "total_backlog": sum(b["contracted_backlog"] for b in bl),
+            "cash_balance": cf[-1]["ending_cash_balance"] if cf else 0,
+            "revenue_per_employee": round(pnl["revenue"] * 4 / 1200, 0),
+        }
+        computed_data["targets"] = targets
+        computed_data["pnl"] = pnl
+        computed_data["quarterly_revenue"] = _quarterly_trend(gl_records, "revenue")
+
+    else:
+        # custom_query fallback: provide full P&L
+        filtered = _filter_gl(gl_records, division, p_start, p_end)
+        computed_data["pnl"] = _compute_pnl(filtered)
+
+    row_count = len(_filter_gl(gl_records, division, p_start, p_end))
     await emitter.emit_tool_result(
-        "query_financial_data",
-        {"rows_returned": row_count},
-        f"Retrieved {row_count} GL transaction records.",
+        "query_gl_data",
+        {"rows_returned": row_count, "data_sections": list(computed_data.keys())},
+        f"Retrieved {row_count} GL records, computed {intent} data.",
     )
     await asyncio.sleep(0.2)
 
-    # --- Step 4: Report generation (LLM) ---
-    await emitter.emit_reasoning("Aggregating results and generating the report narrative...")
+    # --- Phase 3: Report generation (LLM call 2) ---
+    await emitter.emit_reasoning("Generating the report with tables, charts, and executive narrative...")
     await asyncio.sleep(0.3)
 
-    await emitter.emit_tool_call("aggregate_results", {"intent": intent, "rows": row_count})
+    await emitter.emit_tool_call("generate_report", {"intent": intent, "sections": "tables+charts+narrative"})
     await asyncio.sleep(0.1)
-
-    # Build context for report generation
-    report_context: dict[str, Any] = {"filtered_records": filtered[:100]}  # cap for token budget
-    if intent == "comparison" and "excavation_jan_comparison" in payload:
-        report_context["comparison_data"] = payload["excavation_jan_comparison"]
-    if "summary" in payload:
-        report_context["summary"] = payload["summary"]
 
     _llm = await llm_json_response(
         agent_id="financial_reporting",
         objective=(
             f"The user asked: \"{user_message}\"\n"
-            f"Intent: {intent}, Division: {division or 'all'}, Period: {period or 'all available'}\n\n"
-            "Generate a financial report response. Return strict JSON with these keys:\n"
-            "- report_title: descriptive title for this report (e.g. 'Excavation Division P&L — January 2026')\n"
-            "- report_type: one of p_and_l, comparison, expense_analysis\n"
-            "- response_text: conversational 2-4 sentence summary answering the user's question directly\n"
-            "- data: structured report object with keys like revenue, cogs, gross_profit, operating_expenses, "
-            "net_income, gross_margin_percent, net_margin_percent. For comparisons include current and prior "
-            "period columns with variance_dollar and variance_percent.\n"
-            "- narrative: 1-2 sentence executive insight about trends or anomalies\n"
-            "- division_name: full name of the division or 'Company-Wide'\n"
-            "- period_label: human-readable period label like 'January 2026' or 'Q4 2025'\n"
+            f"Intent: {intent}, Division: {division or 'all'}, Period: {period_display}\n"
+            f"Aggregation: {aggregation}\n\n"
+            "You have been given pre-computed financial data. Your job is to arrange it into a structured "
+            "report with sections. The numbers in tables and charts MUST exactly match the provided computed data. "
+            "Do NOT recalculate or invent numbers.\n\n"
+            "Return strict JSON with these keys:\n"
+            "- report_title: descriptive title (e.g. 'Excavation P&L — Q4 2025')\n"
+            "- report_type: one of p_and_l, comparison, expense_analysis, job_costing, ar_analysis, "
+            "backlog, cash_flow, margin_analysis, budget_variance, kpi_dashboard, custom_query\n"
+            "- response_text: conversational 2-4 sentence summary answering the user's question\n"
+            "- sections: array of section objects, each with:\n"
+            "  - type: 'kpi_grid' | 'table' | 'chart' | 'narrative'\n"
+            "  - For kpi_grid: { metrics: [{ label, value, format: 'currency'|'percent'|'number'|'days', trend: 'up'|'down'|'flat', target (optional number) }] }\n"
+            "  - For table: { title, columns: [{ key, label, format: 'currency'|'percent'|'number'|'text' }], "
+            "rows: [{ key1: val1, key2: val2, ... }], highlight_rows: [indices], footer: string|null }\n"
+            "  - For chart: { chart_type: 'bar'|'line'|'pie'|'stacked_bar', title, "
+            "data: { labels: [...], datasets: [{ label, values: [...] }] }, format: 'currency'|'percent'|'number' }\n"
+            "  - For narrative: { title, content: paragraph text }\n"
+            "- division_name: full division name or 'Company-Wide'\n"
+            "- period_label: human-readable period like 'Q4 2025' or 'FY 2025'\n\n"
+            "IMPORTANT RULES:\n"
+            "- Include 2-4 sections per report (mix of types for visual richness)\n"
+            "- Always include at least one table section and one narrative section\n"
+            "- For P&L reports: kpi_grid (revenue, margin, net income) + P&L table + narrative\n"
+            "- For comparisons: variance table + bar chart showing key line items + narrative\n"
+            "- For margin analysis: line chart of quarterly trend + division comparison bar chart + narrative\n"
+            "- For job costing: job summary table + narrative\n"
+            "- For AR analysis: aging table + pie chart of aging buckets + narrative\n"
+            "- For backlog: backlog table + bar chart + narrative\n"
+            "- For cash flow: cash flow table + line chart of balance trend + narrative\n"
+            "- For budget variance: variance table + bar chart of over/under + narrative\n"
+            "- For KPI dashboard: kpi_grid + revenue trend chart + margin chart + narrative\n"
+            "- Currency values should be raw numbers (not formatted strings)\n"
+            "- Percent values should be numbers like 18.5 (not 0.185)\n"
+            "- PERIOD LABEL RULES:\n"
+            "  * For ar_analysis, backlog: period_label MUST be 'As of January 2026' (point-in-time snapshot, NOT a date range)\n"
+            "  * For job_costing: period_label MUST be 'As of January 2026' (cumulative to date)\n"
+            "  * For all other intents: use the actual period like 'Q4 2025', 'FY 2025', '2025-08 to 2026-01', etc.\n"
+            "  * NEVER invent or hallucinate a period. Use only what is provided in the Period field above.\n"
         ),
-        context_payload=report_context,
-        max_tokens=1800,
+        context_payload=computed_data,
+        max_tokens=4000,
         temperature=0.1,
     )
     report_data = _llm.data
-    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
+    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "Report generated"}, message="Report generated", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
 
     await emitter.emit_tool_result(
-        "aggregate_results",
+        "generate_report",
         {"report_type": report_data.get("report_type", intent)},
         f"Report generated: {report_data.get('report_title', 'Financial Report')}",
     )
     await asyncio.sleep(0.2)
 
-    # --- Step 5: Emit results ---
+    # --- Phase 4: Emit results ---
     response_text = report_data.get("response_text", "Here is your report.")
     await emitter.emit_agent_message(response_text)
     await asyncio.sleep(0.15)
@@ -1917,7 +2497,7 @@ async def run_financial_query(
         "report_id": report_id,
         "report_title": report_data.get("report_title", "Financial Report"),
         "report_type": report_data.get("report_type", intent),
-        "data": report_data.get("data", {}),
+        "sections": report_data.get("sections", []),
         "narrative": report_data.get("narrative", ""),
         "division_name": report_data.get("division_name", ""),
         "period_label": report_data.get("period_label", ""),
@@ -2108,125 +2688,586 @@ async def run_schedule_optimizer(conn, emitter: EventEmitter) -> dict[str, Any]:
     return result
 
 
+def _compute_project_metrics(project: dict) -> dict:
+    """Deterministic computation of all project metrics from proposal vs actuals.
+    Returns a rich metrics dict — NO LLM involvement."""
+
+    proposal = project.get("proposal", {})
+    actuals = project.get("actuals", {})
+    change_orders = project.get("change_orders", [])
+    risk_flags = project.get("risk_flags", [])
+
+    contract_value = proposal.get("contract_value", 0)
+    estimated_cost = proposal.get("estimated_cost", 0)
+    target_margin_pct = proposal.get("target_margin_pct", 0)
+    pct_complete = actuals.get("percent_complete", 0)
+    pct_billed = actuals.get("percent_billed", 0)
+    total_cost_to_date = actuals.get("total_cost_to_date", 0)
+
+    # ── Earned Value Analysis ──
+    # BCWS (Budgeted Cost of Work Scheduled) = estimated_cost * pct_complete/100
+    bcws = estimated_cost * pct_complete / 100 if estimated_cost else 0
+    # BCWP (Budgeted Cost of Work Performed) = same as EV
+    earned_value = bcws
+    # ACWP = actual cost to date
+    acwp = total_cost_to_date
+    # Cost Performance Index (CPI) = EV / AC
+    cpi = earned_value / acwp if acwp > 0 else 1.0
+    # Estimate at Completion (EAC) = estimated_cost / CPI
+    eac = estimated_cost / cpi if cpi > 0 else estimated_cost
+    # Estimate to Complete (ETC) = EAC - ACWP
+    etc = max(0, eac - acwp)
+    # Variance at Completion (VAC) = estimated_cost - EAC
+    vac = estimated_cost - eac
+    # Projected margin
+    projected_revenue = contract_value + sum(co.get("amount", 0) for co in change_orders if co.get("status") == "approved")
+    projected_margin = projected_revenue - eac if eac > 0 else projected_revenue - estimated_cost
+    projected_margin_pct = (projected_margin / projected_revenue * 100) if projected_revenue > 0 else 0
+
+    # ── Cost Code Variance Analysis ──
+    cost_code_analysis = []
+    cost_by_code = actuals.get("cost_by_code", {})
+    est_by_code = proposal.get("cost_estimate_by_code", {})
+    for code, budgeted_val in est_by_code.items():
+        actual_data = cost_by_code.get(code, {})
+        if isinstance(actual_data, dict):
+            actual_val = actual_data.get("actual", 0)
+            code_pct = actual_data.get("pct_complete", 0)
+        else:
+            actual_val = 0
+            code_pct = 0
+        budgeted_for_pct = budgeted_val * code_pct / 100 if budgeted_val else 0
+        variance = budgeted_for_pct - actual_val
+        variance_pct = (variance / budgeted_for_pct * 100) if budgeted_for_pct > 0 else 0
+        projected_final = actual_val / (code_pct / 100) if code_pct > 0 else actual_val
+        cost_code_analysis.append({
+            "code": code,
+            "budgeted": budgeted_val,
+            "actual": actual_val,
+            "pct_complete": code_pct,
+            "earned_value": round(budgeted_for_pct),
+            "variance": round(variance),
+            "variance_pct": round(variance_pct, 1),
+            "projected_final": round(projected_final),
+            "over_budget": actual_val > budgeted_for_pct * 1.05 and code_pct > 0,
+        })
+
+    # ── Labor Analysis ──
+    labor_est = proposal.get("labor_estimate", {})
+    labor_act = actuals.get("labor", {})
+    est_hours = labor_est.get("total_labor_hours", 0)
+    est_rate = labor_est.get("avg_loaded_rate", 0)
+    est_labor_cost = labor_est.get("estimated_labor_cost", 0)
+    act_hours = labor_act.get("total_hours_to_date", 0)
+    act_rate = labor_act.get("avg_actual_loaded_rate", 0)
+    act_labor_cost = labor_act.get("labor_cost_to_date", 0)
+    overtime_hours = labor_act.get("overtime_hours", 0)
+    overtime_cost = labor_act.get("overtime_cost", 0)
+    productivity_index = labor_act.get("productivity_index", 1.0)
+
+    # Hours burn rate
+    expected_hours_at_pct = est_hours * pct_complete / 100 if est_hours else 0
+    hours_variance = expected_hours_at_pct - act_hours
+    hours_variance_pct = (hours_variance / expected_hours_at_pct * 100) if expected_hours_at_pct > 0 else 0
+    # Rate variance
+    rate_variance = act_rate - est_rate
+    rate_impact = rate_variance * act_hours if act_hours > 0 else 0
+    # Overtime percentage
+    overtime_pct = (overtime_hours / act_hours * 100) if act_hours > 0 else 0
+    # Projected total labor cost
+    projected_labor = act_labor_cost / (pct_complete / 100) if pct_complete > 0 else act_labor_cost
+    labor_budget_variance = est_labor_cost - projected_labor
+
+    labor_analysis = {
+        "estimated_hours": est_hours,
+        "actual_hours": act_hours,
+        "expected_hours_at_pct": round(expected_hours_at_pct),
+        "hours_variance": round(hours_variance),
+        "hours_variance_pct": round(hours_variance_pct, 1),
+        "estimated_rate": est_rate,
+        "actual_rate": act_rate,
+        "rate_variance": round(rate_variance, 2),
+        "rate_impact_dollars": round(rate_impact),
+        "overtime_hours": overtime_hours,
+        "overtime_cost": overtime_cost,
+        "overtime_pct": round(overtime_pct, 1),
+        "productivity_index": productivity_index,
+        "estimated_labor_cost": est_labor_cost,
+        "actual_labor_cost": act_labor_cost,
+        "projected_labor_cost": round(projected_labor),
+        "labor_budget_variance": round(labor_budget_variance),
+        "monthly_labor": labor_act.get("monthly_labor", []),
+    }
+
+    # ── Schedule Analysis ──
+    schedule = actuals.get("schedule", {})
+    milestones = schedule.get("milestones", [])
+    completed_milestones = [m for m in milestones if m.get("status") == "complete"]
+    in_progress_milestones = [m for m in milestones if m.get("status") == "in_progress"]
+    avg_delay = 0
+    if completed_milestones:
+        delays = [m.get("days_delta", 0) or 0 for m in completed_milestones]
+        avg_delay = sum(delays) / len(delays) if delays else 0
+
+    schedule_analysis = {
+        "days_elapsed": schedule.get("days_elapsed", 0),
+        "days_behind": schedule.get("days_behind", 0),
+        "days_ahead": schedule.get("days_ahead", 0),
+        "critical_path_delay_cause": schedule.get("critical_path_delay_cause"),
+        "total_milestones": len(milestones),
+        "completed_milestones": len(completed_milestones),
+        "in_progress_milestones": len(in_progress_milestones),
+        "avg_milestone_delay_days": round(avg_delay, 1),
+        "milestones": milestones,
+    }
+
+    # ── Change Order Summary ──
+    approved_cos = [co for co in change_orders if co.get("status") == "approved"]
+    pending_cos = [co for co in change_orders if co.get("status") == "pending"]
+    co_summary = {
+        "total_count": len(change_orders),
+        "approved_count": len(approved_cos),
+        "pending_count": len(pending_cos),
+        "approved_value": sum(co.get("amount", 0) for co in approved_cos),
+        "pending_value": sum(co.get("amount", 0) for co in pending_cos),
+        "total_schedule_impact_days": sum(co.get("impact_days", 0) for co in change_orders),
+        "items": change_orders,
+    }
+
+    # ── Proposal Assumption Check ──
+    broken_assumptions = []
+    assumptions = proposal.get("key_assumptions", [])
+    # Cross-reference assumptions with risk flags and schedule data
+    for assumption in assumptions:
+        a_lower = assumption.lower()
+        is_broken = False
+        reason = ""
+        if "rock" in a_lower and any("rock" in rf.lower() for rf in risk_flags):
+            is_broken = True
+            reason = "Rock excavation encountered — contradicts assumption"
+        elif "fuel" in a_lower:
+            # Check if fuel costs show up in risk flags
+            if any("fuel" in rf.lower() for rf in risk_flags):
+                is_broken = True
+                reason = "Fuel costs exceeded assumed rate"
+        elif "winter" in a_lower or "weather" in a_lower:
+            if schedule.get("days_behind", 0) > 30:
+                is_broken = True
+                reason = "Schedule delays pushed work into winter season"
+        elif "subcontractor" in a_lower:
+            if any("subcontractor" in rf.lower() or "sub" in rf.lower() for rf in risk_flags):
+                is_broken = True
+                reason = "Subcontractor availability issues encountered"
+            elif schedule.get("critical_path_delay_cause") and "subcontractor" in schedule["critical_path_delay_cause"].lower():
+                is_broken = True
+                reason = "Subcontractor delay impacted critical path"
+        elif "blasting" in a_lower:
+            if any("blast" in rf.lower() for rf in risk_flags):
+                is_broken = True
+                reason = "Blasting volumes exceeded geological survey predictions"
+        elif "retaining wall" in a_lower or "redesign" in a_lower:
+            if any("redesign" in rf.lower() or "retaining" in rf.lower() for rf in risk_flags):
+                is_broken = True
+                reason = "Retaining wall required redesign due to field conditions"
+        elif "endangered" in a_lower or "environmental" in a_lower:
+            if any("raptor" in rf.lower() or "environmental" in rf.lower() for rf in risk_flags):
+                is_broken = True
+                reason = "Environmental mitigation required for raptor nesting"
+        broken_assumptions.append({
+            "assumption": assumption,
+            "status": "broken" if is_broken else "holding",
+            "reason": reason,
+        })
+
+    return {
+        "project_id": project.get("project_id"),
+        "project_name": project.get("project_name"),
+        "division": project.get("division"),
+        "project_manager": project.get("project_manager"),
+        "client": project.get("client"),
+        "finding": project.get("finding", "on_track"),
+        "start_date": project.get("start_date"),
+        "original_end_date": project.get("original_end_date"),
+        "projected_end_date": project.get("current_projected_end_date"),
+        "contract_value": contract_value,
+        "estimated_cost": estimated_cost,
+        "target_margin_pct": target_margin_pct,
+        "total_cost_to_date": total_cost_to_date,
+        "percent_complete": pct_complete,
+        "percent_billed": pct_billed,
+        "earned_value_analysis": {
+            "earned_value": round(earned_value),
+            "actual_cost": acwp,
+            "cpi": round(cpi, 3),
+            "eac": round(eac),
+            "etc": round(etc),
+            "vac": round(vac),
+            "projected_revenue": round(projected_revenue),
+            "projected_margin": round(projected_margin),
+            "projected_margin_pct": round(projected_margin_pct, 1),
+        },
+        "cost_code_analysis": cost_code_analysis,
+        "labor_analysis": labor_analysis,
+        "schedule_analysis": schedule_analysis,
+        "change_order_summary": co_summary,
+        "broken_assumptions": broken_assumptions,
+        "risk_flags": risk_flags,
+    }
+
+
+def _validate_single_project_analysis(payload: dict[str, Any]) -> list[str]:
+    """Validator for a single project's LLM analysis output."""
+    errors: list[str] = []
+    if not _is_non_empty_string(payload.get("executive_summary")):
+        errors.append("executive_summary is required")
+    if not _is_non_empty_string(payload.get("root_cause_analysis")):
+        errors.append("root_cause_analysis is required")
+    if not _is_non_empty_string(payload.get("recommendation")):
+        errors.append("recommendation is required")
+    if not _is_non_empty_string(payload.get("proposal_vs_actual_insight")):
+        errors.append("proposal_vs_actual_insight is required")
+    if not _is_non_empty_string(payload.get("labor_insight")):
+        errors.append("labor_insight is required")
+    if not _is_non_empty_string(payload.get("schedule_insight")):
+        errors.append("schedule_insight is required")
+    if not isinstance(payload.get("create_task"), bool):
+        errors.append("create_task must be boolean")
+    if not _is_non_empty_string(payload.get("status_color")):
+        errors.append("status_color is required (green/amber/red)")
+    if not _is_non_empty_string(payload.get("finding")):
+        errors.append("finding is required (on_track/at_risk/behind_schedule)")
+    # reasoning_chain should be a list of strings
+    chain = payload.get("reasoning_chain")
+    if not isinstance(chain, list) or len(chain) < 3:
+        errors.append("reasoning_chain must be an array of at least 3 reasoning steps")
+    return errors
+
+
+# ── Per-project thinking lines (shown while LLM reasons through each project) ──
+_PROJECT_THINKING: dict[str, list[str]] = {
+    "behind_schedule": [
+        "Reviewing earned value metrics — CPI below 1.0 indicates cost overrun...",
+        "Checking which cost codes are driving the variance...",
+        "Analyzing labor productivity against original bid assumptions...",
+        "Cross-referencing schedule milestones with critical path delays...",
+        "Evaluating proposal assumptions that may have been broken...",
+        "Assessing change order impacts on contract value and timeline...",
+        "Calculating projected margin erosion based on current burn rate...",
+        "Reviewing risk flags and their connection to field conditions...",
+        "Determining root cause — is this a labor, material, or scope issue?...",
+        "Formulating corrective action recommendations for the PM...",
+    ],
+    "at_risk": [
+        "Earned value shows potential overrun — investigating cost drivers...",
+        "Examining cost code actuals vs budget at current percent complete...",
+        "Checking if labor rate variance is structural or temporary...",
+        "Reviewing overtime hours as percentage of total — watching for burnout signals...",
+        "Analyzing whether proposal assumptions still hold in the field...",
+        "Looking at milestone completion dates vs baseline schedule...",
+        "Evaluating pending change orders and their financial impact...",
+        "Assessing productivity index against original bid estimates...",
+        "Determining if risk level warrants escalation to senior leadership...",
+        "Building recommendations based on leading indicator trends...",
+    ],
+    "on_track": [
+        "Verifying earned value metrics align with schedule progress...",
+        "Checking cost code performance across all categories...",
+        "Confirming labor productivity is meeting or exceeding bid estimates...",
+        "Reviewing milestone completions against baseline dates...",
+        "Validating that proposal assumptions are holding in the field...",
+        "Checking for any early warning signs in recent cost trends...",
+        "Assessing change order pipeline for potential scope growth...",
+        "Confirming projected margin is within acceptable range of target...",
+    ],
+}
+_PROJECT_THINKING_DEFAULT = [
+    "Loading project financials and comparing to original proposal...",
+    "Analyzing cost performance index and earned value metrics...",
+    "Reviewing labor hours, rates, and productivity trends...",
+    "Checking schedule milestones and critical path status...",
+    "Evaluating proposal assumptions against field reality...",
+    "Calculating projected margin and estimate at completion...",
+    "Reviewing change orders and risk flags...",
+    "Formulating executive assessment and recommendations...",
+]
+
+
 async def run_progress_tracking(conn, emitter: EventEmitter) -> dict[str, Any]:
     payload = await load_json("project_progress.json")
     projects = payload.get("projects", [])
+    as_of = payload.get("as_of_date", "2026-01-15")
 
     await emitter.emit_reasoning(
-        f"Loading job cost data from Vista ERP. Reviewing {len(projects)} active construction projects "
-        "for budget variances, schedule delays, and milestone risks."
+        f"Loading project data from Vista ERP. Found {len(projects)} active construction projects. "
+        "Will analyze each project individually — comparing proposal estimates to actuals, "
+        "computing earned value metrics, and assessing labor productivity."
     )
     await asyncio.sleep(0.3)
 
     await emitter.emit_tool_call("connect_vista_api", {"system": "Vista ERP", "module": "Job Cost"})
-    await asyncio.sleep(0.25)
-
+    await asyncio.sleep(0.2)
     await emitter.emit_tool_result(
         "connect_vista_api",
-        {"status": "connected", "module": "Job Cost Reports"},
-        "Connected to Vista ERP — Job Cost module.",
+        {"status": "connected", "modules": ["Job Cost", "Payroll", "Project Management"]},
+        "Connected to Vista ERP — Job Cost, Payroll & PM modules.",
     )
-    await asyncio.sleep(0.2)
+    await asyncio.sleep(0.15)
 
-    await emitter.emit_tool_call("pull_job_cost_reports", {
-        "project_count": len(projects),
-        "projects": [p.get("project_id", "") for p in projects],
-    })
-    await asyncio.sleep(0.3)
+    # ═══════════════════════════════════════════════════════════════
+    # Per-Project Analysis Loop (deterministic compute + individual LLM reasoning)
+    # ═══════════════════════════════════════════════════════════════
+    computed_projects = []
+    findings = []
 
-    total_budget = sum(p.get("budget_total", 0) for p in projects)
-    total_spent = sum(p.get("actual_spent", 0) for p in projects)
-    await emitter.emit_tool_result(
-        "pull_job_cost_reports",
-        {"total_budget": total_budget, "total_spent": total_spent, "projects": len(projects)},
-        f"Pulled job cost data for {len(projects)} projects. "
-        f"Total budget: ${total_budget:,.0f}, Total spent: ${total_spent:,.0f}.",
-    )
-    await asyncio.sleep(0.2)
-
-    await emitter.emit_reasoning(
-        "Analyzing budget burn rates, percent complete vs percent billed, "
-        "change order impacts, and flagging projects at risk of overrun."
-    )
-    await asyncio.sleep(0.25)
-
-    # Per-project analysis events
-    for project in projects:
+    for proj_idx, project in enumerate(projects, start=1):
         pname = project.get("project_name", "Unknown")
         pid = project.get("project_id", "")
-        await emitter.emit_tool_call("analyze_job_costs", {"project": pname, "project_id": pid})
-        await asyncio.sleep(0.12)
 
-        finding = project.get("finding", "on_track")
-        budget = project.get("budget_total", 0)
-        actual = project.get("actual_spent", 0)
-        pct = project.get("percent_complete", 0)
-        await emitter.emit_tool_result(
-            "analyze_job_costs",
-            {"project": pname, "budget": budget, "actual": actual, "percent_complete": pct, "status": finding},
-            f"{pname}: {finding.replace('_', ' ').title()} — ${actual:,.0f} of ${budget:,.0f} ({pct}% complete)",
+        # ── Step 1: Announce which project we're analyzing ──
+        await emitter.emit_reasoning(
+            f"Analyzing project {proj_idx} of {len(projects)}: {pname} ({pid}). "
+            f"Loading proposal data, actuals, change orders, and risk flags."
         )
+        await asyncio.sleep(0.2)
+
+        await emitter.emit_tool_call("load_project_data", {
+            "project": pname,
+            "project_id": pid,
+            "index": f"{proj_idx} of {len(projects)}",
+        })
+        await asyncio.sleep(0.15)
+
+        # ── Step 2: Deterministic computation ──
+        metrics = _compute_project_metrics(project)
+        computed_projects.append(metrics)
+
+        ev = metrics["earned_value_analysis"]
+        la = metrics["labor_analysis"]
+        sa = metrics["schedule_analysis"]
+        finding_status = metrics["finding"]
+        broken = [ba for ba in metrics["broken_assumptions"] if ba["status"] == "broken"]
+        over_budget_codes = [cc for cc in metrics["cost_code_analysis"] if cc.get("over_budget")]
+
+        await emitter.emit_tool_result(
+            "load_project_data",
+            {
+                "project": pname,
+                "contract_value": metrics["contract_value"],
+                "percent_complete": metrics["percent_complete"],
+                "cost_to_date": metrics["total_cost_to_date"],
+                "cost_codes": len(metrics["cost_code_analysis"]),
+                "change_orders": metrics["change_order_summary"]["total_count"],
+                "risk_flags": len(metrics["risk_flags"]),
+            },
+            f"Loaded {pname}: ${metrics['contract_value']:,.0f} contract, "
+            f"{metrics['percent_complete']}% complete, "
+            f"${metrics['total_cost_to_date']:,.0f} spent to date.",
+        )
+        await asyncio.sleep(0.15)
+
+        # ── Step 3: Show earned value computation results ──
+        await emitter.emit_tool_call("compute_earned_value", {
+            "project": pname,
+            "earned_value": ev["earned_value"],
+            "actual_cost": ev["actual_cost"],
+        })
         await asyncio.sleep(0.1)
+        await emitter.emit_tool_result(
+            "compute_earned_value",
+            {
+                "cpi": ev["cpi"],
+                "eac": ev["eac"],
+                "etc": ev["etc"],
+                "vac": ev["vac"],
+                "projected_margin_pct": ev["projected_margin_pct"],
+            },
+            f"CPI: {ev['cpi']:.2f} | EAC: ${ev['eac']:,.0f} | "
+            f"Projected Margin: {ev['projected_margin_pct']:.1f}%"
+            + (f" | {len(over_budget_codes)} cost codes over budget" if over_budget_codes else ""),
+        )
+        await asyncio.sleep(0.15)
 
-    await emitter.emit_tool_call("generate_dashboard", {"projects": len(projects)})
-    await asyncio.sleep(0.15)
+        # ── Step 4: Show labor analysis results ──
+        await emitter.emit_tool_call("analyze_labor_productivity", {
+            "project": pname,
+            "actual_hours": la["actual_hours"],
+            "estimated_hours": la["estimated_hours"],
+        })
+        await asyncio.sleep(0.1)
+        await emitter.emit_tool_result(
+            "analyze_labor_productivity",
+            {
+                "productivity_index": la["productivity_index"],
+                "hours_variance": la["hours_variance"],
+                "overtime_pct": la["overtime_pct"],
+                "rate_impact": la["rate_impact_dollars"],
+            },
+            f"Productivity: {la['productivity_index']:.2f} | "
+            f"Hours variance: {la['hours_variance']:+,.0f} | "
+            f"Overtime: {la['overtime_pct']:.1f}% | "
+            f"Rate impact: ${la['rate_impact_dollars']:+,.0f}",
+        )
+        await asyncio.sleep(0.15)
 
-    _llm = await llm_json_response(
-        agent_id="progress_tracking",
-        objective=(
-            "Analyze construction project progress data and return a JSON dashboard report. Include:\n"
-            "- kpi_summary: object with total_budget, total_spent, on_track_count, at_risk_count, behind_count\n"
-            "- findings: array with one entry per project, each including:\n"
-            "  project_id, project_name, finding (on_track/at_risk/behind_schedule),\n"
-            "  message (1-2 sentence summary), create_task (boolean),\n"
-            "  task_title (if create_task), task_priority (high/medium/low),\n"
-            "  budget_total (number), actual_spent (number),\n"
-            "  percent_complete (number), contract_value (number),\n"
-            "  variance_dollar (budget_total * percent_complete/100 - actual_spent),\n"
-            "  variance_percent (variance as % of budget),\n"
-            "  status_color (green for on_track, amber for at_risk, red for behind_schedule),\n"
-            "  recommendation (1 sentence action item for PM)\n"
-            "Create tasks only for at_risk or behind_schedule projects."
-        ),
-        context_payload=payload,
-        max_tokens=2500,
-        temperature=0.1,
-        validator=validate_progress_findings,
-    )
-    model_plan = _llm.data
-    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
+        # ── Step 5: LLM deep-reasoning on this single project ──
+        await emitter.emit_reasoning(
+            f"Running AI analysis on {pname} — evaluating cost performance, labor trends, "
+            f"schedule risk, and proposal assumptions against field data."
+        )
+        await asyncio.sleep(0.2)
 
-    findings = model_plan.get("findings")
-    if not isinstance(findings, list):
-        raise RuntimeError("progress_tracking: model output missing findings[]")
+        await emitter.emit_tool_call("reason_about_project", {
+            "project": pname,
+            "cpi": ev["cpi"],
+            "broken_assumptions": len(broken),
+            "over_budget_codes": len(over_budget_codes),
+            "schedule_days_behind": sa["days_behind"],
+        })
 
-    kpi = model_plan.get("kpi_summary", {})
-    await emitter.emit_tool_result(
-        "generate_dashboard",
-        {"on_track": kpi.get("on_track_count", 0), "at_risk": kpi.get("at_risk_count", 0), "behind": kpi.get("behind_count", 0)},
-        f"Dashboard built: {kpi.get('on_track_count', 0)} on track, "
-        f"{kpi.get('at_risk_count', 0)} at risk, {kpi.get('behind_count', 0)} behind schedule.",
-    )
-    await asyncio.sleep(0.15)
+        # Start background thinking stream while LLM processes this project
+        thinking_lines = _PROJECT_THINKING.get(finding_status, _PROJECT_THINKING_DEFAULT)
+        thinking_task = asyncio.create_task(
+            _run_thinking_stream(emitter, thinking_lines, interval=1.8)
+        )
 
-    at_risk = 0
-    for finding in findings:
-        if not isinstance(finding, dict):
-            continue
-        create_task = bool(finding.get("create_task"))
-        if create_task:
-            at_risk += 1
-            title = str(finding.get("task_title", "")).strip() or f"PM follow-up: {finding.get('project_name', '')}"
-            description = str(finding.get("message", "")).strip() or "Model flagged project risk."
-            priority = str(finding.get("task_priority", "")).strip() or "high"
+        try:
+            _llm = await llm_json_response(
+                agent_id="progress_tracking",
+                objective=(
+                    f"You are a senior construction project analyst reviewing '{pname}' for a CFO/executive audience.\n"
+                    "All numbers have been pre-computed — DO NOT recalculate any figures.\n\n"
+                    "Analyze this project deeply and return a JSON object with:\n"
+                    "- finding: on_track / at_risk / behind_schedule\n"
+                    "- status_color: green / amber / red\n"
+                    "- reasoning_chain: array of 5-8 strings, each a distinct analytical step you took to reach your conclusion. "
+                    "Example: ['CPI of 0.73 indicates $0.73 earned for every $1.00 spent — 27% cost overrun', "
+                    "'Earthwork cost code is the primary driver at 42% over earned value', ...]. "
+                    "Each step should reference specific numbers from the data.\n"
+                    "- executive_summary: 2-3 sentence high-level status for a CFO\n"
+                    "- root_cause_analysis: 3-5 sentence paragraph explaining WHY the project is in its current state. "
+                    "For at_risk/behind projects, reference specific broken proposal assumptions, cost code overruns, "
+                    "labor productivity issues, and schedule delays. For on_track projects, highlight strengths and watch items.\n"
+                    "- proposal_vs_actual_insight: 2-3 sentences comparing the original bid assumptions to field reality\n"
+                    "- labor_insight: 2-3 sentences about labor productivity, overtime, rate variances\n"
+                    "- schedule_insight: 2-3 sentences about schedule performance and milestone trends\n"
+                    "- financial_risk_level: high / medium / low\n"
+                    "- schedule_risk_level: high / medium / low\n"
+                    "- recommendation: 2-3 sentence specific, actionable recommendation for the PM\n"
+                    "- create_task: boolean (true for at_risk/behind_schedule)\n"
+                    "- task_title: string if create_task\n"
+                    "- task_priority: high / medium / low\n\n"
+                    "CRITICAL: Reference specific dollar amounts, percentages, cost codes, and metrics from the data below. "
+                    "The reasoning_chain is the most important field — it shows HOW you arrived at your assessment."
+                ),
+                context_payload={
+                    "project_metrics": metrics,
+                },
+                max_tokens=2000,
+                temperature=0.2,
+                validator=_validate_single_project_analysis,
+            )
+        finally:
+            thinking_task.cancel()
+            try:
+                await thinking_task
+            except asyncio.CancelledError:
+                pass
+
+        project_analysis = _llm.data
+        await emitter.emit_llm(
+            "tool_result",
+            {"tool": "llm_analysis", "result": {}, "summary": f"AI analysis complete for {pname}"},
+            message=f"LLM analysis for {pname}",
+            prompt_tokens=_llm.prompt_tokens,
+            completion_tokens=_llm.completion_tokens,
+        )
+
+        # Enrich the analysis with project identifiers
+        project_analysis["project_id"] = pid
+        project_analysis["project_name"] = pname
+
+        # Emit the reasoning chain as visible reasoning steps
+        reasoning_chain = project_analysis.get("reasoning_chain", [])
+        for step in reasoning_chain:
+            await emitter.emit_thinking(f"→ {step}")
+            await asyncio.sleep(0.3)
+
+        status_label = project_analysis.get("finding", finding_status).replace("_", " ").title()
+        risk_level = project_analysis.get("financial_risk_level", "medium")
+
+        await emitter.emit_tool_result(
+            "reason_about_project",
+            {
+                "project": pname,
+                "finding": project_analysis.get("finding", finding_status),
+                "financial_risk": risk_level,
+                "schedule_risk": project_analysis.get("schedule_risk_level", "medium"),
+                "reasoning_steps": len(reasoning_chain),
+            },
+            f"{pname}: {status_label} — Financial Risk: {risk_level.upper()} | "
+            f"Reasoning: {len(reasoning_chain)} analytical steps",
+        )
+        await asyncio.sleep(0.15)
+
+        findings.append(project_analysis)
+
+        # Create internal task if flagged
+        if bool(project_analysis.get("create_task")):
+            title = str(project_analysis.get("task_title", "")).strip() or f"PM follow-up: {pname}"
+            description = str(project_analysis.get("executive_summary", "")).strip() or "Flagged project risk."
+            priority = str(project_analysis.get("task_priority", "")).strip() or "high"
             await insert_internal_task(conn, "progress_tracking", title, description, priority)
+
+    # ═══════════════════════════════════════════════════════════════
+    # Portfolio Summary (deterministic)
+    # ═══════════════════════════════════════════════════════════════
+    total_contract = sum(p["contract_value"] for p in computed_projects)
+    total_estimated = sum(p["estimated_cost"] for p in computed_projects)
+    total_cost_to_date = sum(p["total_cost_to_date"] for p in computed_projects)
+    total_eac = sum(p["earned_value_analysis"]["eac"] for p in computed_projects)
+    total_projected_revenue = sum(p["earned_value_analysis"]["projected_revenue"] for p in computed_projects)
+    total_projected_margin = sum(p["earned_value_analysis"]["projected_margin"] for p in computed_projects)
+    portfolio_margin_pct = (total_projected_margin / total_projected_revenue * 100) if total_projected_revenue > 0 else 0
+    on_track = sum(1 for f in findings if f.get("finding") == "on_track")
+    at_risk = sum(1 for f in findings if f.get("finding") == "at_risk")
+    behind = sum(1 for f in findings if f.get("finding") == "behind_schedule")
+    weighted_pct = sum(p["percent_complete"] * p["contract_value"] for p in computed_projects)
+    portfolio_pct_complete = round(weighted_pct / total_contract, 1) if total_contract > 0 else 0
+
+    kpi_summary = {
+        "as_of_date": as_of,
+        "total_projects": len(computed_projects),
+        "total_contract_value": total_contract,
+        "total_estimated_cost": total_estimated,
+        "total_cost_to_date": total_cost_to_date,
+        "total_eac": round(total_eac),
+        "total_projected_revenue": round(total_projected_revenue),
+        "total_projected_margin": round(total_projected_margin),
+        "portfolio_margin_pct": round(portfolio_margin_pct, 1),
+        "portfolio_pct_complete": portfolio_pct_complete,
+        "on_track_count": on_track,
+        "at_risk_count": at_risk,
+        "behind_count": behind,
+    }
+
+    task_count = sum(1 for f in findings if f.get("create_task"))
+    await emitter.emit_reasoning(
+        f"Portfolio analysis complete. {len(findings)} projects assessed: "
+        f"{on_track} on track, {at_risk} at risk, {behind} behind schedule. "
+        f"Total portfolio value: ${total_contract:,.0f}, weighted {portfolio_pct_complete}% complete."
+    )
 
     await emitter.emit_status_change(
         "complete",
-        f"Reviewed {len(findings)} projects: {at_risk} need attention.",
+        f"Analyzed {len(findings)} projects: {task_count} need PM attention.",
     )
-    # Return both kpi_summary and findings for the dashboard
-    return {"kpi_summary": kpi, "findings": findings, "projects_data": projects}
+
+    # ── Return rich data for frontend rendering ──
+    return {
+        "kpi_summary": kpi_summary,
+        "findings": findings,
+        "computed_projects": computed_projects,
+    }
 
 
 async def run_maintenance_scheduler(conn, emitter: EventEmitter) -> dict[str, Any]:
@@ -2504,202 +3545,446 @@ async def run_onboarding(conn, emitter: EventEmitter) -> dict[str, Any]:
     return {"hire": hire, "checklist": checklist, "onboarding_summary": onboarding_summary}
 
 
-async def run_cost_estimator(conn, emitter: EventEmitter) -> dict[str, Any]:
-    payload = await load_json("productivity_rates.json")
-    project = payload.get("project", {})
-    scope_items = payload.get("scope_items", [])
-    labor_rate = payload.get("labor_rate", 68.0)
+_THINKING_OVERFLOW = [
+    "Reviewing calculations against industry benchmarks...",
+    "Double-checking unit rate conversions and quantity takeoffs...",
+    "Verifying cost allocations across labor, material, and equipment...",
+    "Cross-referencing line totals with category subtotals...",
+    "Validating pricing against historical project data...",
+    "Checking for scope gaps or missing allowances...",
+    "Reconciling quantities with plan measurements...",
+    "Applying regional cost adjustment factors...",
+    "Reviewing production rate assumptions for reasonableness...",
+    "Confirming crew composition and equipment selections...",
+    "Evaluating subcontractor vs. self-perform cost trade-offs...",
+    "Assessing schedule impacts on resource loading...",
+]
 
-    # --- Phase 1: Scope Analysis ---
-    await emitter.emit_status_change(
-        "working", "Phase 1 of 5: Analyzing project scope"
-    )
-    await asyncio.sleep(0.2)
+
+async def _run_thinking_stream(
+    emitter: EventEmitter,
+    lines: list[str],
+    interval: float = 1.8,
+) -> None:
+    """Background task that emits thinking lines at intervals until cancelled."""
+    for line in lines:
+        await asyncio.sleep(interval)
+        await emitter.emit_thinking(line)
+    # If we run out of scripted lines, cycle through varied overflow lines
+    # so the UI never shows a stale repeated message.
+    idx = 0
+    while True:
+        await asyncio.sleep(2.5)
+        await emitter.emit_thinking(_THINKING_OVERFLOW[idx % len(_THINKING_OVERFLOW)])
+        idx += 1
+
+
+async def run_cost_estimator(conn, emitter: EventEmitter) -> dict[str, Any]:
+    agent_id = "cost_estimator"
+    payload = await load_json("takeoff_data.json")
+    project = payload.get("project", {})
+    takeoff = payload.get("takeoff", [])
+    cost_database = payload.get("cost_database", {})
+    markup_schedule = payload.get("markup_schedule", {})
+
+    # Group takeoff items by category (preserve order)
+    categories_map: dict[str, list[dict[str, Any]]] = {}
+    for item in takeoff:
+        cat = item.get("category", "Other")
+        categories_map.setdefault(cat, []).append(item)
+    category_names = list(categories_map.keys())
+
+    # ═══════════════════════════════════════════════════════════════
+    # Phase 1: Load & Preview Takeoff
+    # ═══════════════════════════════════════════════════════════════
+    await emitter.emit_status_change("working", "Loading takeoff data")
+    await update_agent_status(conn, agent_id, status="working", current_activity="Loading takeoff data")
 
     await emitter.emit_reasoning(
-        f"Reviewing takeoff data for {project.get('name', 'project')}. "
-        f"Client: {project.get('client', 'N/A')}. "
-        f"Found {len(scope_items)} line items across "
-        f"{len(set(s.get('category','') for s in scope_items))} categories."
+        f"Received takeoff for {project.get('name', 'project')} — "
+        f"{project.get('client', 'N/A')}, {project.get('location', '')}. "
+        f"Found {len(takeoff)} line items across {len(category_names)} scope categories: "
+        + ", ".join(f"{c} ({len(items)})" for c, items in categories_map.items())
+        + ". Will price each category against the company cost database."
     )
-    await asyncio.sleep(0.3)
+    await asyncio.sleep(0.2)
 
     await emitter.emit_tool_call("load_takeoff_data", {
         "project": project.get("name", ""),
         "project_id": project.get("project_id", ""),
-        "line_items": len(scope_items),
+        "client": project.get("client", ""),
+        "line_items": len(takeoff),
+        "categories": len(category_names),
     })
-    await asyncio.sleep(0.25)
+    await asyncio.sleep(0.2)
 
-    categories = {}
-    for si in scope_items:
-        cat = si.get("category", "Other")
-        categories.setdefault(cat, []).append(si.get("item", ""))
+    # Build takeoff preview table for activity stream
+    takeoff_preview_lines = []
+    for cat_name in category_names:
+        takeoff_preview_lines.append(f"── {cat_name} ──")
+        for ti in categories_map[cat_name]:
+            takeoff_preview_lines.append(
+                f"  {ti['item']}: {ti['quantity']:,} {ti['unit']}"
+            )
 
     await emitter.emit_tool_result(
         "load_takeoff_data",
-        {"categories": {k: len(v) for k, v in categories.items()}, "total_items": len(scope_items)},
-        f"Loaded {len(scope_items)} scope items: " + ", ".join(f"{k} ({len(v)})" for k, v in categories.items()),
+        {
+            "project": project.get("name", ""),
+            "total_items": len(takeoff),
+            "categories": {c: len(items) for c, items in categories_map.items()},
+            "takeoff_preview": "\n".join(takeoff_preview_lines),
+        },
+        f"Loaded takeoff: {len(takeoff)} items across {len(category_names)} categories — "
+        + ", ".join(f"{c} ({len(items)})" for c, items in categories_map.items()),
     )
     await asyncio.sleep(0.2)
 
-    # --- Phase 2: Labor Calculation ---
-    await emitter.emit_status_change(
-        "working", "Phase 2 of 5: Calculating labor costs"
-    )
-    await asyncio.sleep(0.15)
+    # ═══════════════════════════════════════════════════════════════
+    # Phase 2: Per-Category Pricing Loop (LLM per category)
+    # ═══════════════════════════════════════════════════════════════
+    all_line_items: list[dict[str, Any]] = []
+    category_subtotals: dict[str, float] = {}
+    category_notes: dict[str, str] = {}
+
+    # Per-category thinking lines (shown while LLM works)
+    # ~10 lines × 1.6s interval = ~16 seconds of coverage before overflow kicks in
+    _category_thinking: dict[str, list[str]] = {
+        "Earthwork": [
+            "Calculating bulk excavation volumes for mass grading...",
+            "Cross-referencing dozer and loader production rates against soil conditions...",
+            "Applying crew composition factors for cut-and-fill operations...",
+            "Checking fill import quantities against material haul distances...",
+            "Estimating topsoil strip depth and stockpile handling costs...",
+            "Verifying compaction testing allowances in the equipment rates...",
+            "Comparing cut-fill balance to determine net import or export...",
+            "Factoring in equipment mobilization and site access constraints...",
+            "Reviewing fine grading tolerances and finish grade requirements...",
+            "Validating earthwork unit prices against recent bid tabulations...",
+        ],
+        "Utilities": [
+            "Mapping utility trench depths and widths for each run...",
+            "Looking up pipe material costs by diameter — 6-inch through 18-inch...",
+            "Factoring in bedding material and backfill requirements per linear foot...",
+            "Calculating manhole installation labor based on depth and connection count...",
+            "Checking dewatering allowances for shallow groundwater conditions...",
+            "Pricing fire hydrant assemblies including tees, valves, and thrust blocks...",
+            "Estimating storm drain inlet costs with precast frames and grates...",
+            "Reviewing sanitary sewer service lateral connection details...",
+            "Applying trench safety and shoring costs for deeper utility runs...",
+            "Verifying utility testing and inspection allowances per specification...",
+        ],
+        "Paving": [
+            "Computing asphalt tonnage from area and specified section thickness...",
+            "Pricing aggregate base course by the cubic yard including placement...",
+            "Applying paving crew mobilization costs for phased installation...",
+            "Verifying tack coat and prime coat rates against current supplier pricing...",
+            "Calculating compaction and density testing requirements for base course...",
+            "Reviewing HMA mix design specifications and plant delivery distances...",
+            "Checking for phased paving requirements to maintain traffic flow...",
+            "Estimating saw-cut and joint layout costs for pavement sections...",
+        ],
+        "Concrete": [
+            "Estimating concrete yardage for curb, gutter, and sidewalk sections...",
+            "Applying form and finish labor rates based on linear footage...",
+            "Factoring in reinforcement and dowel requirements per the plans...",
+            "Checking concrete pump and placement costs for accessible pours...",
+            "Calculating driveway apron dimensions and transition details...",
+            "Reviewing ADA-compliant ramp and detectable warning requirements...",
+            "Pricing expansion joint material and saw-cut control joints...",
+            "Estimating cure-and-seal application costs per square foot...",
+        ],
+        "Erosion Control": [
+            "Calculating silt fence and inlet protection quantities from the SWPPP...",
+            "Pricing hydroseeding by the acre including mobilization...",
+            "Factoring in maintenance and inspection costs over the project duration...",
+            "Checking stabilized construction entrance specifications against site access...",
+            "Reviewing NPDES permit compliance requirements and reporting costs...",
+            "Estimating temporary sediment basin sizing and removal costs...",
+            "Pricing erosion control blanket installation on disturbed slopes...",
+            "Calculating seeding and mulching rates for final stabilization...",
+        ],
+    }
+    _default_thinking = [
+        "Analyzing quantity takeoff data for this scope category...",
+        "Cross-referencing unit rates against the cost database...",
+        "Computing labor, material, and equipment costs per line item...",
+        "Verifying totals and checking for pricing anomalies...",
+        "Reviewing quantity measurements against plan details...",
+        "Applying waste and overrun factors to material quantities...",
+        "Checking for scope items that may require specialized equipment...",
+        "Reconciling calculated costs with database rate structure...",
+    ]
+
+    for cat_idx, cat_name in enumerate(category_names, start=1):
+        cat_items = categories_map[cat_name]
+
+        await emitter.emit_status_change(
+            "working", f"Pricing category {cat_idx} of {len(category_names)}: {cat_name}"
+        )
+        await update_agent_status(
+            conn, agent_id, status="working",
+            current_activity=f"Pricing {cat_name} ({cat_idx}/{len(category_names)})",
+        )
+
+        await emitter.emit_reasoning(
+            f"Pricing {cat_name} — {len(cat_items)} items. "
+            f"Looking up labor, material, and equipment rates from cost database."
+        )
+
+        # Show the rates being looked up
+        cat_rates = cost_database.get(cat_name, {})
+        await emitter.emit_tool_call("lookup_cost_database", {
+            "category": cat_name,
+            "items": len(cat_items),
+            "rates_available": len(cat_rates),
+        })
+        await asyncio.sleep(0.15)
+
+        rates_summary_parts = []
+        for ti in cat_items:
+            item_name = ti["item"]
+            rates = cat_rates.get(item_name, {})
+            rates_summary_parts.append(
+                f"{item_name}: L=${rates.get('labor_rate', 0)}/unit, "
+                f"M=${rates.get('material_rate', 0)}/unit, "
+                f"E=${rates.get('equipment_rate', 0)}/unit"
+            )
+
+        await emitter.emit_tool_result(
+            "lookup_cost_database",
+            {"category": cat_name, "rates_found": len(cat_rates)},
+            f"Found rates for {len(cat_rates)} items in {cat_name}:\n" + "\n".join(rates_summary_parts),
+        )
+        await asyncio.sleep(0.15)
+
+        # Start thinking stream while LLM works
+        thinking_lines = _category_thinking.get(cat_name, _default_thinking)
+        thinking_task = asyncio.create_task(
+            _run_thinking_stream(emitter, thinking_lines, interval=1.6)
+        )
+
+        # LLM call to price this category
+        try:
+            _llm = await cost_estimate_price_category(
+                agent_id=agent_id,
+                category=cat_name,
+                items=cat_items,
+                cost_db=cost_database,
+                category_index=cat_idx,
+                total_categories=len(category_names),
+                model="anthropic/claude-opus-4",
+            )
+        finally:
+            thinking_task.cancel()
+            try:
+                await thinking_task
+            except asyncio.CancelledError:
+                pass
+
+        cat_result = _llm.data
+
+        await emitter.emit_llm(
+            "tool_result",
+            {"tool": "llm_analysis", "result": {}, "summary": f"Priced {cat_name}"},
+            message=f"LLM pricing for {cat_name}",
+            prompt_tokens=_llm.prompt_tokens,
+            completion_tokens=_llm.completion_tokens,
+        )
+
+        cat_subtotal = float(cat_result.get("category_subtotal", 0))
+        cat_line_items = cat_result.get("line_items", [])
+
+        # Tag each line item with category for assembly
+        for li in cat_line_items:
+            li["category"] = cat_name
+        all_line_items.extend(cat_line_items)
+
+        category_subtotals[cat_name] = round(cat_subtotal, 2)
+        category_notes[cat_name] = cat_result.get("category_notes", "")
+
+        await emitter.emit_tool_call("price_category", {
+            "category": cat_name,
+            "items_priced": len(cat_line_items),
+            "category_subtotal": round(cat_subtotal, 2),
+        })
+        await emitter.emit_tool_result(
+            "price_category",
+            {
+                "category": cat_name,
+                "items_priced": len(cat_line_items),
+                "category_subtotal": round(cat_subtotal, 2),
+            },
+            f"{cat_name}: {len(cat_line_items)} items priced — subtotal ${cat_subtotal:,.0f}",
+        )
+        await asyncio.sleep(0.15)
+
+    # ═══════════════════════════════════════════════════════════════
+    # Phase 3: Apply Markups (deterministic — no LLM)
+    # ═══════════════════════════════════════════════════════════════
+    direct_cost_total = round(sum(category_subtotals.values()), 2)
+
+    overhead_rate = markup_schedule.get("overhead", 0.12)
+    profit_rate = markup_schedule.get("profit", 0.10)
+    contingency_rate = markup_schedule.get("contingency", 0.05)
+    bond_rate = markup_schedule.get("bond", 0.015)
+    mobilization_rate = markup_schedule.get("mobilization", 0.03)
+
+    markups = {
+        "overhead": round(direct_cost_total * overhead_rate, 2),
+        "profit": round(direct_cost_total * profit_rate, 2),
+        "contingency": round(direct_cost_total * contingency_rate, 2),
+        "bond": round(direct_cost_total * bond_rate, 2),
+        "mobilization": round(direct_cost_total * mobilization_rate, 2),
+    }
+    total_markups = round(sum(markups.values()), 2)
+    grand_total = round(direct_cost_total + total_markups, 2)
+
+    await emitter.emit_status_change("working", "Applying markups")
+    await update_agent_status(conn, agent_id, status="working", current_activity="Applying markups")
 
     await emitter.emit_reasoning(
-        f"Computing labor hours for each line item using production rates. "
-        f"Crew labor rate: ${labor_rate:.2f}/hr fully burdened."
-    )
-    await asyncio.sleep(0.25)
-
-    await emitter.emit_tool_call("calculate_labor_costs", {
-        "labor_rate": labor_rate,
-        "items": len(scope_items),
-    })
-    await asyncio.sleep(0.2)
-
-    total_labor_hrs = sum(
-        si.get("quantity", 0) * si.get("labor_hours_per_unit", 0) for si in scope_items
-    )
-    total_labor_cost = round(total_labor_hrs * labor_rate, 2)
-
-    await emitter.emit_tool_result(
-        "calculate_labor_costs",
-        {"total_hours": round(total_labor_hrs, 1), "total_labor": total_labor_cost},
-        f"Total labor: {round(total_labor_hrs, 1)} hours = ${total_labor_cost:,.0f}",
+        f"All {len(category_names)} categories priced. Direct cost total: ${direct_cost_total:,.0f}. "
+        f"Applying standard markups — "
+        f"Overhead {overhead_rate*100:.0f}%: ${markups['overhead']:,.0f}, "
+        f"Profit {profit_rate*100:.0f}%: ${markups['profit']:,.0f}, "
+        f"Contingency {contingency_rate*100:.0f}%: ${markups['contingency']:,.0f}, "
+        f"Bond {bond_rate*100:.1f}%: ${markups['bond']:,.0f}, "
+        f"Mobilization {mobilization_rate*100:.0f}%: ${markups['mobilization']:,.0f}."
     )
     await asyncio.sleep(0.2)
-
-    # --- Phase 3: Material Pricing ---
-    await emitter.emit_status_change(
-        "working", "Phase 3 of 5: Pricing materials"
-    )
-    await asyncio.sleep(0.15)
-
-    await emitter.emit_tool_call("price_materials", {"source": "vendor_price_sheets"})
-    await asyncio.sleep(0.2)
-
-    total_material = sum(
-        si.get("quantity", 0) * si.get("material_cost_per_unit", 0) for si in scope_items
-    )
-
-    await emitter.emit_tool_result(
-        "price_materials",
-        {"total_material": round(total_material, 2)},
-        f"Total materials: ${round(total_material):,} from vendor price sheets",
-    )
-    await asyncio.sleep(0.2)
-
-    # --- Phase 4: Equipment Costs ---
-    await emitter.emit_status_change(
-        "working", "Phase 4 of 5: Calculating equipment costs"
-    )
-    await asyncio.sleep(0.15)
-
-    await emitter.emit_tool_call("calculate_equipment_costs", {"source": "internal_rates"})
-    await asyncio.sleep(0.2)
-
-    total_equipment = sum(
-        si.get("quantity", 0) * si.get("equipment_cost_per_unit", 0) for si in scope_items
-    )
-
-    await emitter.emit_tool_result(
-        "calculate_equipment_costs",
-        {"total_equipment": round(total_equipment, 2)},
-        f"Total equipment: ${round(total_equipment):,} based on internal ownership rates",
-    )
-    await asyncio.sleep(0.2)
-
-    # --- Phase 5: Markups & Estimate Generation ---
-    await emitter.emit_status_change(
-        "working", "Phase 5 of 5: Applying markups and generating estimate"
-    )
-    await asyncio.sleep(0.15)
-
-    direct_cost = total_labor_cost + total_material + total_equipment
-    overhead_rate = payload.get("overhead_rate", 0.15)
-    profit_rate = payload.get("profit_rate", 0.10)
-    contingency_rate = payload.get("contingency_rate", 0.05)
-
-    await emitter.emit_reasoning(
-        f"Direct cost subtotal: ${direct_cost:,.0f}. "
-        f"Applying markups — Overhead: {overhead_rate*100:.0f}%, "
-        f"Profit: {profit_rate*100:.0f}%, "
-        f"Contingency: {contingency_rate*100:.0f}%, "
-        f"Bond: {payload.get('bond_rate', 0.015)*100:.1f}%, "
-        f"Mobilization: {payload.get('mobilization_percent', 0.03)*100:.0f}%."
-    )
-    await asyncio.sleep(0.3)
 
     await emitter.emit_tool_call("apply_markups", {
-        "direct_cost": round(direct_cost, 2),
+        "direct_cost": direct_cost_total,
         "overhead": f"{overhead_rate*100:.0f}%",
         "profit": f"{profit_rate*100:.0f}%",
         "contingency": f"{contingency_rate*100:.0f}%",
+        "bond": f"{bond_rate*100:.1f}%",
+        "mobilization": f"{mobilization_rate*100:.0f}%",
     })
     await asyncio.sleep(0.15)
 
-    # --- LLM call to produce the full structured estimate ---
-    _llm = await llm_json_response(
-        agent_id="cost_estimator",
-        objective=(
-            "Build a detailed construction cost estimate. The data includes scope_items with "
-            "quantities, labor rates, material costs, and equipment costs per unit. "
-            "Return JSON with these keys:\n"
-            "- line_items: array of objects, one per scope item, each with: "
-            "item, category, quantity, unit, labor_hours, labor_cost, material_cost, "
-            "equipment_cost, subtotal (labor+material+equipment)\n"
-            "- category_subtotals: object mapping category name to subtotal dollar amount\n"
-            "- direct_cost_total: sum of all line item subtotals\n"
-            "- markups: object with keys overhead, profit, contingency, bond, mobilization — "
-            "each a dollar amount calculated from direct_cost_total using the rates provided\n"
-            "- grand_total: direct_cost_total plus all markups\n"
-            "- assumptions: array of 4-6 strings (e.g. 'Normal soil conditions', "
-            "'No rock excavation required', 'Standard working hours')\n"
-            "- exclusions: array of 3-5 strings (e.g. 'Building construction', "
-            "'Electrical and mechanical systems', 'Permit fees')\n"
-            "Calculate costs precisely from the input data. labor_cost = quantity * labor_hours_per_unit * labor_rate. "
-            "material_cost = quantity * material_cost_per_unit. equipment_cost = quantity * equipment_cost_per_unit."
-        ),
-        context_payload=payload,
-        max_tokens=3000,
-        temperature=0.1,
-        validator=validate_cost_estimate,
-    )
-    result = _llm.data
-    await emitter.emit_llm("tool_result", {"tool": "llm_analysis", "result": {}, "summary": "LLM analysis complete"}, message="LLM analysis", prompt_tokens=_llm.prompt_tokens, completion_tokens=_llm.completion_tokens)
-
-    grand_total = result.get("grand_total", 0)
     await emitter.emit_tool_result(
         "apply_markups",
-        {"grand_total": grand_total},
-        f"Estimate complete. Grand total: ${grand_total:,.0f}" if _is_number(grand_total) else "Estimate complete.",
+        {
+            "direct_cost": direct_cost_total,
+            "markups": markups,
+            "total_markups": total_markups,
+            "grand_total": grand_total,
+        },
+        f"Markups applied: ${total_markups:,.0f} on ${direct_cost_total:,.0f} direct cost. Grand total: ${grand_total:,.0f}",
     )
     await asyncio.sleep(0.15)
 
-    await emitter.emit_tool_call("generate_estimate", {
-        "project_id": project.get("project_id", ""),
-        "line_items": len(result.get("line_items", [])),
+    # ═══════════════════════════════════════════════════════════════
+    # Phase 4: Generate Proposal Narrative (1 LLM call)
+    # ═══════════════════════════════════════════════════════════════
+    await emitter.emit_status_change("working", "Generating proposal narrative")
+    await update_agent_status(conn, agent_id, status="working", current_activity="Generating proposal narrative")
+
+    await emitter.emit_tool_call("generate_proposal", {
+        "project": project.get("name", ""),
         "grand_total": grand_total,
+        "categories": len(category_names),
     })
-    await asyncio.sleep(0.15)
+    await asyncio.sleep(0.1)
+
+    # Thinking stream for proposal generation
+    proposal_thinking_task = asyncio.create_task(
+        _run_thinking_stream(emitter, [
+            "Drafting scope of work narrative for the proposal document...",
+            f"Describing the {len(category_names)} major work categories and their interdependencies...",
+            "Structuring the proposal around site preparation, underground, and surface improvements...",
+            "Compiling standard assumptions for soil conditions, site access, and working hours...",
+            "Documenting material availability and lead time assumptions...",
+            "Identifying exclusions — building construction, electrical, permits, hazmat...",
+            "Noting design change and unforeseen condition exclusions...",
+            "Determining realistic project schedule based on scope complexity and sequencing...",
+            "Factoring in weather-related schedule allowances for the region...",
+            "Finalizing pricing validity period and contractual terms...",
+            "Reviewing proposal language for completeness and professional tone...",
+            "Assembling final proposal sections — scope, assumptions, exclusions, schedule...",
+        ], interval=1.8)
+    )
+
+    try:
+        proposal_llm = await llm_json_response(
+            agent_id=agent_id,
+            objective=(
+                "Write the narrative sections for a professional construction cost proposal. "
+                f"Project: {project.get('name', '')} — {project.get('description', '')}. "
+                f"Location: {project.get('location', '')}. Client: {project.get('client', '')}. "
+                f"Scope categories: {', '.join(category_names)}. "
+                f"Direct cost: ${direct_cost_total:,.0f}. Grand total: ${grand_total:,.0f}. "
+                "Return JSON with these keys:\n"
+                "- scope_narrative: 2-3 paragraph professional description of the work\n"
+                "- assumptions: array of 5-7 strings (soil conditions, access, working hours, "
+                "weather, material availability, utilities, subgrade)\n"
+                "- exclusions: array of 4-6 strings (building construction, electrical/mechanical, "
+                "permits, design changes, hazmat, landscaping beyond seeding)\n"
+                "- schedule_statement: 1 sentence estimated project duration\n"
+                "- validity_statement: 1 sentence pricing validity period"
+            ),
+            context_payload={
+                "project": project,
+                "categories": category_names,
+                "category_subtotals": category_subtotals,
+                "category_notes": category_notes,
+                "direct_cost_total": direct_cost_total,
+                "grand_total": grand_total,
+            },
+            max_tokens=1500,
+            temperature=0.2,
+            validator=validate_proposal_narrative,
+            model="anthropic/claude-opus-4",
+        )
+    finally:
+        proposal_thinking_task.cancel()
+        try:
+            await proposal_thinking_task
+        except asyncio.CancelledError:
+            pass
+
+    proposal = proposal_llm.data
+
+    await emitter.emit_llm(
+        "tool_result",
+        {"tool": "llm_analysis", "result": {}, "summary": "Proposal narrative generated"},
+        message="LLM proposal narrative",
+        prompt_tokens=proposal_llm.prompt_tokens,
+        completion_tokens=proposal_llm.completion_tokens,
+    )
 
     await emitter.emit_tool_result(
-        "generate_estimate",
-        {"status": "complete", "grand_total": grand_total},
-        f"Estimate generated for {project.get('name', 'project')}: "
-        f"{len(result.get('line_items', []))} line items, "
-        f"${grand_total:,.0f} grand total." if _is_number(grand_total) else "Estimate generated.",
+        "generate_proposal",
+        {"status": "complete", "assumptions": len(proposal.get("assumptions", [])), "exclusions": len(proposal.get("exclusions", []))},
+        f"Proposal narrative generated with {len(proposal.get('assumptions', []))} assumptions and {len(proposal.get('exclusions', []))} exclusions.",
     )
+    await asyncio.sleep(0.1)
 
-    # Attach project metadata to result for frontend
-    result["project"] = project
+    # ═══════════════════════════════════════════════════════════════
+    # Assemble final result
+    # ═══════════════════════════════════════════════════════════════
+    result: dict[str, Any] = {
+        "project": project,
+        "line_items": all_line_items,
+        "category_subtotals": category_subtotals,
+        "category_notes": category_notes,
+        "direct_cost_total": direct_cost_total,
+        "markups": markups,
+        "grand_total": grand_total,
+        "assumptions": proposal.get("assumptions", []),
+        "exclusions": proposal.get("exclusions", []),
+        "proposal": {
+            "scope_narrative": proposal.get("scope_narrative", ""),
+            "schedule_statement": proposal.get("schedule_statement", ""),
+            "validity_statement": proposal.get("validity_statement", ""),
+        },
+    }
+
     await emitter.emit_status_change(
         "complete",
-        f"Estimate for {project.get('name', 'project')}: ${grand_total:,.0f}" if _is_number(grand_total) else "Estimate complete.",
+        f"Proposal complete for {project.get('name', 'project')}: ${grand_total:,.0f}",
     )
     return result
 

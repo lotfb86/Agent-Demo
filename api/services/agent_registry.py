@@ -33,10 +33,10 @@ AGENTS: list[AgentMeta] = [
     ),
     AgentMeta(
         "financial_reporting", "Financial Reporting Agent", "General Accounting", "report",
-        description="Generates P&L reports, expense analyses, and period comparisons from Vista GL data.",
+        description="Comprehensive financial analysis for an $850M construction company — P&L, job costing, AR aging, backlog, cash flow, margin trends, budget variance, and KPI dashboards with charts and executive narrative.",
         tools=(
-            "classify_intent", "connect_vista_api", "query_financial_data",
-            "aggregate_results", "generate_report", "compile_narrative", "load_financial_data",
+            "classify_intent", "query_gl_data", "query_job_data", "query_ar_aging",
+            "query_backlog", "compute_metrics", "generate_report", "load_financial_data",
         ),
     ),
     AgentMeta(
@@ -55,9 +55,10 @@ AGENTS: list[AgentMeta] = [
     ),
     AgentMeta(
         "progress_tracking", "Progress Tracking Agent", "Project Management", "table",
-        description="Analyzes project schedule and budget indicators, flags risk, and recommends actions.",
+        description="Performs proposal-vs-actual analysis with earned value metrics, labor productivity tracking, cost code variance, and schedule milestone analysis for active construction projects.",
         tools=(
-            "load_project_data", "analyze_project_health", "track_project_health",
+            "load_project_data", "analyze_project", "compute_earned_value",
+            "analyze_labor_productivity", "generate_analysis",
         ),
     ),
     AgentMeta(
@@ -84,9 +85,10 @@ AGENTS: list[AgentMeta] = [
     ),
     AgentMeta(
         "cost_estimator", "Cost Estimator", "Estimating", "report",
-        description="Produces defendable contract pricing using productivity rates, overhead, and target margin.",
+        description="Receives construction takeoffs, prices each scope category against the cost database, applies standard markups, and generates professional cost proposals.",
         tools=(
-            "load_takeoff_data", "apply_labor_rates", "apply_markups", "generate_estimate",
+            "load_takeoff_data", "lookup_cost_database", "price_category",
+            "apply_markups", "generate_proposal",
         ),
     ),
     AgentMeta(

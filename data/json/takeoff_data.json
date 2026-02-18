@@ -1,0 +1,249 @@
+{
+  "project": {
+    "name": "Creekside Business Park \u2014 Site Development",
+    "project_id": "SD-2026-042",
+    "client": "Creekside Development Group LLC",
+    "location": "4200 Creekside Parkway, Charlotte, NC 28277",
+    "date": "2026-02-17",
+    "estimator": "James Callahan, PE",
+    "bid_date": "2026-03-07",
+    "description": "Complete site development package for a 12-acre commercial business park including mass grading, storm drainage, water and sewer utilities, concrete curb and sidewalk, asphalt paving, and erosion control measures."
+  },
+  "takeoff": [
+    {
+      "item": "Strip & Stockpile Topsoil",
+      "category": "Earthwork",
+      "quantity": 4800,
+      "unit": "CY",
+      "description": "Strip 6\" topsoil, stockpile on-site for reuse"
+    },
+    {
+      "item": "Mass Grading \u2014 Cut",
+      "category": "Earthwork",
+      "quantity": 18500,
+      "unit": "CY",
+      "description": "Bulk excavation to subgrade elevation per grading plan"
+    },
+    {
+      "item": "Mass Grading \u2014 Fill & Compaction",
+      "category": "Earthwork",
+      "quantity": 14200,
+      "unit": "CY",
+      "description": "Place and compact structural fill to 95% standard proctor"
+    },
+    {
+      "item": "Fine Grading",
+      "category": "Earthwork",
+      "quantity": 52000,
+      "unit": "SY",
+      "description": "Fine grade subgrade to \u00b10.1' tolerance"
+    },
+    {
+      "item": "8\" DIP Water Main",
+      "category": "Utilities",
+      "quantity": 2400,
+      "unit": "LF",
+      "description": "Install 8\" ductile iron water main with fittings"
+    },
+    {
+      "item": "Fire Hydrant Assembly",
+      "category": "Utilities",
+      "quantity": 6,
+      "unit": "EA",
+      "description": "Fire hydrant with valve, tee, and thrust block"
+    },
+    {
+      "item": "8\" PVC Sanitary Sewer",
+      "category": "Utilities",
+      "quantity": 1800,
+      "unit": "LF",
+      "description": "Install 8\" SDR-35 PVC sanitary sewer"
+    },
+    {
+      "item": "Sanitary Manhole (4' dia)",
+      "category": "Utilities",
+      "quantity": 8,
+      "unit": "EA",
+      "description": "Precast concrete sanitary manholes to 8' depth average"
+    },
+    {
+      "item": "18\" RCP Storm Drain",
+      "category": "Utilities",
+      "quantity": 1600,
+      "unit": "LF",
+      "description": "18\" reinforced concrete storm drain pipe"
+    },
+    {
+      "item": "Storm Drain Inlet",
+      "category": "Utilities",
+      "quantity": 12,
+      "unit": "EA",
+      "description": "Precast drop inlet with grate, 4'\u00d74'\u00d76' avg depth"
+    },
+    {
+      "item": "6\" Aggregate Base Course",
+      "category": "Paving",
+      "quantity": 28000,
+      "unit": "SY",
+      "description": "6\" compacted aggregate base for roadways and parking"
+    },
+    {
+      "item": "3\" HMA Surface Course",
+      "category": "Paving",
+      "quantity": 28000,
+      "unit": "SY",
+      "description": "3\" hot-mix asphalt surface course, S9.5B"
+    },
+    {
+      "item": "Concrete Curb & Gutter",
+      "category": "Concrete",
+      "quantity": 4200,
+      "unit": "LF",
+      "description": "2'-6\" standard curb and gutter per NCDOT detail"
+    },
+    {
+      "item": "4\" Concrete Sidewalk",
+      "category": "Concrete",
+      "quantity": 8400,
+      "unit": "SF",
+      "description": "4\" reinforced concrete sidewalk, broom finish"
+    },
+    {
+      "item": "6\" Concrete Driveway Apron",
+      "category": "Concrete",
+      "quantity": 3200,
+      "unit": "SF",
+      "description": "6\" reinforced concrete at driveway entrances"
+    },
+    {
+      "item": "Silt Fence",
+      "category": "Erosion Control",
+      "quantity": 3600,
+      "unit": "LF",
+      "description": "Install and maintain silt fence perimeter"
+    },
+    {
+      "item": "Construction Entrance",
+      "category": "Erosion Control",
+      "quantity": 2,
+      "unit": "EA",
+      "description": "50' stabilized rock construction entrance"
+    },
+    {
+      "item": "Seeding & Mulching",
+      "category": "Erosion Control",
+      "quantity": 42000,
+      "unit": "SY",
+      "description": "Hydroseed disturbed areas with permanent seed mix"
+    }
+  ],
+  "cost_database": {
+    "Earthwork": {
+      "Strip & Stockpile Topsoil": {
+        "labor_rate": 1.85,
+        "material_rate": 0.0,
+        "equipment_rate": 2.4
+      },
+      "Mass Grading \u2014 Cut": {
+        "labor_rate": 1.6,
+        "material_rate": 0.0,
+        "equipment_rate": 2.75
+      },
+      "Mass Grading \u2014 Fill & Compaction": {
+        "labor_rate": 2.1,
+        "material_rate": 0.45,
+        "equipment_rate": 3.2
+      },
+      "Fine Grading": {
+        "labor_rate": 0.55,
+        "material_rate": 0.0,
+        "equipment_rate": 0.7
+      }
+    },
+    "Utilities": {
+      "8\" DIP Water Main": {
+        "labor_rate": 18.5,
+        "material_rate": 32.0,
+        "equipment_rate": 8.5
+      },
+      "Fire Hydrant Assembly": {
+        "labor_rate": 480.0,
+        "material_rate": 2850.0,
+        "equipment_rate": 320.0
+      },
+      "8\" PVC Sanitary Sewer": {
+        "labor_rate": 16.0,
+        "material_rate": 14.5,
+        "equipment_rate": 9.0
+      },
+      "Sanitary Manhole (4' dia)": {
+        "labor_rate": 650.0,
+        "material_rate": 2200.0,
+        "equipment_rate": 450.0
+      },
+      "18\" RCP Storm Drain": {
+        "labor_rate": 14.0,
+        "material_rate": 22.0,
+        "equipment_rate": 7.5
+      },
+      "Storm Drain Inlet": {
+        "labor_rate": 720.0,
+        "material_rate": 1850.0,
+        "equipment_rate": 380.0
+      }
+    },
+    "Paving": {
+      "6\" Aggregate Base Course": {
+        "labor_rate": 1.2,
+        "material_rate": 3.8,
+        "equipment_rate": 1.5
+      },
+      "3\" HMA Surface Course": {
+        "labor_rate": 1.0,
+        "material_rate": 5.2,
+        "equipment_rate": 1.8
+      }
+    },
+    "Concrete": {
+      "Concrete Curb & Gutter": {
+        "labor_rate": 6.5,
+        "material_rate": 8.0,
+        "equipment_rate": 2.2
+      },
+      "4\" Concrete Sidewalk": {
+        "labor_rate": 2.8,
+        "material_rate": 3.5,
+        "equipment_rate": 0.6
+      },
+      "6\" Concrete Driveway Apron": {
+        "labor_rate": 3.4,
+        "material_rate": 4.8,
+        "equipment_rate": 0.8
+      }
+    },
+    "Erosion Control": {
+      "Silt Fence": {
+        "labor_rate": 1.2,
+        "material_rate": 0.85,
+        "equipment_rate": 0.3
+      },
+      "Construction Entrance": {
+        "labor_rate": 800.0,
+        "material_rate": 2400.0,
+        "equipment_rate": 600.0
+      },
+      "Seeding & Mulching": {
+        "labor_rate": 0.15,
+        "material_rate": 0.22,
+        "equipment_rate": 0.08
+      }
+    }
+  },
+  "markup_schedule": {
+    "overhead": 0.12,
+    "profit": 0.1,
+    "contingency": 0.05,
+    "bond": 0.015,
+    "mobilization": 0.03
+  }
+}

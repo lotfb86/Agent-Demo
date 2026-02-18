@@ -1,5 +1,9 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { assetUrl } from '../api'
+import {
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from 'recharts'
 
 const CREW_COLORS = {
   crew_a: 'bg-emerald-500 border-emerald-600',
@@ -27,8 +31,8 @@ function PoMatchArtifact({ output, currentInvoicePath, activeInvoice, activeVend
       <div className="flex flex-col overflow-hidden">
         {/* Invoice metadata header */}
         {(activeInvoice || currentInvoicePath) && (
-          <div className={`mb-2 flex items-center justify-between rounded-lg border px-3 py-2 text-xs transition-all duration-300 ${
-            running ? 'border-rpmx-signal/40 bg-orange-50/60' : 'border-rpmx-slate/50 bg-rpmx-canvas'
+          <div className={`mb-2 flex items-center justify-between rounded-lg px-3 py-2 text-xs transition-all duration-300 ${
+            running ? 'ring-2 ring-rpmx-signal/25 bg-orange-50/60' : 'ring-1 ring-rpmx-slate/15 bg-rpmx-canvas'
           }`}>
             <div className="flex items-center gap-3">
               {activeInvoice && <span className="font-semibold text-rpmx-ink">{activeInvoice}</span>}
@@ -45,7 +49,7 @@ function PoMatchArtifact({ output, currentInvoicePath, activeInvoice, activeVend
           </div>
         )}
         <div className={`flex-1 overflow-hidden rounded-xl border bg-white transition-all duration-500 ${
-          running ? 'border-rpmx-signal/30 shadow-md' : 'border-rpmx-slate/70'
+          running ? 'ring-2 ring-rpmx-signal/25 shadow-elevated' : 'ring-1 ring-rpmx-slate/15'
         }`}>
           {currentInvoicePath ? (
             <iframe title="Invoice PDF" src={assetUrl(currentInvoicePath)} className="h-full w-full" />
@@ -54,10 +58,10 @@ function PoMatchArtifact({ output, currentInvoicePath, activeInvoice, activeVend
           )}
         </div>
       </div>
-      <div className="flex flex-col overflow-hidden rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
+      <div className="flex flex-col overflow-hidden rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
         {/* Completion summary */}
         {isDone && (
-          <div className="border-b border-rpmx-slate/40 bg-gradient-to-r from-emerald-50 to-blue-50 px-3 py-2.5">
+          <div className="border-b border-rpmx-slate/25 bg-gradient-to-r from-emerald-50 to-blue-50 px-3 py-2.5">
             <div className="flex items-center gap-2 text-xs">
               <svg className="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -83,8 +87,8 @@ function PoMatchArtifact({ output, currentInvoicePath, activeInvoice, activeVend
             {processed.map((item) => {
               const isMatched = item.status === 'matched'
               return (
-                <article key={item.invoice_number} className={`rounded-lg border-l-[3px] border bg-white p-2.5 text-xs animate-slide-in ${
-                  isMatched ? 'border-l-emerald-400 border-rpmx-slate/50' : 'border-l-amber-400 border-rpmx-slate/50'
+                <article key={item.invoice_number} className={`rounded-lg border-l-[3px] ring-1 ring-rpmx-slate/15 bg-white p-2.5 text-xs animate-slide-in shadow-sm ${
+                  isMatched ? 'border-l-emerald-400' : 'border-l-amber-400'
                 }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -119,83 +123,311 @@ function PoMatchArtifact({ output, currentInvoicePath, activeInvoice, activeVend
   )
 }
 
+/* ── Financial Report chart colors (RPMX palette) ── */
+const CHART_COLORS = ['#ff6f3c', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899']
+
+function fmtCurrency(v) {
+  if (v == null) return '—'
+  const n = Number(v)
+  const sign = n < 0 ? '-' : ''
+  const abs = Math.abs(n)
+  if (abs >= 1_000_000) return `${sign}$${(abs / 1_000_000).toFixed(1)}M`
+  if (abs >= 1_000) return `${sign}$${(abs / 1_000).toFixed(0)}K`
+  return `${sign}$${abs.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+function fmtCurrencyFull(v) {
+  if (v == null) return '—'
+  const n = Number(v)
+  const sign = n < 0 ? '-' : ''
+  return `${sign}$${Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+function fmtPercent(v) { return v != null ? `${Number(v).toFixed(1)}%` : '—' }
+function fmtNumber(v) { return v != null ? Number(v).toLocaleString() : '—' }
+function fmtDays(v) { return v != null ? `${Number(v).toFixed(0)} days` : '—' }
+function fmtValue(v, format) {
+  if (format === 'currency') return fmtCurrency(v)
+  if (format === 'percent') return fmtPercent(v)
+  if (format === 'days') return fmtDays(v)
+  return fmtNumber(v)
+}
+function fmtTableCell(v, format) {
+  if (format === 'currency') return fmtCurrencyFull(v)
+  if (format === 'percent') return fmtPercent(v)
+  if (format === 'days') return fmtDays(v)
+  if (format === 'text') return String(v ?? '')
+  if (typeof v === 'number') return fmtCurrencyFull(v)
+  return String(v ?? '')
+}
+
+/* "Lower is better" metrics — down arrow should be green, up arrow red */
+const LOWER_IS_BETTER = new Set(['dso', 'overhead', 'overhead ratio', 'overhead_ratio', 'days sales outstanding', 'ar aging', 'cost', 'expenses'])
+
+function isLowerBetter(label) {
+  const l = (label || '').toLowerCase()
+  for (const term of LOWER_IS_BETTER) { if (l.includes(term)) return true }
+  return false
+}
+
+function KpiGrid({ metrics = [] }) {
+  return (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+      {metrics.map((m, i) => {
+        const trend = m.trend === 'up' ? '↑' : m.trend === 'down' ? '↓' : ''
+        const inverted = isLowerBetter(m.label)
+        /* For "lower is better" metrics, swap the colors: down=green, up=red */
+        let trendColor = 'text-rpmx-steel'
+        if (m.trend === 'up') trendColor = inverted ? 'text-rose-600' : 'text-emerald-600'
+        if (m.trend === 'down') trendColor = inverted ? 'text-emerald-600' : 'text-rose-600'
+        return (
+          <div key={i} className="rounded-lg bg-rpmx-canvas/60 p-2.5 ring-1 ring-rpmx-slate/10">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-rpmx-steel">{m.label}</p>
+            <p className="mt-1 text-lg font-semibold text-rpmx-ink font-mono">
+              {fmtValue(m.value, m.format)}
+            </p>
+            {(trend || m.target != null) && (
+              <p className={`mt-0.5 text-[10px] ${trendColor}`}>
+                {trend && <span className="font-semibold">{trend}</span>}
+                {m.target != null && <span className="ml-1 text-rpmx-muted">target: {fmtValue(m.target, m.format)}</span>}
+              </p>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function FinancialTable({ section }) {
+  const { title, columns = [], rows = [], highlight_rows = [], footer } = section
+  return (
+    <div>
+      {title && <p className="mb-2 text-xs font-semibold text-rpmx-ink">{title}</p>}
+      <div className="overflow-x-auto rounded-lg ring-1 ring-rpmx-slate/10">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="bg-rpmx-canvas/60">
+              {columns.map((col, ci) => (
+                <th key={ci} className={`py-2 px-3 font-semibold text-rpmx-steel uppercase tracking-wider text-[10px] ${ci === 0 ? 'text-left' : 'text-right'}`}>
+                  {col.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, ri) => {
+              const isHighlight = highlight_rows.includes(ri)
+              return (
+                <tr key={ri} className={`border-t border-rpmx-slate/10 ${isHighlight ? 'bg-rpmx-canvas/50 font-semibold' : ''}`}>
+                  {columns.map((col, ci) => {
+                    const val = row[col.key]
+                    const isNeg = typeof val === 'number' && val < 0
+                    const isVariance = col.key?.includes('variance') || col.label?.toLowerCase()?.includes('variance')
+                    const negColor = isNeg ? (isVariance ? 'text-rose-600' : 'text-rpmx-ink') : 'text-rpmx-ink'
+                    return (
+                      <td key={ci} className={`py-1.5 px-3 ${ci === 0 ? 'text-left text-rpmx-ink' : `text-right font-mono ${negColor}`}`}>
+                        {fmtTableCell(val, col.format)}
+                      </td>
+                    )
+                  })}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+      {footer && <p className="mt-1.5 text-[10px] text-rpmx-muted italic">{footer}</p>}
+    </div>
+  )
+}
+
+function FinancialChart({ section }) {
+  const { chart_type, title, data = {}, format = 'currency' } = section
+  const labels = data.labels || []
+  const datasets = data.datasets || []
+
+  const chartData = labels.map((label, i) => {
+    const point = { name: label }
+    datasets.forEach((ds) => { point[ds.label] = ds.values?.[i] ?? 0 })
+    return point
+  })
+
+  const tooltipFmt = (v) => {
+    if (format === 'currency') return fmtCurrency(v)
+    if (format === 'percent') return fmtPercent(v)
+    return fmtNumber(v)
+  }
+
+  const chartHeight = chart_type === 'pie' ? 'h-56' : 'h-56'
+
+  return (
+    <div>
+      {title && <p className="mb-2 text-xs font-semibold text-rpmx-ink">{title}</p>}
+      <div className={`${chartHeight} w-full`}>
+        <ResponsiveContainer width="100%" height="100%">
+          {chart_type === 'line' ? (
+            <LineChart data={chartData} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} />
+              <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={tooltipFmt} width={65} />
+              <Tooltip formatter={tooltipFmt} contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid rgba(148,163,184,0.2)' }} />
+              {datasets.length > 1 && <Legend wrapperStyle={{ fontSize: 10 }} />}
+              {datasets.map((ds, di) => (
+                <Line key={di} type="monotone" dataKey={ds.label} stroke={CHART_COLORS[di % CHART_COLORS.length]}
+                  strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+              ))}
+            </LineChart>
+          ) : chart_type === 'pie' ? (
+            <PieChart>
+              <Pie data={chartData.map((d) => ({ name: d.name, value: d[datasets[0]?.label] || 0 }))}
+                cx="50%" cy="50%" outerRadius={85} innerRadius={42}
+                dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                labelLine={{ stroke: '#94a3b8', strokeWidth: 1 }}
+                style={{ fontSize: 9 }}
+              >
+                {labels.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+              </Pie>
+              <Tooltip formatter={tooltipFmt} contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid rgba(148,163,184,0.2)' }} />
+            </PieChart>
+          ) : (
+            /* bar or stacked_bar */
+            <BarChart data={chartData} margin={{ top: 8, right: 16, bottom: 4, left: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} angle={labels.length > 6 ? -35 : 0} textAnchor={labels.length > 6 ? 'end' : 'middle'} height={labels.length > 6 ? 50 : 30} />
+              <YAxis tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={tooltipFmt} width={65} />
+              <Tooltip formatter={tooltipFmt} contentStyle={{ fontSize: 11, borderRadius: 8, border: '1px solid rgba(148,163,184,0.2)' }} />
+              {datasets.length > 1 && <Legend wrapperStyle={{ fontSize: 10 }} />}
+              {datasets.map((ds, di) => (
+                <Bar key={di} dataKey={ds.label} fill={CHART_COLORS[di % CHART_COLORS.length]}
+                  stackId={chart_type === 'stacked_bar' ? 'stack' : undefined}
+                  radius={chart_type === 'stacked_bar' ? 0 : [3, 3, 0, 0]} />
+              ))}
+            </BarChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}
+
+function NarrativeBlock({ section }) {
+  return (
+    <div className="rounded-lg bg-[#fffbf7] p-3 ring-1 ring-amber-200/40">
+      {section.title && <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel">{section.title}</p>}
+      <p className="text-xs text-rpmx-ink leading-relaxed whitespace-pre-wrap">{section.content}</p>
+    </div>
+  )
+}
+
+function ReportSection({ section }) {
+  if (!section || !section.type) return null
+  if (section.type === 'kpi_grid') return <KpiGrid metrics={section.metrics} />
+  if (section.type === 'table') return <FinancialTable section={section} />
+  if (section.type === 'chart') return <FinancialChart section={section} />
+  if (section.type === 'narrative') return <NarrativeBlock section={section} />
+  return null
+}
+
+/* ── Legacy flat key-value renderer for backward compat ── */
+function LegacyDataTable({ data }) {
+  return (
+    <div className="p-4">
+      <table className="w-full text-xs">
+        <thead><tr className="border-b border-rpmx-slate/25">
+          <th className="py-2 text-left font-semibold text-rpmx-steel uppercase tracking-wider">Line Item</th>
+          <th className="py-2 text-right font-semibold text-rpmx-steel uppercase tracking-wider">Amount</th>
+        </tr></thead>
+        <tbody>
+          {Object.entries(data).map(([key, value]) => {
+            const isTotal = /total|net|gross|profit/i.test(key)
+            const isPercent = /percent|margin_pct|rate/i.test(key)
+            const amount = typeof value === 'number'
+              ? isPercent ? `${value.toFixed(1)}%` : fmtCurrencyFull(value)
+              : String(value)
+            return (
+              <tr key={key} className={`border-b border-rpmx-slate/20 ${isTotal ? 'bg-rpmx-canvas/50' : ''}`}>
+                <td className={`py-2 ${isTotal ? 'font-semibold text-rpmx-ink' : 'text-rpmx-ink'}`}>
+                  {key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                </td>
+                <td className={`py-2 text-right font-mono ${isTotal ? 'font-semibold text-rpmx-ink' : 'text-rpmx-ink'}`}>{amount}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function FinancialReportArtifact({ output, reports }) {
   const [expandedIdx, setExpandedIdx] = useState(null)
   const allReports = reports || []
 
+  // Auto-expand the latest report when it arrives
+  useEffect(() => {
+    if (allReports.length > 0) setExpandedIdx(allReports.length - 1)
+  }, [allReports.length])
+
   const REPORT_BADGE = {
-    p_and_l: { label: 'P&L', color: 'bg-emerald-100 text-emerald-700', icon: '📊' },
-    comparison: { label: 'Comparison', color: 'bg-blue-100 text-blue-700', icon: '📈' },
-    expense_analysis: { label: 'Expense', color: 'bg-amber-100 text-amber-700', icon: '💰' },
-    job_costing: { label: 'Job Costing', color: 'bg-purple-100 text-purple-700', icon: '🔧' },
-    custom_query: { label: 'Custom', color: 'bg-indigo-100 text-indigo-700', icon: '📋' },
+    p_and_l: { label: 'P&L', color: 'bg-emerald-100 text-emerald-700' },
+    comparison: { label: 'Comparison', color: 'bg-blue-100 text-blue-700' },
+    expense_analysis: { label: 'Expense', color: 'bg-amber-100 text-amber-700' },
+    job_costing: { label: 'Job Costing', color: 'bg-purple-100 text-purple-700' },
+    ar_analysis: { label: 'AR Aging', color: 'bg-rose-100 text-rose-700' },
+    backlog: { label: 'Backlog', color: 'bg-cyan-100 text-cyan-700' },
+    cash_flow: { label: 'Cash Flow', color: 'bg-teal-100 text-teal-700' },
+    margin_analysis: { label: 'Margins', color: 'bg-orange-100 text-orange-700' },
+    budget_variance: { label: 'Budget', color: 'bg-lime-100 text-lime-700' },
+    kpi_dashboard: { label: 'Dashboard', color: 'bg-indigo-100 text-indigo-700' },
+    custom_query: { label: 'Custom', color: 'bg-gray-100 text-gray-700' },
   }
 
-  // Detail view when a report is expanded
+  // ── Expanded report document ──
   if (expandedIdx !== null && allReports[expandedIdx]) {
     const report = allReports[expandedIdx]
-    const badge = REPORT_BADGE[report.report_type] || { label: 'Report', color: 'bg-gray-100 text-gray-700', icon: '📄' }
-    const data = report.data || {}
+    const badge = REPORT_BADGE[report.report_type] || { label: 'Report', color: 'bg-gray-100 text-gray-700' }
+    const sections = report.sections || []
+    const hasLegacyData = !sections.length && report.data && Object.keys(report.data).length > 0
 
     return (
-      <div className="h-[62vh] overflow-auto">
-        <button
-          onClick={() => setExpandedIdx(null)}
-          className="mb-3 flex items-center gap-1.5 text-xs font-medium text-rpmx-signal hover:text-rpmx-ink transition-colors"
-        >
-          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          Back to reports
-        </button>
+      <div className="h-[62vh] overflow-auto activity-scroll">
+        {/* Back button (only show if more than one report) */}
+        {allReports.length > 1 && (
+          <button
+            onClick={() => setExpandedIdx(null)}
+            className="mb-3 flex items-center gap-1.5 text-xs font-medium text-rpmx-signal hover:text-rpmx-ink transition-colors"
+          >
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            All reports ({allReports.length})
+          </button>
+        )}
 
-        <div className="rounded-xl border border-rpmx-slate/70 bg-white overflow-hidden">
+        <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-white overflow-hidden">
           {/* Report header */}
-          <div className="bg-gradient-to-r from-rpmx-canvas to-white border-b border-rpmx-slate/40 px-4 py-3">
+          <div className="bg-gradient-to-r from-rpmx-canvas to-white border-b border-rpmx-slate/25 px-4 py-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-rpmx-ink">{report.report_title || 'Financial Report'}</h3>
-              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${badge.color}`}>{badge.icon} {badge.label}</span>
+              <div>
+                <h3 className="text-base font-semibold text-rpmx-ink">{report.report_title || 'Financial Report'}</h3>
+                {report.period_label && <p className="text-[10px] text-rpmx-steel mt-0.5">{report.division_name || 'Company-Wide'} — {report.period_label}</p>}
+              </div>
+              <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${badge.color}`}>{badge.label}</span>
             </div>
           </div>
 
-          {/* Financial data table */}
-          {Object.keys(data).length > 0 && (
-            <div className="p-4">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="border-b border-rpmx-slate/40">
-                    <th className="py-2 text-left font-semibold text-rpmx-steel uppercase tracking-wider">Line Item</th>
-                    <th className="py-2 text-right font-semibold text-rpmx-steel uppercase tracking-wider">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(data).map(([key, value]) => {
-                    const isTotal = /total|net|gross|profit/i.test(key)
-                    const isPercent = /percent|margin_pct|rate/i.test(key)
-                    const amount = typeof value === 'number'
-                      ? isPercent
-                        ? `${value.toFixed(1)}%`
-                        : `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                      : String(value)
-                    return (
-                      <tr key={key} className={`border-b border-rpmx-slate/20 ${isTotal ? 'bg-rpmx-canvas/50' : ''}`}>
-                        <td className={`py-2 ${isTotal ? 'font-semibold text-rpmx-ink' : 'text-rpmx-ink'}`}>
-                          {key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                        </td>
-                        <td className={`py-2 text-right font-mono ${isTotal ? 'font-semibold text-rpmx-ink' : 'text-rpmx-ink'}`}>
-                          {amount}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+          {/* Section-based content */}
+          {sections.length > 0 ? (
+            <div className="p-4 space-y-4">
+              {sections.map((sec, si) => <ReportSection key={si} section={sec} />)}
             </div>
-          )}
+          ) : hasLegacyData ? (
+            <LegacyDataTable data={report.data} />
+          ) : null}
 
-          {/* Narrative */}
-          {report.narrative && (
-            <div className="border-t border-rpmx-slate/40 bg-[#fffbf7] px-4 py-3">
+          {/* Standalone narrative (for old format) */}
+          {report.narrative && !sections.length && (
+            <div className="border-t border-rpmx-slate/25 bg-[#fffbf7] px-4 py-3">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-rpmx-steel mb-1.5">Executive Summary</p>
               <p className="text-sm text-rpmx-ink leading-relaxed whitespace-pre-wrap">{report.narrative}</p>
             </div>
@@ -205,9 +437,9 @@ function FinancialReportArtifact({ output, reports }) {
     )
   }
 
-  // Report cards list
+  // ── Thumbnail gallery (collapsed view) ──
   return (
-    <div className="h-[62vh] overflow-auto">
+    <div className="h-[62vh] overflow-auto activity-scroll">
       {allReports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-rpmx-canvas mb-3">
@@ -219,13 +451,16 @@ function FinancialReportArtifact({ output, reports }) {
         </div>
       ) : (
         <div className="space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel mb-1">{allReports.length} report{allReports.length > 1 ? 's' : ''} generated</p>
           {allReports.map((report, idx) => {
-            const badge = REPORT_BADGE[report.report_type] || { label: 'Report', color: 'bg-gray-100 text-gray-700', icon: '📄' }
+            const badge = REPORT_BADGE[report.report_type] || { label: 'Report', color: 'bg-gray-100 text-gray-700' }
+            const narrativeSec = (report.sections || []).find(s => s.type === 'narrative')
+            const excerpt = narrativeSec?.content || report.narrative || ''
             return (
               <button
                 key={idx}
                 onClick={() => setExpandedIdx(idx)}
-                className="w-full text-left rounded-xl border border-rpmx-slate/70 bg-white p-3 hover:border-rpmx-signal/40 hover:shadow-sm transition-all animate-slide-in group"
+                className="w-full text-left rounded-xl ring-1 ring-rpmx-slate/15 bg-white p-3 hover:ring-rpmx-signal/30 hover:shadow-sm transition-all animate-slide-in group"
               >
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold text-rpmx-ink group-hover:text-rpmx-signal transition-colors">{report.report_title || 'Financial Report'}</p>
@@ -236,7 +471,8 @@ function FinancialReportArtifact({ output, reports }) {
                     </svg>
                   </div>
                 </div>
-                {report.narrative && <p className="mt-1 text-xs text-rpmx-steel line-clamp-2">{report.narrative}</p>}
+                {excerpt && <p className="mt-1 text-xs text-rpmx-steel line-clamp-2">{excerpt}</p>}
+                {report.period_label && <p className="mt-0.5 text-[10px] text-rpmx-muted">{report.division_name || 'Company-Wide'} — {report.period_label}</p>}
               </button>
             )
           })}
@@ -321,7 +557,7 @@ function ScheduleMapArtifact({ output }) {
 
   return (
     <div className="grid gap-3 xl:grid-cols-[62%_38%]">
-      <div className="relative h-[62vh] overflow-hidden rounded-xl border border-rpmx-slate/70 bg-gradient-to-br from-[#f5f7fb] via-[#edf6f3] to-[#fff6ed]">
+      <div className="relative h-[62vh] overflow-hidden rounded-xl ring-1 ring-rpmx-slate/15 bg-gradient-to-br from-[#f5f7fb] via-[#edf6f3] to-[#fff6ed]">
         {/* Route lines SVG overlay */}
         <svg className="absolute inset-0 h-full w-full pointer-events-none" style={{ zIndex: 1 }}>
           {routeLines.map((line, i) => (
@@ -345,7 +581,7 @@ function ScheduleMapArtifact({ output }) {
           </div>
         ))}
         {/* Crew legend */}
-        <div className="absolute top-2 right-2 flex flex-col gap-1 rounded-lg bg-white/95 px-2.5 py-2 shadow-sm border border-rpmx-slate/30" style={{ zIndex: 4 }}>
+        <div className="absolute top-2 right-2 flex flex-col gap-1 rounded-lg bg-white/95 px-2.5 py-2 shadow-sm ring-1 ring-rpmx-slate/10" style={{ zIndex: 4 }}>
           <span className="text-[10px] font-semibold text-rpmx-steel mb-0.5">CREWS</span>
           {Object.entries(CREW_LABELS).map(([id, label]) => (
             <div key={id} className="flex items-center gap-1.5">
@@ -356,9 +592,9 @@ function ScheduleMapArtifact({ output }) {
         </div>
         <div className="absolute bottom-2 left-2 rounded bg-white/90 px-2 py-1 text-xs text-rpmx-steel">Raleigh-Durham Metro Area</div>
       </div>
-      <div className="h-[62vh] flex flex-col overflow-hidden rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
+      <div className="h-[62vh] flex flex-col overflow-hidden rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
         {/* Drive time savings banner */}
-        <div className="border-b border-rpmx-slate/40 bg-gradient-to-r from-emerald-50 to-blue-50 px-3 py-2.5">
+        <div className="border-b border-rpmx-slate/25 bg-gradient-to-r from-emerald-50 to-blue-50 px-3 py-2.5">
           <div className="flex items-center gap-2 text-xs">
             <svg className="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -382,7 +618,7 @@ function ScheduleMapArtifact({ output }) {
             {Object.entries(output?.assignments || {}).map(([crewId, jobs]) => {
               const color = CREW_LINE_COLORS[crewId] || '#94a3b8'
               return (
-                <article key={crewId} className="rounded-lg border border-rpmx-slate/50 bg-white p-2.5 text-xs" style={{ borderLeftWidth: 3, borderLeftColor: color }}>
+                <article key={crewId} className="rounded-lg ring-1 ring-rpmx-slate/12 bg-white p-2.5 text-xs" style={{ borderLeftWidth: 3, borderLeftColor: color }}>
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-rpmx-ink">{CREW_LABELS[crewId] || crewId}</p>
                     <span className="text-[10px] text-rpmx-steel">{(jobs || []).length} stops</span>
@@ -421,7 +657,7 @@ function VendorComplianceArtifact({ output, communications }) {
     <div className="space-y-3">
       {/* ── Compliance Summary Bar ── */}
       {cs && (
-        <div className="rounded-xl border border-rpmx-slate/70 bg-white p-3">
+        <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-white p-3">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-rpmx-ink">Vendor Compliance Overview</h3>
             <span className="text-xs text-rpmx-steel">{cs.total_vendors} vendors audited</span>
@@ -439,7 +675,7 @@ function VendorComplianceArtifact({ output, communications }) {
               <p className="text-xl font-bold text-red-700">{cs.non_compliant}</p>
               <p className="text-[10px] text-rpmx-steel">Non-Compliant</p>
             </div>
-            <div className="rounded-lg border border-rpmx-slate/30 bg-gray-50 p-2 text-center">
+            <div className="rounded-lg ring-1 ring-rpmx-slate/10 bg-gray-50 p-2 text-center">
               <p className="text-xl font-bold text-rpmx-ink">{cs.issues_found}</p>
               <p className="text-[10px] text-rpmx-steel">Issues Found</p>
             </div>
@@ -456,8 +692,8 @@ function VendorComplianceArtifact({ output, communications }) {
       )}
 
       <div className="grid gap-3 xl:grid-cols-[55%_45%]">
-        <div className="flex flex-col overflow-hidden rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
-          <div className="border-b border-rpmx-slate/40 bg-white px-3 py-2">
+        <div className="flex flex-col overflow-hidden rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
+          <div className="border-b border-rpmx-slate/25 bg-white px-3 py-2">
             <h3 className="text-sm font-semibold">Compliance Findings</h3>
             {findings.length > 0 && <p className="text-[10px] text-rpmx-steel mt-0.5">{findings.length} vendor issues identified</p>}
           </div>
@@ -465,7 +701,7 @@ function VendorComplianceArtifact({ output, communications }) {
             {findings.map((item, idx) => {
               const style = ACTION_STYLES[item.action_type] || ACTION_STYLES.contract_task
               return (
-                <article key={idx} className={`rounded-lg border-l-[3px] border border-rpmx-slate/50 bg-white p-2.5 text-xs animate-slide-in ${style.border}`}>
+                <article key={idx} className={`rounded-lg border-l-[3px] ring-1 ring-rpmx-slate/12 bg-white p-2.5 text-xs animate-slide-in ${style.border}`}>
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-rpmx-ink">{style.icon} {item.vendor}</p>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${style.color}`}>{style.label}</span>
@@ -478,14 +714,14 @@ function VendorComplianceArtifact({ output, communications }) {
             })}
           </div>
         </div>
-        <div className="flex flex-col overflow-hidden rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
-          <div className="border-b border-rpmx-slate/40 bg-white px-3 py-2">
+        <div className="flex flex-col overflow-hidden rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
+          <div className="border-b border-rpmx-slate/25 bg-white px-3 py-2">
             <h3 className="text-sm font-semibold">Communications & Tasks</h3>
           </div>
           <div className="flex-1 overflow-auto p-3 space-y-2">
             {(communications || []).length === 0 && <p className="text-sm text-rpmx-steel">No communications sent yet.</p>}
             {(communications || []).map((entry) => (
-              <article key={entry.id} className="rounded-lg border-l-[3px] border-l-fuchsia-400 border border-rpmx-slate/50 bg-white p-2.5 text-xs animate-slide-in">
+              <article key={entry.id} className="rounded-lg border-l-[3px] border-l-fuchsia-400 ring-1 ring-rpmx-slate/12 bg-white p-2.5 text-xs animate-slide-in">
                 <p className="font-semibold text-fuchsia-800">{entry.subject}</p>
                 <p className="text-rpmx-steel">To: {entry.recipient}</p>
                 <p className="mt-1 text-rpmx-ink">{entry.body}</p>
@@ -506,189 +742,469 @@ function fmtBudget(v) {
   return '$' + n.toLocaleString()
 }
 
+/* ── Progress Tracking: Sub-Components ── */
+
+function ProgressKpiBar({ kpi }) {
+  const cards = [
+    { label: 'Contract Value', value: fmtCurrency(kpi.total_contract_value), sub: `${kpi.total_projects} projects` },
+    { label: 'Cost to Date', value: fmtCurrency(kpi.total_cost_to_date), sub: `of ${fmtCurrency(kpi.total_estimated_cost)} est.` },
+    { label: 'Est. at Completion', value: fmtCurrency(kpi.total_eac), sub: `Margin ${fmtPercent(kpi.portfolio_margin_pct)}` },
+    { label: 'Completion', value: `${kpi.portfolio_pct_complete}%`, sub: `${kpi.on_track_count} on track · ${kpi.at_risk_count + kpi.behind_count} flagged`, flagged: (kpi.at_risk_count + kpi.behind_count) > 0 },
+  ]
+  return (
+    <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4">
+      {cards.map((c, i) => (
+        <div key={i} className={`rounded-lg p-2.5 text-center ring-1 ${c.flagged ? 'ring-amber-200 bg-amber-50' : 'ring-rpmx-slate/15 bg-white'}`}>
+          <p className="text-[10px] uppercase tracking-wide text-rpmx-steel">{c.label}</p>
+          <p className={`text-lg font-bold ${c.flagged ? 'text-amber-700' : 'text-rpmx-ink'}`}>{c.value}</p>
+          <p className="text-[9px] text-rpmx-steel mt-0.5">{c.sub}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function CostCodeVarianceChart({ costCodes = [] }) {
+  const data = costCodes
+    .filter(cc => cc.pct_complete > 0)
+    .map(cc => {
+      const shortCode = cc.code.replace(/^\d+-/, '')
+      return { name: shortCode, Budgeted: cc.earned_value, Actual: cc.actual }
+    })
+  if (!data.length) return null
+  return (
+    <div className="h-44 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 4, right: 8, bottom: 4, left: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
+          <XAxis dataKey="name" tick={{ fontSize: 8, fill: '#64748b' }} angle={-30} textAnchor="end" height={45} />
+          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} tickFormatter={fmtCurrency} width={50} />
+          <Tooltip formatter={(v) => fmtCurrencyFull(v)} contentStyle={{ fontSize: 10, borderRadius: 6, border: '1px solid rgba(148,163,184,0.2)' }} />
+          <Legend wrapperStyle={{ fontSize: 9 }} />
+          <Bar dataKey="Budgeted" fill="#3b82f6" radius={[2, 2, 0, 0]} />
+          <Bar dataKey="Actual" fill="#ff6f3c" radius={[2, 2, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+function LaborTrendChart({ monthlyLabor = [] }) {
+  const data = monthlyLabor.map(m => ({
+    name: m.month?.replace('2025-', '').replace('2026-', 'Jan '),
+    Hours: m.hours,
+    Crew: m.crew_size,
+  }))
+  if (!data.length) return null
+  return (
+    <div className="h-36 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data} margin={{ top: 4, right: 8, bottom: 4, left: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
+          <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#64748b' }} />
+          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} width={40} />
+          <Tooltip contentStyle={{ fontSize: 10, borderRadius: 6, border: '1px solid rgba(148,163,184,0.2)' }} />
+          <Legend wrapperStyle={{ fontSize: 9 }} />
+          <Line type="monotone" dataKey="Hours" stroke="#3b82f6" strokeWidth={2} dot={{ r: 2.5 }} />
+          <Line type="monotone" dataKey="Crew" stroke="#10b981" strokeWidth={2} dot={{ r: 2.5 }} />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+function EarnedValueCard({ ev }) {
+  if (!ev) return null
+  const cpiColor = ev.cpi >= 1.0 ? 'text-emerald-600' : ev.cpi >= 0.9 ? 'text-amber-600' : 'text-red-600'
+  const cpiBg = ev.cpi >= 1.0 ? 'bg-emerald-50 ring-emerald-200' : ev.cpi >= 0.9 ? 'bg-amber-50 ring-amber-200' : 'bg-red-50 ring-red-200'
+  const marginColor = ev.projected_margin_pct >= 5 ? 'text-emerald-600' : ev.projected_margin_pct >= 0 ? 'text-amber-600' : 'text-red-600'
+  return (
+    <div className="grid grid-cols-3 gap-1.5">
+      <div className={`rounded-lg p-2 text-center ring-1 ${cpiBg}`}>
+        <p className="text-[9px] font-medium uppercase text-rpmx-steel">CPI</p>
+        <p className={`text-base font-bold font-mono ${cpiColor}`}>{ev.cpi.toFixed(2)}</p>
+        <p className="text-[8px] text-rpmx-steel">{ev.cpi >= 1.0 ? 'Under budget' : 'Over budget'}</p>
+      </div>
+      <div className="rounded-lg bg-white p-2 text-center ring-1 ring-rpmx-slate/12">
+        <p className="text-[9px] font-medium uppercase text-rpmx-steel">EAC</p>
+        <p className="text-base font-bold font-mono text-rpmx-ink">{fmtCurrency(ev.eac)}</p>
+        <p className="text-[8px] text-rpmx-steel">Est. at completion</p>
+      </div>
+      <div className="rounded-lg bg-white p-2 text-center ring-1 ring-rpmx-slate/12">
+        <p className="text-[9px] font-medium uppercase text-rpmx-steel">Proj. Margin</p>
+        <p className={`text-base font-bold font-mono ${marginColor}`}>{fmtPercent(ev.projected_margin_pct)}</p>
+        <p className="text-[8px] text-rpmx-steel">{fmtCurrency(ev.projected_margin)}</p>
+      </div>
+    </div>
+  )
+}
+
+function LaborMetricsCard({ labor }) {
+  if (!labor) return null
+  const piColor = labor.productivity_index >= 1.0 ? 'text-emerald-600' : labor.productivity_index >= 0.9 ? 'text-amber-600' : 'text-red-600'
+  const otColor = labor.overtime_pct > 10 ? 'text-red-600' : labor.overtime_pct > 5 ? 'text-amber-600' : 'text-rpmx-ink'
+  return (
+    <div className="grid grid-cols-4 gap-1.5">
+      <div className="rounded-lg bg-white p-2 text-center ring-1 ring-rpmx-slate/12">
+        <p className="text-[8px] font-medium uppercase text-rpmx-steel">Productivity</p>
+        <p className={`text-sm font-bold font-mono ${piColor}`}>{labor.productivity_index.toFixed(2)}</p>
+      </div>
+      <div className="rounded-lg bg-white p-2 text-center ring-1 ring-rpmx-slate/12">
+        <p className="text-[8px] font-medium uppercase text-rpmx-steel">Hours</p>
+        <p className="text-sm font-bold font-mono text-rpmx-ink">{(labor.actual_hours || 0).toLocaleString()}</p>
+        <p className="text-[8px] text-rpmx-steel">of {(labor.estimated_hours || 0).toLocaleString()}</p>
+      </div>
+      <div className="rounded-lg bg-white p-2 text-center ring-1 ring-rpmx-slate/12">
+        <p className="text-[8px] font-medium uppercase text-rpmx-steel">Rate Var.</p>
+        <p className={`text-sm font-bold font-mono ${labor.rate_variance > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+          {labor.rate_variance > 0 ? '+' : ''}{fmtCurrencyFull(labor.rate_impact_dollars)}
+        </p>
+      </div>
+      <div className="rounded-lg bg-white p-2 text-center ring-1 ring-rpmx-slate/12">
+        <p className="text-[8px] font-medium uppercase text-rpmx-steel">OT %</p>
+        <p className={`text-sm font-bold font-mono ${otColor}`}>{fmtPercent(labor.overtime_pct)}</p>
+      </div>
+    </div>
+  )
+}
+
+function MilestoneTimeline({ milestones = [] }) {
+  return (
+    <div className="space-y-1">
+      {milestones.map((ms, i) => {
+        const delta = ms.days_delta
+        const deltaLabel = delta != null ? (delta > 0 ? `+${delta}d late` : delta < 0 ? `${Math.abs(delta)}d early` : 'On time') : null
+        const deltaColor = delta != null ? (delta > 5 ? 'text-red-600' : delta > 0 ? 'text-amber-600' : 'text-emerald-600') : ''
+        return (
+          <div key={i} className="flex items-center gap-2 text-[10px]">
+            <div className="flex items-center justify-center w-4">
+              {ms.status === 'complete' ? (
+                <svg className="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : ms.status === 'in_progress' ? (
+                <span className="h-3 w-3 rounded-full border-2 border-blue-400 bg-blue-100 flex items-center justify-center">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                </span>
+              ) : (
+                <span className="h-3 w-3 rounded-full border-2 border-gray-300" />
+              )}
+            </div>
+            <div className="flex-1 flex items-center justify-between">
+              <span className={ms.status === 'complete' ? 'text-rpmx-steel' : 'text-rpmx-ink font-medium'}>{ms.name}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-rpmx-steel text-[9px]">{ms.planned}</span>
+                {deltaLabel && <span className={`text-[9px] font-semibold ${deltaColor}`}>{deltaLabel}</span>}
+              </div>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function AssumptionCheck({ assumptions = [] }) {
+  const broken = assumptions.filter(a => a.status === 'broken')
+  if (!broken.length) return <p className="text-[10px] text-emerald-600 font-medium">✓ All proposal assumptions holding</p>
+  return (
+    <div className="space-y-1">
+      {broken.map((a, i) => (
+        <div key={i} className="flex items-start gap-1.5 text-[10px]">
+          <span className="text-red-500 mt-0.5 shrink-0">✗</span>
+          <div>
+            <span className="text-rpmx-ink font-medium">{a.assumption}</span>
+            {a.reason && <span className="text-red-600 ml-1">— {a.reason}</span>}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function ReasoningChainPanel({ chain = [], color = 'blue' }) {
+  const [expanded, setExpanded] = useState(false)
+  if (!chain || chain.length === 0) return null
+  const preview = chain.slice(0, 3)
+  const rest = chain.slice(3)
+  const colorMap = {
+    red: { bg: 'bg-red-50/70', ring: 'ring-red-200/50', icon: 'text-red-400', step: 'text-red-900', head: 'text-red-700', line: 'bg-red-300', dot: 'bg-red-400' },
+    amber: { bg: 'bg-amber-50/70', ring: 'ring-amber-200/50', icon: 'text-amber-500', step: 'text-amber-900', head: 'text-amber-700', line: 'bg-amber-300', dot: 'bg-amber-400' },
+    green: { bg: 'bg-emerald-50/70', ring: 'ring-emerald-200/50', icon: 'text-emerald-500', step: 'text-emerald-900', head: 'text-emerald-700', line: 'bg-emerald-300', dot: 'bg-emerald-400' },
+  }
+  const c = colorMap[color] || colorMap.green
+  const displaySteps = expanded ? chain : preview
+  return (
+    <div className={`rounded-lg ${c.bg} ring-1 ${c.ring} p-3`}>
+      <div className="flex items-center gap-2 mb-2">
+        <svg className={`h-3.5 w-3.5 ${c.icon}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        </svg>
+        <p className={`text-[10px] font-bold uppercase tracking-wide ${c.head}`}>Agent Reasoning Chain</p>
+        <span className="text-[9px] text-rpmx-steel ml-auto">{chain.length} steps</span>
+      </div>
+      <div className="relative pl-4">
+        {/* Vertical line */}
+        <div className={`absolute left-[5px] top-1 bottom-1 w-px ${c.line}`} />
+        {displaySteps.map((step, idx) => (
+          <div key={idx} className="relative flex items-start gap-2.5 pb-2 last:pb-0">
+            <div className={`absolute left-[-13px] top-[5px] h-2 w-2 rounded-full ${c.dot} ring-2 ring-white`} />
+            <div className="flex-1">
+              <p className={`text-[10px] ${c.step} leading-relaxed`}>
+                <span className="font-mono text-[9px] opacity-60 mr-1.5">{idx + 1}.</span>
+                {step}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+      {rest.length > 0 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className={`mt-2 text-[9px] font-semibold ${c.head} hover:underline`}
+        >
+          {expanded ? 'Show less' : `Show ${rest.length} more step${rest.length > 1 ? 's' : ''}...`}
+        </button>
+      )}
+    </div>
+  )
+}
+
 function ProgressTrackingArtifact({ output }) {
   const findings = output?.findings || []
   const kpi = output?.kpi_summary || {}
-  const projectsData = output?.projects_data || []
+  const computedProjects = output?.computed_projects || []
   const [expandedId, setExpandedId] = useState(null)
 
   const STATUS_STYLES = {
-    green: { dot: 'bg-emerald-500', row: 'hover:bg-emerald-50/40', badge: 'bg-emerald-100 text-emerald-700' },
-    amber: { dot: 'bg-amber-500', row: 'hover:bg-amber-50/40', badge: 'bg-amber-100 text-amber-700' },
-    red: { dot: 'bg-red-500', row: 'hover:bg-red-50/40', badge: 'bg-red-100 text-red-700' },
+    green: { dot: 'bg-emerald-500', row: 'hover:bg-emerald-50/40', badge: 'bg-emerald-100 text-emerald-700', border: 'border-l-emerald-400' },
+    amber: { dot: 'bg-amber-500', row: 'hover:bg-amber-50/40', badge: 'bg-amber-100 text-amber-700', border: 'border-l-amber-400' },
+    red: { dot: 'bg-red-500', row: 'hover:bg-red-50/40', badge: 'bg-red-100 text-red-700', border: 'border-l-red-400' },
   }
 
-  // Merge findings with project data for drill-down
-  const enrichedFindings = findings.map((f) => {
-    const pData = projectsData.find((p) => p.project_id === f.project_id) || {}
-    return { ...f, cost_codes: pData.cost_codes || [], change_orders: pData.change_orders || [], milestones: pData.milestones || [] }
+  // Merge LLM findings with computed project data
+  const enriched = findings.map((f) => {
+    const cp = computedProjects.find((p) => p.project_id === f.project_id) || {}
+    return { ...f, ...cp, _finding_text: f }
   })
 
   return (
-    <div className="h-[62vh] overflow-auto rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4">
-        <div className="rounded-lg border border-rpmx-slate/70 bg-white p-2.5 text-center">
-          <p className="text-[10px] uppercase tracking-wide text-rpmx-steel">Total Budget</p>
-          <p className="text-lg font-bold text-rpmx-ink">{fmtBudget(kpi.total_budget)}</p>
-        </div>
-        <div className="rounded-lg border border-rpmx-slate/70 bg-white p-2.5 text-center">
-          <p className="text-[10px] uppercase tracking-wide text-rpmx-steel">Total Spent</p>
-          <p className="text-lg font-bold text-rpmx-ink">{fmtBudget(kpi.total_spent)}</p>
-        </div>
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-center">
-          <p className="text-[10px] uppercase tracking-wide text-emerald-600">On Track</p>
-          <p className="text-lg font-bold text-emerald-700">{kpi.on_track_count ?? 0}</p>
-        </div>
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-center">
-          <p className="text-[10px] uppercase tracking-wide text-amber-600">At Risk / Behind</p>
-          <p className="text-lg font-bold text-amber-700">{(kpi.at_risk_count ?? 0) + (kpi.behind_count ?? 0)}</p>
-        </div>
-      </div>
+    <div className="h-[62vh] overflow-auto rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
+      {/* Portfolio KPI Bar */}
+      <ProgressKpiBar kpi={kpi} />
 
-      {/* Project Table */}
-      <div className="mx-3 mb-3 rounded-lg border border-rpmx-slate/70 bg-white overflow-hidden">
-        <table className="w-full text-[11px]">
-          <thead>
-            <tr className="bg-gray-50 border-b border-rpmx-slate/40">
-              <th className="text-left px-3 py-2 font-semibold text-rpmx-steel w-8"></th>
-              <th className="text-left px-2 py-2 font-semibold text-rpmx-steel">Project</th>
-              <th className="text-right px-2 py-2 font-semibold text-rpmx-steel w-20">Budget</th>
-              <th className="text-right px-2 py-2 font-semibold text-rpmx-steel w-20">Actual</th>
-              <th className="text-right px-2 py-2 font-semibold text-rpmx-steel w-14">% Done</th>
-              <th className="text-right px-2 py-2 font-semibold text-rpmx-steel w-20">Variance</th>
-              <th className="text-center px-3 py-2 font-semibold text-rpmx-steel w-24">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {enrichedFindings.map((item) => {
-              const color = item.status_color || 'green'
-              const styles = STATUS_STYLES[color] || STATUS_STYLES.green
-              const isExpanded = expandedId === item.project_id
-              const variance = item.variance_dollar
-              const findingLabel = (item.finding || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      {/* Project Cards */}
+      <div className="mx-3 mb-3 space-y-2">
+        {enriched.map((item) => {
+          const color = item.status_color || (item.finding === 'on_track' ? 'green' : item.finding === 'at_risk' ? 'amber' : 'red')
+          const styles = STATUS_STYLES[color] || STATUS_STYLES.green
+          const isExpanded = expandedId === item.project_id
+          const findingLabel = (item.finding || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+          const f = item._finding_text || {}
+          const ev = item.earned_value_analysis || {}
+          const la = item.labor_analysis || {}
 
-              return (
-                <Fragment key={item.project_id}>
-                  <tr
-                    className={`border-t border-rpmx-slate/20 cursor-pointer ${styles.row} ${isExpanded ? 'bg-blue-50/30' : ''}`}
-                    onClick={() => setExpandedId(isExpanded ? null : item.project_id)}
-                  >
-                    <td className="px-3 py-2">
-                      <span className={`inline-block h-2.5 w-2.5 rounded-full ${styles.dot}`} />
-                    </td>
-                    <td className="px-2 py-2">
-                      <p className="font-semibold text-rpmx-ink">{item.project_name}</p>
-                      <p className="text-[9px] text-rpmx-steel">{item.project_id}</p>
-                    </td>
-                    <td className="text-right px-2 py-2 text-rpmx-ink">{fmtBudget(item.budget_total)}</td>
-                    <td className="text-right px-2 py-2 text-rpmx-ink">{fmtBudget(item.actual_spent)}</td>
-                    <td className="text-right px-2 py-2 text-rpmx-ink font-medium">{item.percent_complete ?? '—'}%</td>
-                    <td className="text-right px-2 py-2">
-                      {variance != null ? (
-                        <span className={variance >= 0 ? 'text-emerald-600' : 'text-red-600'}>
-                          {variance >= 0 ? '+' : ''}{fmtBudget(variance)}
-                        </span>
-                      ) : '—'}
-                    </td>
-                    <td className="text-center px-3 py-2">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${styles.badge}`}>
-                        {findingLabel}
-                      </span>
-                    </td>
-                  </tr>
-                  {/* Expanded Detail */}
-                  {isExpanded && (
-                    <tr>
-                      <td colSpan={7} className="bg-blue-50/20 border-t border-blue-100 px-4 py-3">
-                        <div className="grid gap-3 md:grid-cols-3">
-                          {/* Cost Code Breakdown */}
-                          <div className="rounded-lg border border-rpmx-slate/50 bg-white p-2.5">
-                            <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1.5">Cost Code Breakdown</p>
-                            <div className="space-y-1.5">
-                              {item.cost_codes.map((cc, ci) => {
-                                const pct = cc.budgeted > 0 ? Math.round((cc.actual / cc.budgeted) * 100) : 0
-                                const overBudget = pct > (cc.percent_complete || 0) + 10
-                                return (
-                                  <div key={ci} className="text-[10px]">
-                                    <div className="flex justify-between">
-                                      <span className="text-rpmx-ink font-medium">{cc.code} — {cc.description}</span>
-                                      <span className={overBudget ? 'text-red-600 font-semibold' : 'text-rpmx-steel'}>{pct}% spent</span>
-                                    </div>
-                                    <div className="mt-0.5 h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                                      <div
-                                        className={`h-full rounded-full ${overBudget ? 'bg-red-400' : pct > 60 ? 'bg-amber-400' : 'bg-emerald-400'}`}
-                                        style={{ width: `${Math.min(pct, 100)}%` }}
-                                      />
-                                    </div>
-                                    <div className="flex justify-between mt-0.5 text-rpmx-steel">
-                                      <span>{fmtBudget(cc.actual)} of {fmtBudget(cc.budgeted)}</span>
-                                    </div>
-                                  </div>
-                                )
-                              })}
-                            </div>
+          return (
+            <div key={item.project_id} className="rounded-lg ring-1 ring-rpmx-slate/15 bg-white overflow-hidden">
+              {/* Project Header Row — always visible */}
+              <div
+                className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer ${styles.row} ${isExpanded ? 'border-b border-rpmx-slate/10' : ''}`}
+                onClick={() => setExpandedId(isExpanded ? null : item.project_id)}
+              >
+                <span className={`h-3 w-3 rounded-full shrink-0 ${styles.dot}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-xs text-rpmx-ink truncate">{item.project_name}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold shrink-0 ${styles.badge}`}>{findingLabel}</span>
+                  </div>
+                  <div className="flex gap-3 mt-0.5 text-[10px] text-rpmx-steel">
+                    <span>{item.project_id}</span>
+                    <span>PM: {item.project_manager}</span>
+                    <span>{item.division}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-[10px] shrink-0">
+                  <div className="text-center">
+                    <p className="text-rpmx-steel">Contract</p>
+                    <p className="font-bold text-rpmx-ink">{fmtCurrency(item.contract_value)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-rpmx-steel">Cost to Date</p>
+                    <p className="font-bold text-rpmx-ink">{fmtCurrency(item.total_cost_to_date)}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-rpmx-steel">Complete</p>
+                    <p className="font-bold text-rpmx-ink">{item.percent_complete}%</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-rpmx-steel">CPI</p>
+                    <p className={`font-bold font-mono ${ev.cpi >= 1.0 ? 'text-emerald-600' : ev.cpi >= 0.9 ? 'text-amber-600' : 'text-red-600'}`}>
+                      {(ev.cpi || 0).toFixed(2)}
+                    </p>
+                  </div>
+                  <svg className={`h-4 w-4 text-rpmx-steel transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Expanded Detail Panel */}
+              {isExpanded && (
+                <div className="bg-rpmx-canvas/40 px-3 py-3 space-y-3">
+                  {/* Row 0: Reasoning Chain — WHY the agent thinks this */}
+                  <ReasoningChainPanel chain={f.reasoning_chain} color={color} />
+
+                  {/* Row 1: Agent Analysis + Earned Value */}
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {/* Agent Root Cause Analysis */}
+                    <div className={`rounded-lg border-l-[3px] ${styles.border} p-3 ${color === 'red' ? 'bg-red-50/60' : color === 'amber' ? 'bg-amber-50/60' : 'bg-emerald-50/60'}`}>
+                      <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1">Executive Summary</p>
+                      <p className="text-[11px] text-rpmx-ink leading-relaxed font-medium">{f.executive_summary}</p>
+                      <p className="text-[10px] text-rpmx-ink leading-relaxed mt-2">{f.root_cause_analysis}</p>
+                      {f.recommendation && (
+                        <div className="mt-2 pt-2 border-t border-current/10">
+                          <p className="text-[10px] font-semibold text-rpmx-ink">→ {f.recommendation}</p>
+                        </div>
+                      )}
+                      {/* Risk level badges */}
+                      <div className="flex gap-2 mt-2">
+                        {f.financial_risk_level && (
+                          <span className={`rounded-full px-2 py-0.5 text-[8px] font-semibold ${
+                            f.financial_risk_level === 'high' ? 'bg-red-100 text-red-700' :
+                            f.financial_risk_level === 'medium' ? 'bg-amber-100 text-amber-700' :
+                            'bg-emerald-100 text-emerald-700'
+                          }`}>Financial: {f.financial_risk_level}</span>
+                        )}
+                        {f.schedule_risk_level && (
+                          <span className={`rounded-full px-2 py-0.5 text-[8px] font-semibold ${
+                            f.schedule_risk_level === 'high' ? 'bg-red-100 text-red-700' :
+                            f.schedule_risk_level === 'medium' ? 'bg-amber-100 text-amber-700' :
+                            'bg-emerald-100 text-emerald-700'
+                          }`}>Schedule: {f.schedule_risk_level}</span>
+                        )}
+                      </div>
+                    </div>
+                    {/* Earned Value + Margin */}
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-bold uppercase text-rpmx-steel">Earned Value Analysis</p>
+                      <EarnedValueCard ev={ev} />
+                      <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                        <div className="rounded-lg bg-white p-2 ring-1 ring-rpmx-slate/12">
+                          <span className="text-rpmx-steel">Est. to Complete:</span>
+                          <span className="ml-1 font-bold font-mono text-rpmx-ink">{fmtCurrency(ev.etc)}</span>
+                        </div>
+                        <div className="rounded-lg bg-white p-2 ring-1 ring-rpmx-slate/12">
+                          <span className="text-rpmx-steel">Target Margin:</span>
+                          <span className="ml-1 font-bold font-mono text-rpmx-ink">{fmtPercent(item.target_margin_pct)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Row 2: Cost Code Variance + Labor */}
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div className="rounded-lg ring-1 ring-rpmx-slate/12 bg-white p-2.5">
+                      <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1.5">Cost Code: Budgeted vs Actual</p>
+                      <CostCodeVarianceChart costCodes={item.cost_code_analysis} />
+                    </div>
+                    <div className="rounded-lg ring-1 ring-rpmx-slate/12 bg-white p-2.5">
+                      <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1.5">Labor Trend</p>
+                      <LaborTrendChart monthlyLabor={la.monthly_labor} />
+                    </div>
+                  </div>
+
+                  {/* Row 3: Labor Metrics + Insights */}
+                  <div>
+                    <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1.5">Labor Performance</p>
+                    <LaborMetricsCard labor={la} />
+                    {(f.labor_insight || f.proposal_vs_actual_insight) && (
+                      <div className="grid gap-2 mt-2 md:grid-cols-2">
+                        {f.proposal_vs_actual_insight && (
+                          <div className="rounded-lg bg-blue-50/60 p-2 text-[10px]">
+                            <p className="font-semibold text-blue-700 mb-0.5">Proposal vs Actual</p>
+                            <p className="text-blue-900">{f.proposal_vs_actual_insight}</p>
                           </div>
-
-                          {/* Milestones */}
-                          <div className="rounded-lg border border-rpmx-slate/50 bg-white p-2.5">
-                            <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1.5">Milestones</p>
-                            <div className="space-y-1.5">
-                              {item.milestones.map((ms, mi) => (
-                                <div key={mi} className="flex items-center gap-2 text-[10px]">
-                                  {ms.status === 'complete' ? (
-                                    <svg className="h-3.5 w-3.5 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                  ) : ms.status === 'in_progress' ? (
-                                    <span className="h-3.5 w-3.5 rounded-full border-2 border-blue-400 bg-blue-100 shrink-0 flex items-center justify-center">
-                                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                                    </span>
-                                  ) : (
-                                    <span className="h-3.5 w-3.5 rounded-full border-2 border-gray-300 shrink-0" />
-                                  )}
-                                  <div className="flex-1">
-                                    <span className={`${ms.status === 'complete' ? 'text-rpmx-steel line-through' : 'text-rpmx-ink'}`}>{ms.name}</span>
-                                    <span className="ml-1.5 text-rpmx-steel">{ms.date}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                        )}
+                        {f.labor_insight && (
+                          <div className="rounded-lg bg-purple-50/60 p-2 text-[10px]">
+                            <p className="font-semibold text-purple-700 mb-0.5">Labor Analysis</p>
+                            <p className="text-purple-900">{f.labor_insight}</p>
                           </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                          {/* Agent Finding & Change Orders */}
-                          <div className="space-y-2">
-                            <div className={`rounded-lg border-l-[3px] p-2.5 text-[10px] ${color === 'red' ? 'border-l-red-400 bg-red-50' : color === 'amber' ? 'border-l-amber-400 bg-amber-50' : 'border-l-emerald-400 bg-emerald-50'}`}>
-                              <p className="font-bold text-rpmx-ink">Agent Finding</p>
-                              <p className="mt-1 text-rpmx-steel">{item.message}</p>
-                              {item.recommendation && <p className="mt-1 font-medium text-rpmx-ink">→ {item.recommendation}</p>}
-                            </div>
-                            {item.change_orders.length > 0 && (
-                              <div className="rounded-lg border border-rpmx-slate/50 bg-white p-2.5">
-                                <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1">Change Orders</p>
-                                {item.change_orders.map((co, coi) => (
-                                  <div key={coi} className="flex items-center justify-between text-[10px] py-0.5">
-                                    <span className="text-rpmx-ink">{co.co_number}: {co.description}</span>
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="font-medium">{fmtBudget(co.amount)}</span>
-                                      <span className={`rounded-full px-1.5 py-0 text-[8px] font-semibold ${co.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                                        {co.status}
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+                  {/* Row 4: Milestones + Assumptions + Change Orders */}
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div className="rounded-lg ring-1 ring-rpmx-slate/12 bg-white p-2.5">
+                      <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1.5">
+                        Schedule ({item.schedule_analysis?.completed_milestones}/{item.schedule_analysis?.total_milestones} milestones)
+                      </p>
+                      {item.schedule_analysis?.days_behind > 0 && (
+                        <p className="text-[10px] text-red-600 font-semibold mb-1">{item.schedule_analysis.days_behind} days behind schedule</p>
+                      )}
+                      {item.schedule_analysis?.days_ahead > 0 && (
+                        <p className="text-[10px] text-emerald-600 font-semibold mb-1">{item.schedule_analysis.days_ahead} days ahead of schedule</p>
+                      )}
+                      <MilestoneTimeline milestones={item.schedule_analysis?.milestones} />
+                      {f.schedule_insight && (
+                        <p className="mt-2 text-[9px] text-rpmx-steel italic border-t border-rpmx-slate/10 pt-1">{f.schedule_insight}</p>
+                      )}
+                    </div>
+
+                    <div className="rounded-lg ring-1 ring-rpmx-slate/12 bg-white p-2.5">
+                      <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1.5">Proposal Assumptions</p>
+                      <AssumptionCheck assumptions={item.broken_assumptions} />
+                    </div>
+
+                    <div className="rounded-lg ring-1 ring-rpmx-slate/12 bg-white p-2.5">
+                      <p className="text-[10px] font-bold uppercase text-rpmx-steel mb-1.5">
+                        Change Orders ({item.change_order_summary?.total_count || 0})
+                      </p>
+                      {(item.change_order_summary?.items || []).map((co, i) => (
+                        <div key={i} className="flex items-center justify-between text-[10px] py-0.5 border-b border-rpmx-slate/5 last:border-0">
+                          <div className="flex-1 min-w-0">
+                            <span className="text-rpmx-ink font-medium">{co.co_number}</span>
+                            <span className="text-rpmx-steel ml-1 text-[9px]">{co.description}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                            <span className="font-mono font-medium">{fmtCurrency(co.amount)}</span>
+                            <span className={`rounded-full px-1.5 py-0 text-[8px] font-semibold ${co.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {co.status}
+                            </span>
+                            {co.impact_days > 0 && <span className="text-[8px] text-rpmx-steel">+{co.impact_days}d</span>}
                           </div>
                         </div>
-                      </td>
-                    </tr>
+                      ))}
+                      {item.change_order_summary?.approved_value > 0 && (
+                        <p className="mt-1 text-[9px] text-rpmx-steel">
+                          Approved: {fmtCurrency(item.change_order_summary.approved_value)}
+                          {item.change_order_summary.pending_value > 0 && ` · Pending: ${fmtCurrency(item.change_order_summary.pending_value)}`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Risk Flags */}
+                  {item.risk_flags?.length > 0 && (
+                    <div className="rounded-lg bg-red-50/50 ring-1 ring-red-200/40 p-2.5">
+                      <p className="text-[10px] font-bold uppercase text-red-700 mb-1">Risk Flags ({item.risk_flags.length})</p>
+                      <div className="grid gap-1 md:grid-cols-2">
+                        {item.risk_flags.map((rf, i) => (
+                          <div key={i} className="flex items-start gap-1.5 text-[10px]">
+                            <span className="text-red-400 shrink-0 mt-0.5">⚠</span>
+                            <span className="text-red-900">{rf}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </Fragment>
-              )
-            })}
-          </tbody>
-        </table>
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -707,7 +1223,7 @@ function MaintenanceArtifact({ output }) {
     <div className="space-y-3">
       {/* ── Fleet Summary Bar ── */}
       {fs && (
-        <div className="rounded-xl border border-rpmx-slate/70 bg-white p-3">
+        <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-white p-3">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-rpmx-ink">Fleet Status Overview</h3>
             <span className="text-xs text-rpmx-steel">{fs.total_units} units scanned</span>
@@ -729,7 +1245,7 @@ function MaintenanceArtifact({ output }) {
               <p className="text-xl font-bold text-amber-700">{fs.severity_counts?.medium || 0}</p>
               <p className="text-[10px] text-rpmx-steel">Medium</p>
             </div>
-            <div className="rounded-lg border border-rpmx-slate/30 bg-gray-50 p-2 text-center">
+            <div className="rounded-lg ring-1 ring-rpmx-slate/10 bg-gray-50 p-2 text-center">
               <p className="text-xl font-bold text-rpmx-ink">{fs.issues_found}</p>
               <p className="text-[10px] text-rpmx-steel">Issues</p>
             </div>
@@ -737,8 +1253,8 @@ function MaintenanceArtifact({ output }) {
         </div>
       )}
 
-      <div className="flex flex-col overflow-hidden rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
-        <div className="border-b border-rpmx-slate/40 bg-white px-3 py-2">
+      <div className="flex flex-col overflow-hidden rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
+        <div className="border-b border-rpmx-slate/25 bg-white px-3 py-2">
           <h3 className="text-sm font-semibold">Equipment Maintenance Report</h3>
           {issues.length > 0 && <p className="text-[10px] text-rpmx-steel mt-0.5">{issues.length} maintenance issues identified</p>}
         </div>
@@ -747,7 +1263,7 @@ function MaintenanceArtifact({ output }) {
             const sev = item.severity?.toLowerCase() || 'medium'
             const style = SEVERITY_STYLES[sev] || SEVERITY_STYLES.medium
             return (
-              <article key={idx} className={`rounded-lg border-l-[3px] border border-rpmx-slate/50 bg-white p-2.5 text-xs animate-slide-in ${style.border}`}>
+              <article key={idx} className={`rounded-lg border-l-[3px] ring-1 ring-rpmx-slate/12 bg-white p-2.5 text-xs animate-slide-in ${style.border}`}>
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-rpmx-ink">{style.icon} {item.unit}</p>
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${style.color}`}>{sev}</span>
@@ -787,7 +1303,7 @@ function TrainingComplianceArtifact({ output }) {
     <div className="space-y-3">
       {/* ── Training Compliance Summary Bar ── */}
       {ts && (
-        <div className="rounded-xl border border-rpmx-slate/70 bg-white p-3">
+        <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-white p-3">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-rpmx-ink">Training Compliance Overview</h3>
             <span className="text-xs text-rpmx-steel">{ts.total_employees} employees audited</span>
@@ -801,7 +1317,7 @@ function TrainingComplianceArtifact({ output }) {
               <p className="text-xl font-bold text-red-700">{ts.non_compliant}</p>
               <p className="text-[10px] text-rpmx-steel">Non-Compliant</p>
             </div>
-            <div className="rounded-lg border border-rpmx-slate/30 bg-gray-50 p-2 text-center">
+            <div className="rounded-lg ring-1 ring-rpmx-slate/10 bg-gray-50 p-2 text-center">
               <p className="text-xl font-bold text-rpmx-ink">{ts.issues_found}</p>
               <p className="text-[10px] text-rpmx-steel">Issues Found</p>
             </div>
@@ -820,8 +1336,8 @@ function TrainingComplianceArtifact({ output }) {
         </div>
       )}
 
-      <div className="flex flex-col overflow-hidden rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
-        <div className="border-b border-rpmx-slate/40 bg-white px-3 py-2">
+      <div className="flex flex-col overflow-hidden rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
+        <div className="border-b border-rpmx-slate/25 bg-white px-3 py-2">
           <h3 className="text-sm font-semibold">Training Compliance Report</h3>
           {issues.length > 0 && <p className="text-[10px] text-rpmx-steel mt-0.5">{issues.length} compliance issues found</p>}
         </div>
@@ -830,7 +1346,7 @@ function TrainingComplianceArtifact({ output }) {
             const typeKey = item.issue_type?.toLowerCase()?.replace(/\s+/g, '_') || 'expired'
             const style = TYPE_STYLES[typeKey] || TYPE_STYLES.expired
             return (
-              <article key={idx} className={`rounded-lg border-l-[3px] border border-rpmx-slate/50 bg-white p-2.5 text-xs animate-slide-in ${style.border}`}>
+              <article key={idx} className={`rounded-lg border-l-[3px] ring-1 ring-rpmx-slate/12 bg-white p-2.5 text-xs animate-slide-in ${style.border}`}>
                 <div className="flex items-center justify-between">
                   <p className="font-semibold text-rpmx-ink">{item.name}</p>
                   <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${style.color}`}>{style.label}</span>
@@ -871,7 +1387,7 @@ function ChecklistArtifact({ output }) {
   return (
     <div className="space-y-3">
       {/* Progress Bar */}
-      <div className="rounded-xl border border-rpmx-slate/70 bg-white p-3">
+      <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-white p-3">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-rpmx-ink">Onboarding Progress</h3>
           <span className="text-xs font-semibold text-rpmx-steel">{completedItems}/{totalItems} items complete</span>
@@ -882,7 +1398,7 @@ function ChecklistArtifact({ output }) {
         <p className="text-[10px] text-rpmx-steel mt-1">{pct}% complete</p>
       </div>
       {/* Horizontal Profile Card */}
-      <div className="rounded-xl border border-rpmx-slate/70 bg-white p-3">
+      <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-white p-3">
         <div className="flex items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg font-bold">
             {(hire.name || 'N')[0]}
@@ -908,7 +1424,7 @@ function ChecklistArtifact({ output }) {
           const sectionDone = items.filter(i => ['complete','completed','done','issued'].includes(String(i.status||'').toLowerCase())).length
           const borderColor = color === 'blue' ? 'border-t-blue-400' : color === 'amber' ? 'border-t-amber-400' : 'border-t-emerald-400'
           return (
-            <div key={key} className={`rounded-xl border border-rpmx-slate/70 ${borderColor} border-t-[3px] bg-white p-3`}>
+            <div key={key} className={`rounded-xl ring-1 ring-rpmx-slate/15 ${borderColor} border-t-[3px] bg-white p-3`}>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-bold uppercase tracking-wide text-rpmx-steel">{icon} {label}</p>
                 <span className="text-[10px] text-rpmx-steel">{sectionDone}/{items.length}</span>
@@ -947,6 +1463,7 @@ function CostEstimateArtifact({ output }) {
   const grandTotal = output?.grand_total || 0
   const assumptions = output?.assumptions || []
   const exclusions = output?.exclusions || []
+  const proposal = output?.proposal || {}
 
   // Group line items by category
   const grouped = {}
@@ -958,40 +1475,46 @@ function CostEstimateArtifact({ output }) {
   const categoryOrder = Object.keys(grouped)
 
   return (
-    <div className="h-[62vh] overflow-auto rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
-      {/* Project Header */}
-      <div className="border-b border-rpmx-slate/40 bg-white px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-rpmx-ink flex items-center gap-2">
-              <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
-              {project.name || 'Cost Estimate'}
-            </h3>
-            <p className="text-[10px] text-rpmx-steel mt-0.5">{project.project_id}</p>
-          </div>
-          <div className="text-right text-[10px] text-rpmx-steel">
-            <p>Client: {project.client || 'N/A'}</p>
-            <p>{project.date || ''}</p>
-          </div>
+    <div className="h-[62vh] overflow-auto rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
+      {/* Proposal Header Banner */}
+      <div className="bg-gradient-to-r from-blue-700 to-blue-900 px-4 py-3 text-white">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-200">Construction Cost Proposal</p>
+        <h3 className="text-base font-bold mt-0.5">{project.name || 'Cost Estimate'}</h3>
+        <div className="flex items-center gap-4 mt-1.5 text-[11px] text-blue-100">
+          <span>{project.client || 'N/A'}</span>
+          <span className="text-blue-300">|</span>
+          <span>{project.location || ''}</span>
+          <span className="text-blue-300">|</span>
+          <span>{project.project_id || ''}</span>
+        </div>
+        <div className="flex items-center gap-4 mt-1 text-[10px] text-blue-200">
+          {project.estimator && <span>Estimator: {project.estimator}</span>}
+          {project.bid_date && <><span className="text-blue-400">|</span><span>Bid Date: {project.bid_date}</span></>}
         </div>
       </div>
+
+      {/* Scope Narrative */}
+      {proposal.scope_narrative && (
+        <div className="mx-3 mt-3 rounded-lg ring-1 ring-rpmx-slate/15 bg-white p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel mb-1.5">Scope of Work</p>
+          <p className="text-xs text-rpmx-ink leading-relaxed whitespace-pre-line">{proposal.scope_narrative}</p>
+        </div>
+      )}
 
       {/* Scope Summary Bar */}
       <div className="mx-3 mt-3 flex items-center gap-3 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-[11px]">
         <span className="font-semibold text-blue-700">{lineItems.length} line items</span>
-        <span className="text-blue-400">•</span>
+        <span className="text-blue-400">&bull;</span>
         <span className="text-blue-700">{categoryOrder.length} categories</span>
-        <span className="text-blue-400">•</span>
+        <span className="text-blue-400">&bull;</span>
         <span className="font-semibold text-blue-800">Grand Total: {fmtEstimateMoney(grandTotal)}</span>
       </div>
 
       {/* Line Item Table */}
-      <div className="mx-3 mt-3 rounded-lg border border-rpmx-slate/70 bg-white overflow-hidden">
+      <div className="mx-3 mt-3 rounded-lg ring-1 ring-rpmx-slate/15 bg-white overflow-hidden">
         <table className="w-full text-[11px]">
           <thead>
-            <tr className="bg-gray-50 border-b border-rpmx-slate/40">
+            <tr className="bg-gray-50 border-b border-rpmx-slate/25">
               <th className="text-left px-3 py-2 font-semibold text-rpmx-steel">Item</th>
               <th className="text-right px-2 py-2 font-semibold text-rpmx-steel w-16">Qty</th>
               <th className="text-center px-2 py-2 font-semibold text-rpmx-steel w-10">Unit</th>
@@ -1017,8 +1540,8 @@ function CostEstimateArtifact({ output }) {
                     <td className="text-right px-2 py-1.5 text-rpmx-ink">{Number(li.quantity || 0).toLocaleString()}</td>
                     <td className="text-center px-2 py-1.5 text-rpmx-steel">{li.unit}</td>
                     <td className="text-right px-2 py-1.5 text-rpmx-ink">{fmtEstimateMoney(li.labor_cost)}</td>
-                    <td className="text-right px-2 py-1.5 text-rpmx-ink">{Number(li.material_cost) === 0 ? '—' : fmtEstimateMoney(li.material_cost)}</td>
-                    <td className="text-right px-2 py-1.5 text-rpmx-ink">{Number(li.equipment_cost) === 0 ? '—' : fmtEstimateMoney(li.equipment_cost)}</td>
+                    <td className="text-right px-2 py-1.5 text-rpmx-ink">{Number(li.material_cost) === 0 ? '\u2014' : fmtEstimateMoney(li.material_cost)}</td>
+                    <td className="text-right px-2 py-1.5 text-rpmx-ink">{Number(li.equipment_cost) === 0 ? '\u2014' : fmtEstimateMoney(li.equipment_cost)}</td>
                     <td className="text-right px-3 py-1.5 font-medium text-rpmx-ink">{fmtEstimateMoney(li.subtotal)}</td>
                   </tr>
                 ))}
@@ -1030,7 +1553,7 @@ function CostEstimateArtifact({ output }) {
               </Fragment>
             ))}
             {/* Direct Cost Total */}
-            <tr className="border-t-2 border-rpmx-slate/50 bg-gray-100">
+            <tr className="border-t-2 border-rpmx-slate/30 bg-gray-100">
               <td colSpan={6} className="px-3 py-2 text-right font-bold text-rpmx-ink text-xs">Direct Cost Total</td>
               <td className="text-right px-3 py-2 font-bold text-rpmx-ink text-xs">{fmtEstimateMoney(directCost)}</td>
             </tr>
@@ -1041,7 +1564,7 @@ function CostEstimateArtifact({ output }) {
               </td>
             </tr>
             {[
-              ['Overhead (15%)', markups.overhead],
+              ['Overhead (12%)', markups.overhead],
               ['Profit (10%)', markups.profit],
               ['Contingency (5%)', markups.contingency],
               ['Bond (1.5%)', markups.bond],
@@ -1064,8 +1587,8 @@ function CostEstimateArtifact({ output }) {
       </div>
 
       {/* Assumptions & Exclusions */}
-      <div className="mx-3 mt-3 mb-3 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-lg border border-rpmx-slate/70 bg-white p-3 text-xs">
+      <div className="mx-3 mt-3 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-lg ring-1 ring-rpmx-slate/15 bg-white p-3 text-xs">
           <p className="font-semibold text-rpmx-steel flex items-center gap-1.5">
             <svg className="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1081,7 +1604,7 @@ function CostEstimateArtifact({ output }) {
             ))}
           </ul>
         </div>
-        <div className="rounded-lg border border-rpmx-slate/70 bg-white p-3 text-xs">
+        <div className="rounded-lg ring-1 ring-rpmx-slate/15 bg-white p-3 text-xs">
           <p className="font-semibold text-rpmx-steel flex items-center gap-1.5">
             <svg className="h-3.5 w-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
@@ -1098,6 +1621,30 @@ function CostEstimateArtifact({ output }) {
           </ul>
         </div>
       </div>
+
+      {/* Schedule & Validity */}
+      {(proposal.schedule_statement || proposal.validity_statement) && (
+        <div className="mx-3 mt-3 mb-3 rounded-lg ring-1 ring-rpmx-slate/15 bg-white p-3 text-xs text-rpmx-steel">
+          {proposal.schedule_statement && (
+            <p className="flex items-start gap-1.5">
+              <svg className="h-3.5 w-3.5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-rpmx-ink">{proposal.schedule_statement}</span>
+            </p>
+          )}
+          {proposal.validity_statement && (
+            <p className="flex items-start gap-1.5 mt-1.5">
+              <svg className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-rpmx-ink">{proposal.validity_statement}</span>
+            </p>
+          )}
+        </div>
+      )}
+      {/* Bottom spacing when no schedule/validity */}
+      {!proposal.schedule_statement && !proposal.validity_statement && <div className="h-3" />}
     </div>
   )
 }
@@ -1121,7 +1668,7 @@ function ArFollowUpArtifact({ output, communications }) {
     <div className="space-y-3">
       {/* ── Aging Summary Bar ── */}
       {aging && (
-        <div className="rounded-xl border border-rpmx-slate/70 bg-white p-3">
+        <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-white p-3">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-rpmx-ink">AR Aging Summary</h3>
             <span className="text-xs font-semibold text-rpmx-steel">{aging.total_accounts} accounts · {fmtAR(aging.total_outstanding)} outstanding</span>
@@ -1144,8 +1691,8 @@ function ArFollowUpArtifact({ output, communications }) {
 
       <div className="grid gap-3 xl:grid-cols-[52%_48%]">
         {/* ── AR Action Plan ── */}
-        <div className="flex flex-col overflow-hidden rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
-          <div className="border-b border-rpmx-slate/40 bg-white px-3 py-2">
+        <div className="flex flex-col overflow-hidden rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
+          <div className="border-b border-rpmx-slate/25 bg-white px-3 py-2">
             <h3 className="text-sm font-semibold">AR Action Plan</h3>
             {results.length > 0 && <p className="text-[10px] text-rpmx-steel mt-0.5">{results.length} accounts reviewed</p>}
           </div>
@@ -1153,7 +1700,7 @@ function ArFollowUpArtifact({ output, communications }) {
             {results.map((item) => {
               const style = ACTION_STYLES[item.action] || ACTION_STYLES.polite_reminder
               return (
-                <article key={item.customer} className={`rounded-lg border-l-[3px] border border-rpmx-slate/50 bg-white p-2.5 text-xs animate-slide-in ${style.border}`}>
+                <article key={item.customer} className={`rounded-lg border-l-[3px] ring-1 ring-rpmx-slate/12 bg-white p-2.5 text-xs animate-slide-in ${style.border}`}>
                   <div className="flex items-center justify-between">
                     <p className="font-semibold text-rpmx-ink">{item.customer}</p>
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${style.color}`}>
@@ -1172,14 +1719,14 @@ function ArFollowUpArtifact({ output, communications }) {
           </div>
         </div>
         {/* ── Communications Sent ── */}
-        <div className="flex flex-col overflow-hidden rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas">
-          <div className="border-b border-rpmx-slate/40 bg-white px-3 py-2">
+        <div className="flex flex-col overflow-hidden rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas">
+          <div className="border-b border-rpmx-slate/25 bg-white px-3 py-2">
             <h3 className="text-sm font-semibold">Communications Sent</h3>
           </div>
           <div className="flex-1 overflow-auto p-3 space-y-2">
             {(communications || []).length === 0 && <p className="text-sm text-rpmx-steel">No communications sent yet.</p>}
             {(communications || []).map((entry) => (
-              <article key={entry.id} className="rounded-lg border-l-[3px] border-l-fuchsia-400 border border-rpmx-slate/50 bg-white p-2.5 text-xs animate-slide-in">
+              <article key={entry.id} className="rounded-lg border-l-[3px] border-l-fuchsia-400 ring-1 ring-rpmx-slate/12 bg-white p-2.5 text-xs animate-slide-in">
                 <p className="font-semibold text-fuchsia-800">{entry.subject}</p>
                 <p className="text-rpmx-steel">To: {entry.recipient}</p>
                 <p className="mt-1 text-rpmx-ink">{entry.body}</p>
@@ -1215,7 +1762,7 @@ function InquiryRouterArtifact({ output }) {
     <div className="space-y-3">
       {/* Inbox Summary Bar */}
       {inbox && (
-        <div className="rounded-xl border border-rpmx-slate/70 bg-white p-3">
+        <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-white p-3">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-rpmx-ink">📬 Inbox Summary</h3>
             <span className="text-[10px] text-rpmx-steel">{inbox.total_emails} emails processed</span>
@@ -1242,15 +1789,15 @@ function InquiryRouterArtifact({ output }) {
         </div>
       )}
       {/* Email Cards */}
-      <div className="rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas overflow-hidden">
-        <div className="border-b border-rpmx-slate/40 bg-white px-3 py-2">
+      <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas overflow-hidden">
+        <div className="border-b border-rpmx-slate/25 bg-white px-3 py-2">
           <h3 className="text-sm font-semibold">Routing Decisions</h3>
         </div>
         <div className="p-3 space-y-2">
           {routes.map((route, idx) => {
             const deptStyle = getDeptStyle(route.route)
             return (
-              <article key={idx} className={`rounded-lg border-l-[3px] ${deptStyle.border} border border-rpmx-slate/50 bg-white p-2.5 text-xs animate-slide-in`}>
+              <article key={idx} className={`rounded-lg border-l-[3px] ${deptStyle.border} ring-1 ring-rpmx-slate/12 bg-white p-2.5 text-xs animate-slide-in`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-rpmx-ink">{route.subject}</p>
@@ -1311,7 +1858,7 @@ export default function ArtifactRenderer({ agentId, output, currentInvoicePath, 
   }
 
   return (
-    <div className="h-[62vh] overflow-auto rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas p-3">
+    <div className="h-[62vh] overflow-auto rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas p-3">
       <h3 className="text-sm font-semibold">Work Artifact</h3>
       {renderJson(output || {})}
     </div>

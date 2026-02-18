@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import ReactMarkdown from 'react-markdown'
 import { apiGet, apiPost, apiPut, wsUrl } from '../api'
 import ArtifactRenderer from './ArtifactRenderer'
 
@@ -56,12 +57,11 @@ const TOOL_LABELS = {
   prepare_training: 'Preparing Training',
   prepare_equipment: 'Preparing Equipment',
   // Cost Estimator
-  load_takeoff_data: 'Reading Takeoff Data',
-  calculate_labor_costs: 'Calculating Labor',
-  price_materials: 'Pricing Materials',
-  calculate_equipment_costs: 'Equipment Costs',
+  load_takeoff_data: 'Loading Takeoff Data',
+  lookup_cost_database: 'Looking Up Cost Rates',
+  price_category: 'Pricing Category',
   apply_markups: 'Applying Markups',
-  generate_estimate: 'Generating Estimate',
+  generate_proposal: 'Generating Proposal',
   // Inquiry Router
   load_inquiry_emails: 'Loading Inbox',
   route_inquiries: 'Routing Inquiries',
@@ -79,7 +79,7 @@ const TOOL_LABELS = {
   track_project_health: 'Tracking Project Health',
   schedule_maintenance: 'Scheduling Maintenance',
   send_welcome_email: 'Sending Welcome Email',
-  apply_labor_rates: 'Applying Labor Rates',
+  review_account: 'Reviewing Account',
 }
 
 const TOOL_DESCRIPTIONS = {
@@ -136,10 +136,11 @@ const TOOL_DESCRIPTIONS = {
   prepare_equipment: 'Assign PPE and equipment needs by role',
   send_welcome_email: 'Send onboarding notification to hiring manager',
   // Cost Estimator
-  load_takeoff_data: 'Parse scope quantities from the contract',
-  apply_labor_rates: 'Calculate labor hours and cost per line item',
-  apply_markups: 'Add overhead, profit, contingency, and bond',
-  generate_estimate: 'Produce the final estimate with assumptions',
+  load_takeoff_data: 'Load quantity takeoff from estimating team',
+  lookup_cost_database: 'Look up labor, material, and equipment rates from company cost database',
+  price_category: 'Calculate line item costs for a scope category',
+  apply_markups: 'Apply overhead, profit, contingency, bond, and mobilization',
+  generate_proposal: 'Write professional proposal narrative with assumptions and exclusions',
   // Inquiry Router
   classify_inquiry: 'Identify inquiry type and extract key references',
   route_email: 'Route to correct department with priority and context',
@@ -148,10 +149,10 @@ const TOOL_DESCRIPTIONS = {
 const CHAT_PROMPTS = {
   po_match: ['Why the exceptions?', 'Match confidence levels', 'Any duplicate POs?'],
   ar_followup: ['Which accounts were escalated?', 'Why skip retainage?', 'Email tone summary'],
-  financial_reporting: ['Margin trends?', 'Biggest cost driver?', 'Division comparison'],
+  financial_reporting: ['DSO trend?', 'Division overhead ratios?', 'Backlog by division?'],
   vendor_compliance: ['Which vendors need PO holds?', 'Expiring this week?', 'Missing W-9s?'],
   schedule_optimizer: ['Drive time saved?', 'Why that crew assignment?', 'Unassigned jobs?'],
-  progress_tracking: ['Which projects at risk?', 'Budget concerns?', 'Schedule slippage?'],
+  progress_tracking: ['Proposal vs actuals?', 'Labor productivity issues?', 'Broken bid assumptions?'],
   maintenance_scheduler: ["What's critical?", 'Overdue inspections?', 'Next scheduled?'],
   training_compliance: ['Who needs training now?', 'OSHA expirations?', 'New hires missing certs?'],
   onboarding: ["What's still pending?", 'Equipment needed?', 'Orientation scheduled?'],
@@ -270,13 +271,13 @@ function ReasoningEvent({ event }) {
   const isInvoiceStart = /Processing\s+INV-/i.test(text)
   if (isInvoiceStart) {
     return (
-      <div className="flex items-center gap-2 rounded-lg bg-indigo-50/60 px-3 py-2 text-xs text-indigo-700 animate-slide-in">
+      <div className="flex items-center gap-2 rounded-lg bg-indigo-50/70 ring-1 ring-indigo-100/60 px-3 py-2 text-xs text-indigo-700 animate-slide-in">
         <span className="font-semibold">{text}</span>
       </div>
     )
   }
   return (
-    <div className="flex gap-2 border-l-[3px] border-blue-200 py-1.5 pl-3 pr-2 text-xs animate-slide-in">
+    <div className="flex gap-2 border-l-2 border-blue-200/70 py-1 pl-3 pr-2 text-xs animate-slide-in">
       <IconThink />
       <p className="italic text-rpmx-steel leading-relaxed">{text}</p>
     </div>
@@ -290,17 +291,17 @@ function ToolPairEvent({ call, result }) {
   const resultDetail = extractToolResultDetail(result.payload)
 
   return (
-    <div className="rounded-lg border border-rpmx-slate/40 bg-white text-xs animate-slide-in overflow-hidden">
-      <div className="flex items-center gap-2 border-l-[3px] border-amber-400 bg-amber-50/40 px-3 py-2">
+    <div className="rounded-lg ring-1 ring-rpmx-slate/15 bg-white text-xs animate-slide-in overflow-hidden shadow-sm">
+      <div className="flex items-center gap-2 border-l-2 border-amber-400 bg-amber-50/50 px-3 py-1.5">
         <IconTool />
-        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">{toolName}</span>
-        {callDetail && <span className="text-rpmx-steel truncate">{callDetail}</span>}
+        <span className="rounded-full bg-amber-100/80 px-2 py-0.5 text-[10px] font-semibold text-amber-700">{toolName}</span>
+        {callDetail && <span className="text-rpmx-muted truncate">{callDetail}</span>}
       </div>
-      <div className="flex items-start gap-2 border-l-[3px] border-emerald-400 bg-emerald-50/30 px-3 py-2">
+      <div className="flex items-start gap-2 border-l-2 border-emerald-400 bg-emerald-50/40 px-3 py-1.5">
         <IconCheck />
         <div className="min-w-0">
           <p className="text-rpmx-ink">{summary}</p>
-          {resultDetail && <p className="mt-0.5 text-[10px] text-rpmx-steel">{resultDetail}</p>}
+          {resultDetail && <p className="mt-0.5 text-[10px] text-rpmx-muted">{resultDetail}</p>}
         </div>
       </div>
     </div>
@@ -311,10 +312,10 @@ function ToolCallEvent({ event }) {
   const toolName = humanToolName(event.payload?.tool)
   const detail = extractToolCallDetail(event.payload)
   return (
-    <div className="flex items-center gap-2 border-l-[3px] border-amber-400 bg-amber-50/40 rounded-lg px-3 py-2 text-xs animate-slide-in">
+    <div className="flex items-center gap-2 border-l-2 border-amber-400 bg-amber-50/50 rounded-lg px-3 py-1.5 text-xs animate-slide-in">
       <IconTool />
-      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">{toolName}</span>
-      {detail && <span className="text-rpmx-steel truncate">{detail}</span>}
+      <span className="rounded-full bg-amber-100/80 px-2 py-0.5 text-[10px] font-semibold text-amber-700">{toolName}</span>
+      {detail && <span className="text-rpmx-muted truncate">{detail}</span>}
     </div>
   )
 }
@@ -323,11 +324,11 @@ function ToolResultEvent({ event }) {
   const summary = event.payload?.summary || 'Completed'
   const detail = extractToolResultDetail(event.payload)
   return (
-    <div className="flex items-start gap-2 border-l-[3px] border-emerald-400 bg-emerald-50/30 rounded-lg px-3 py-2 text-xs animate-slide-in">
+    <div className="flex items-start gap-2 border-l-2 border-emerald-400 bg-emerald-50/40 rounded-lg px-3 py-1.5 text-xs animate-slide-in">
       <IconCheck />
       <div className="min-w-0">
         <p className="text-rpmx-ink">{summary}</p>
-        {detail && <p className="mt-0.5 text-[10px] text-rpmx-steel">{detail}</p>}
+        {detail && <p className="mt-0.5 text-[10px] text-rpmx-muted">{detail}</p>}
       </div>
     </div>
   )
@@ -335,21 +336,21 @@ function ToolResultEvent({ event }) {
 
 function StatusChangeEvent({ event }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-1 text-[10px] text-indigo-500 animate-fade-in">
-      <span className="h-px flex-1 bg-indigo-200/60" />
-      <span className="px-2 font-medium">{event.payload?.detail || 'Status changed'}</span>
-      <span className="h-px flex-1 bg-indigo-200/60" />
+    <div className="flex items-center justify-center gap-2 py-1.5 text-[10px] text-indigo-400 animate-fade-in">
+      <span className="h-px flex-1 bg-gradient-to-r from-transparent to-indigo-200/40" />
+      <span className="px-2 font-semibold uppercase tracking-wider">{event.payload?.detail || 'Status changed'}</span>
+      <span className="h-px flex-1 bg-gradient-to-l from-transparent to-indigo-200/40" />
     </div>
   )
 }
 
 function CommunicationEvent({ event }) {
   return (
-    <div className="flex items-start gap-2 border-l-[3px] border-fuchsia-400 bg-fuchsia-50/40 rounded-lg px-3 py-2 text-xs animate-slide-in">
+    <div className="flex items-start gap-2 border-l-2 border-fuchsia-400 bg-fuchsia-50/50 rounded-lg px-3 py-1.5 text-xs animate-slide-in">
       <IconMail />
       <div className="min-w-0">
-        <p className="font-semibold text-fuchsia-800">{event.payload?.subject || 'Email sent'}</p>
-        <p className="text-rpmx-steel">To: {event.payload?.recipient || 'recipient'}</p>
+        <p className="font-semibold text-fuchsia-700">{event.payload?.subject || 'Email sent'}</p>
+        <p className="text-rpmx-muted">To: {event.payload?.recipient || 'recipient'}</p>
       </div>
     </div>
   )
@@ -378,20 +379,20 @@ function CompleteEvent({ event, agentId }) {
   const unitLabelPlural = units === 1 ? unitLabel : unitLabel + 's'
   const statusText = `${units} ${unitLabelPlural} processed`
   return (
-    <div className="rounded-lg bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 px-3 py-3 text-xs animate-fade-in">
+    <div className="rounded-lg bg-gradient-to-r from-emerald-50/80 to-blue-50/60 ring-1 ring-emerald-200/50 px-3 py-3 text-xs animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <IconCheck />
-          <span className="font-semibold text-emerald-800">Run Complete</span>
+          <span className="font-bold text-emerald-700">Run Complete</span>
         </div>
-        <span className="text-rpmx-steel">{statusText}</span>
+        <span className="text-rpmx-muted text-[10px]">{statusText}</span>
       </div>
       <div className="mt-2 flex items-baseline gap-4">
         <div>
-          <span className="text-rpmx-steel">Cost per {unitLabel}: </span>
-          <b className="text-base text-rpmx-ink">${costPerUnit < 0.01 ? costPerUnit.toFixed(4) : costPerUnit.toFixed(2)}</b>
+          <span className="text-rpmx-muted">Cost per {unitLabel}: </span>
+          <b className="text-sm text-rpmx-ink">${costPerUnit < 0.01 ? costPerUnit.toFixed(4) : costPerUnit.toFixed(2)}</b>
         </div>
-        <div className="text-rpmx-steel">
+        <div className="text-rpmx-muted">
           Total: <b className="text-rpmx-ink">${totalCost < 0.01 ? totalCost.toFixed(4) : totalCost.toFixed(2)}</b>
         </div>
       </div>
@@ -421,13 +422,73 @@ function ThinkingIndicator() {
   )
 }
 
+function ThinkingStream({ lines }) {
+  const [collapsed, setCollapsed] = useState(false)
+  const scrollRef = useRef(null)
+
+  useEffect(() => {
+    const node = scrollRef.current
+    if (node) node.scrollTop = node.scrollHeight
+  }, [lines])
+
+  if (!lines || lines.length === 0) return <ThinkingIndicator />
+
+  return (
+    <div className="thinking-stream rounded-lg border border-blue-200/60 bg-blue-50/40 backdrop-blur-sm overflow-hidden animate-fade-in">
+      {/* Header bar */}
+      <button
+        onClick={() => setCollapsed((c) => !c)}
+        className="flex w-full items-center gap-2 px-3 py-1.5 text-[10px] font-semibold text-blue-600 hover:bg-blue-100/40 transition-colors"
+      >
+        <span className="flex gap-0.5">
+          <span className="h-1 w-1 rounded-full bg-blue-400 animate-pulse3" />
+          <span className="h-1 w-1 rounded-full bg-blue-400 animate-pulse3" style={{ animationDelay: '160ms' }} />
+          <span className="h-1 w-1 rounded-full bg-blue-400 animate-pulse3" style={{ animationDelay: '320ms' }} />
+        </span>
+        <span className="uppercase tracking-wider">Agent Reasoning</span>
+        <svg
+          className={`ml-auto h-3 w-3 text-blue-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {/* Scrollable thinking lines */}
+      {!collapsed && (
+        <div ref={scrollRef} className="max-h-28 overflow-y-auto px-3 pb-2 thinking-stream-body">
+          {lines.map((line, idx) => (
+            <p
+              key={idx}
+              className={`text-[11px] italic leading-relaxed py-0.5 transition-opacity duration-300 ${
+                idx === lines.length - 1 ? 'text-blue-700' : 'text-blue-400'
+              }`}
+              style={{ opacity: idx < lines.length - 3 ? 0.4 : idx < lines.length - 1 ? 0.65 : 1 }}
+            >
+              {line}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 /* ── Financial Chat quick-action pills ── */
 const QUICK_ACTIONS = [
-  { label: 'P&L Report', message: 'Pull me a P&L for the Excavation division for January 2026' },
-  { label: 'Job Costing', message: 'Break down job costs for Excavation in Q4 2025' },
-  { label: 'Fuel Spend', message: 'How much did we spend on fuel across all divisions last year?' },
-  { label: 'Quarter Comparison', message: 'Compare Q4 2025 to Q3 2025 company-wide' },
+  { label: 'P&L Report', message: 'Show me a company-wide P&L for Q4 2025' },
+  { label: 'Margin Trend', message: 'Show me our gross margin trend over the last 8 quarters' },
+  { label: 'Job Costing', message: 'Give me a job cost report for the Highway 9 Interchange Grading project' },
+  { label: 'Budget vs Actual', message: 'How are we tracking against budget for 2025?' },
 ]
+
+/* ── Markdown renderer for chat bubbles ── */
+function MarkdownContent({ text }) {
+  return (
+    <div className="chat-markdown">
+      <ReactMarkdown>{text}</ReactMarkdown>
+    </div>
+  )
+}
 
 /* ── Financial Chat event renderers ── */
 function UserMessageBubble({ text }) {
@@ -457,7 +518,7 @@ function AgentMessageBubble({ text, msgType }) {
             Clarification needed
           </div>
         )}
-        <p className="whitespace-pre-wrap leading-relaxed">{text}</p>
+        <MarkdownContent text={text} />
       </div>
     </div>
   )
@@ -573,6 +634,7 @@ export default function AgentWorkspace() {
   const [agentChatInput, setAgentChatInput] = useState('')
   const [agentChatLoading, setAgentChatLoading] = useState(false)
   const agentChatRef = useRef(null)
+  const [thinkingLines, setThinkingLines] = useState([])  // live thinking stream
 
   async function loadAgent() {
     const data = await apiGet(`/api/agents/${agentId}`)
@@ -638,6 +700,14 @@ export default function AgentWorkspace() {
       const event = JSON.parse(evt.data)
       setActivity((prev) => [...prev, event])
 
+      // Thinking stream: accumulate thinking events, clear on any other type
+      if (event.type === 'thinking') {
+        setThinkingLines((prev) => [...prev, event.payload?.text || ''])
+      } else if (event.type !== 'status_change') {
+        // Clear thinking lines when a substantive event arrives (tool_call, tool_result, etc.)
+        setThinkingLines([])
+      }
+
       if (event.type === 'reasoning') {
         const text = String(event.payload?.text || '')
         const invoiceMatch = text.match(/Processing\s+(INV-[A-Z0-9-]+)/i)
@@ -677,12 +747,14 @@ export default function AgentWorkspace() {
 
       if (event.type === 'complete') {
         setRunning(false)
+        setThinkingLines([])
         setLatestOutput(event.payload?.output || null)
         void Promise.all([loadAgent(), loadReviewQueue()])
       }
 
       if (event.type === 'error') {
         setRunning(false)
+        setThinkingLines([])
       }
     }
 
@@ -694,6 +766,7 @@ export default function AgentWorkspace() {
     setError('')
     setActivity([])
     setCommunications([])
+    setThinkingLines([])
     setActiveInvoice('')
     setActiveVendor('')
     setActiveAmount(null)
@@ -829,6 +902,22 @@ export default function AgentWorkspace() {
         return { total, completed, emails_sent: emailsSent, skipped: skippedCount }
       }
     }
+    // During Cost Estimator processing, count price_category completions
+    if (agentId === 'cost_estimator' && activity.length > 0) {
+      let categoriesPriced = 0, total = 5, directCost = 0
+      for (const ev of activity) {
+        if (ev.type === 'tool_result' && ev.payload?.tool === 'price_category') {
+          categoriesPriced++
+          directCost += ev.payload?.result?.category_subtotal || 0
+        }
+        if (ev.type === 'tool_result' && ev.payload?.tool === 'apply_markups') {
+          directCost = ev.payload?.result?.direct_cost || directCost
+        }
+      }
+      if (categoriesPriced > 0 || running) {
+        return { total, categories_priced: categoriesPriced, direct_cost: directCost }
+      }
+    }
     return latestOutput?.queue_progress || null
   }, [activity, running, latestOutput, agentId])
   const recentActivity = useMemo(() => activity.slice(-80), [activity])
@@ -838,37 +927,44 @@ export default function AgentWorkspace() {
 
   return (
     <div className="flex h-screen flex-col bg-rpmx-canvas text-rpmx-ink overflow-hidden">
-      {/* ── Compact header bar ── */}
-      <div className="flex items-center justify-between gap-3 border-b border-rpmx-slate/50 bg-white px-4 py-2.5 sm:px-7">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/')} className="text-sm text-rpmx-steel hover:text-rpmx-ink transition-colors">
-            &larr; Back
+      {/* ── Header bar ── */}
+      <div className="flex items-center justify-between gap-3 border-b border-rpmx-slate/30 bg-white/80 backdrop-blur-sm px-4 py-2 sm:px-6">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/')} className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-rpmx-steel hover:text-rpmx-ink hover:bg-rpmx-canvas/80 transition-all">
+            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+            Back
           </button>
-          <div className="h-5 w-px bg-rpmx-slate/60" />
-          <h1 className="text-base font-semibold">{agent?.name || agentId}</h1>
-          <div className="flex items-center gap-1.5">
-            <span className={`relative flex h-2.5 w-2.5`}>
-              <span className={`inline-flex h-full w-full rounded-full ${displayStatus === 'working' ? 'bg-rpmx-mint animate-ping opacity-75' : ''}`} />
-              <span className={`absolute inline-flex h-full w-full rounded-full ${
-                displayStatus === 'working' ? 'bg-rpmx-mint' :
-                displayStatus === 'error' ? 'bg-rpmx-danger' :
-                'bg-sky-400'
-              }`} />
-            </span>
-            <span className={`text-xs font-medium ${displayStatus === 'working' ? 'text-rpmx-mint' : 'text-rpmx-steel'}`}>
-              {displayStatus}
-            </span>
+          <div className="h-4 w-px bg-rpmx-slate/40" />
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-sm font-bold tracking-tight">{agent?.name || agentId}</h1>
+            <div className="flex items-center gap-1.5 rounded-full bg-rpmx-canvas px-2 py-0.5">
+              <span className="relative flex h-1.5 w-1.5">
+                {displayStatus === 'working' && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />}
+                <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${
+                  displayStatus === 'working' ? 'bg-emerald-500' :
+                  displayStatus === 'error' ? 'bg-red-500' :
+                  'bg-slate-300'
+                }`} />
+              </span>
+              <span className={`text-[10px] font-semibold capitalize ${
+                displayStatus === 'working' ? 'text-emerald-600' : 'text-rpmx-muted'
+              }`}>
+                {displayStatus}
+              </span>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-rpmx-steel">
+        <div className="flex items-center gap-2 text-xs">
           {openReviewCount > 0 && (
-            <span className="rounded-full bg-rpmx-amber/15 px-2 py-0.5 text-rpmx-amber font-semibold">
+            <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-amber-600 font-semibold ring-1 ring-amber-200/50 text-[10px]">
               {openReviewCount} review
             </span>
           )}
           <button
             onClick={() => apiPost('/api/demo/reset').then(() => { setActivity([]); setLatestOutput(null); setActiveInvoice(''); setActiveVendor(''); setActiveAmount(null); setCurrentInvoicePath(''); setExpandedReviewId(null); return Promise.all([loadAgent(), loadReviewQueue(), loadComms()]) })}
-            className="rounded-lg border border-rpmx-slate bg-white px-2.5 py-1.5 hover:bg-rpmx-canvas transition-colors"
+            className="rounded-lg border border-rpmx-slate/40 bg-white px-3 py-1.5 text-rpmx-steel hover:bg-rpmx-canvas hover:text-rpmx-ink transition-all shadow-sm"
           >
             Reset
           </button>
@@ -876,9 +972,18 @@ export default function AgentWorkspace() {
             <button
               onClick={runAgent}
               disabled={running}
-              className="rounded-lg bg-rpmx-signal px-4 py-1.5 font-semibold text-white hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 transition-all"
+              className="rounded-lg bg-gradient-to-b from-rpmx-signal to-[#e5612f] px-4 py-1.5 font-semibold text-white shadow-sm hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 transition-all"
             >
-              {running ? 'Running...' : 'Run Agent'}
+              {running ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="flex gap-0.5">
+                    <span className="h-1 w-1 rounded-full bg-white/80 animate-pulse3" />
+                    <span className="h-1 w-1 rounded-full bg-white/80 animate-pulse3" style={{ animationDelay: '160ms' }} />
+                    <span className="h-1 w-1 rounded-full bg-white/80 animate-pulse3" style={{ animationDelay: '320ms' }} />
+                  </span>
+                  Running
+                </span>
+              ) : 'Run Agent'}
             </button>
           )}
         </div>
@@ -894,32 +999,32 @@ export default function AgentWorkspace() {
       )}
 
       {/* ── Main grid ── */}
-      <div className="flex-1 grid gap-3 p-3 sm:p-4 lg:grid-cols-[38%_62%] overflow-hidden">
+      <div className="flex-1 grid gap-3 p-3 sm:p-4 lg:grid-cols-[38%_62%] overflow-hidden" style={{ minHeight: 0 }}>
         {/* ── Left panel: Chat (financial) or Activity Stream (others) ── */}
         {isFinancial ? (
-          <section className={`flex flex-col rounded-2xl bg-white shadow-sm overflow-hidden transition-all duration-700 ${
-            running ? 'border-2 border-rpmx-signal/30 animate-glow-pulse' : 'border border-rpmx-slate/70'
+          <section className={`flex flex-col rounded-2xl bg-white overflow-hidden transition-all duration-500 ${
+            running ? 'shadow-elevated ring-2 ring-rpmx-signal/20' : 'shadow-card ring-1 ring-rpmx-slate/15'
           }`}>
             {/* Chat messages area */}
-            <div ref={chatScrollRef} className="flex-1 space-y-3 overflow-auto p-4">
+            <div ref={chatScrollRef} className="flex-1 space-y-3 overflow-auto p-4 activity-scroll">
               {/* Welcome state */}
               {chatMessages.length === 0 && !running && (
-                <div className="flex flex-col items-center justify-center py-8 animate-fade-in">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-rpmx-signal/20 to-amber-100 mb-3">
-                    <svg className="h-6 w-6 text-rpmx-signal" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <div className="flex flex-col items-center justify-center py-10 animate-fade-in">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rpmx-canvas ring-1 ring-rpmx-slate/20 mb-3">
+                    <svg className="h-5 w-5 text-rpmx-signal" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
                     </svg>
                   </div>
-                  <h3 className="text-sm font-semibold text-rpmx-ink">Financial Reporting Agent</h3>
-                  <p className="mt-1 text-xs text-rpmx-steel text-center max-w-xs">
-                    Ask me about P&L reports, job costing, expense analysis, or comparisons across divisions and periods.
+                  <h3 className="text-xs font-bold text-rpmx-ink">Financial Reporting Agent</h3>
+                  <p className="mt-1 text-[11px] text-rpmx-muted text-center max-w-[260px] leading-relaxed">
+                    Ask about P&L reports, job costing, expense analysis, or comparisons across divisions and periods.
                   </p>
-                  <div className="mt-5 flex flex-wrap justify-center gap-2">
+                  <div className="mt-5 flex flex-wrap justify-center gap-1.5">
                     {QUICK_ACTIONS.map((qa) => (
                       <button
                         key={qa.label}
                         onClick={() => sendQuery(qa.message)}
-                        className="rounded-full border border-rpmx-signal/30 bg-rpmx-signal/5 px-3.5 py-1.5 text-xs font-medium text-rpmx-signal hover:bg-rpmx-signal/10 hover:border-rpmx-signal/50 transition-all"
+                        className="rounded-full border border-rpmx-slate/30 bg-white px-3 py-1.5 text-[11px] font-medium text-rpmx-steel hover:border-rpmx-signal/40 hover:text-rpmx-signal hover:bg-orange-50/30 transition-all shadow-sm"
                       >
                         {qa.label}
                       </button>
@@ -960,14 +1065,14 @@ export default function AgentWorkspace() {
             </div>
 
             {/* Chat input */}
-            <div className="border-t border-rpmx-slate/40 bg-rpmx-canvas/50 px-3 py-3">
+            <div className="border-t border-rpmx-slate/20 bg-rpmx-canvas/30 px-3 py-3">
               {chatMessages.length > 0 && !running && (
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {QUICK_ACTIONS.map((qa) => (
                     <button
                       key={qa.label}
                       onClick={() => sendQuery(qa.message)}
-                      className="rounded-full border border-rpmx-slate/50 bg-white px-2.5 py-1 text-[10px] text-rpmx-steel hover:border-rpmx-signal/40 hover:text-rpmx-signal transition-all"
+                      className="rounded-full border border-rpmx-slate/30 bg-white px-2.5 py-1 text-[10px] text-rpmx-steel hover:border-rpmx-signal/40 hover:text-rpmx-signal hover:bg-orange-50/30 transition-all shadow-sm"
                     >
                       {qa.label}
                     </button>
@@ -981,16 +1086,20 @@ export default function AgentWorkspace() {
                   onKeyDown={(e) => e.key === 'Enter' && !running && sendQuery(chatInput)}
                   placeholder="Ask about financials..."
                   disabled={running}
-                  className="w-full rounded-xl border border-rpmx-slate bg-white px-4 py-2.5 text-sm focus:border-rpmx-signal focus:outline-none focus:ring-1 focus:ring-rpmx-signal/30 disabled:opacity-60"
+                  className="w-full rounded-xl border border-rpmx-slate/40 bg-white px-4 py-2.5 text-sm focus:border-rpmx-signal focus:outline-none focus:ring-2 focus:ring-rpmx-signal/15 disabled:opacity-60 transition-all shadow-inner-soft"
                 />
                 <button
                   onClick={() => sendQuery(chatInput)}
                   disabled={running || !chatInput.trim()}
-                  className="rounded-xl bg-rpmx-signal px-4 py-2.5 text-sm font-semibold text-white hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 transition-all"
+                  className="rounded-xl bg-gradient-to-b from-rpmx-signal to-[#e5612f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:shadow-md hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 transition-all"
                 >
                   {running ? (
                     <span className="flex items-center gap-1.5">
-                      <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                      <span className="flex gap-0.5">
+                        <span className="h-1 w-1 rounded-full bg-white/80 animate-pulse3" />
+                        <span className="h-1 w-1 rounded-full bg-white/80 animate-pulse3" style={{ animationDelay: '160ms' }} />
+                        <span className="h-1 w-1 rounded-full bg-white/80 animate-pulse3" style={{ animationDelay: '320ms' }} />
+                      </span>
                       Working
                     </span>
                   ) : 'Ask'}
@@ -999,15 +1108,20 @@ export default function AgentWorkspace() {
             </div>
           </section>
         ) : (
-          <section className={`flex flex-col rounded-2xl bg-white shadow-sm overflow-hidden transition-all duration-700 ${
-            running ? 'border-2 border-rpmx-signal/30 animate-glow-pulse' : 'border border-rpmx-slate/70'
+          <section className={`flex flex-col rounded-2xl bg-white overflow-hidden transition-all duration-500 ${
+            running ? 'shadow-elevated ring-2 ring-rpmx-signal/20' : 'shadow-card ring-1 ring-rpmx-slate/15'
           }`}>
             {queueProgress && (
-              <div className="flex items-center justify-between border-b border-rpmx-slate/30 px-3 py-1.5 text-[10px] text-rpmx-steel">
+              <div className="flex items-center justify-between border-b border-rpmx-slate/20 bg-rpmx-canvas/50 px-3 py-1.5 text-[10px] text-rpmx-steel">
                 {agentId === 'ar_followup' ? (
                   <>
                     <span>Emails: {queueProgress.emails_sent ?? 0} | Skipped: {queueProgress.skipped ?? 0}</span>
                     <span className="font-mono">{queueProgress.completed ?? (queueProgress.actions_taken ?? 0) + (queueProgress.skipped ?? 0)} / {queueProgress.total}</span>
+                  </>
+                ) : agentId === 'cost_estimator' ? (
+                  <>
+                    <span>Categories: {queueProgress.categories_priced ?? 0}/{queueProgress.total ?? 5}{queueProgress.direct_cost > 0 ? ` | Direct: $${(queueProgress.direct_cost / 1000).toFixed(0)}K` : ''}</span>
+                    <span className="font-mono">{queueProgress.categories_priced ?? 0} / {queueProgress.total ?? 5}</span>
                   </>
                 ) : (
                   <>
@@ -1018,9 +1132,17 @@ export default function AgentWorkspace() {
               </div>
             )}
 
-            <div ref={activityScrollRef} className="flex-1 space-y-1.5 overflow-auto p-3">
+            <div ref={activityScrollRef} className="flex-1 space-y-1.5 overflow-auto p-3 activity-scroll">
               {recentActivity.length === 0 && (
-                <p className="py-8 text-center text-sm text-rpmx-steel">Run the agent to watch it work in real time.</p>
+                <div className="flex flex-col items-center justify-center py-12 animate-fade-in">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rpmx-canvas ring-1 ring-rpmx-slate/20 mb-3">
+                    <svg className="h-5 w-5 text-rpmx-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                    </svg>
+                  </div>
+                  <p className="text-xs font-semibold text-rpmx-ink">Activity Stream</p>
+                  <p className="mt-1 text-[11px] text-rpmx-muted text-center max-w-[200px]">Run the agent to watch it work in real time</p>
+                </div>
               )}
               {groupedActivity.map((item) => {
                 if (item.kind === 'tool_pair') return <ToolPairEvent key={item.key} call={item.call} result={item.result} />
@@ -1034,35 +1156,36 @@ export default function AgentWorkspace() {
                 if (ev.type === 'error') return <ErrorEvent key={item.key} event={ev} />
                 return null
               })}
-              {running && <ThinkingIndicator />}
+              {running && <ThinkingStream lines={thinkingLines} />}
             </div>
           </section>
         )}
 
         {/* ── Work panel ── */}
-        <section className="flex flex-col rounded-2xl border border-rpmx-slate/70 bg-white shadow-sm overflow-hidden">
+        <section className="flex flex-col rounded-2xl bg-white shadow-card ring-1 ring-rpmx-slate/15 overflow-hidden">
           {/* Tabs */}
-          <div className="flex border-b border-rpmx-slate/40">
+          <div className="flex border-b border-rpmx-slate/20 bg-rpmx-canvas/30">
             {(isFinancial ? FINANCIAL_TABS : TABS).map((name) => {
               const tabKey = name === 'history' ? 'review' : name
+              const isActive = tab === tabKey
               return (
                 <button
                   key={name}
                   onClick={() => setTab(tabKey)}
-                  className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-colors ${
-                    tab === tabKey
-                      ? 'border-b-2 border-rpmx-signal text-rpmx-ink'
-                      : 'text-rpmx-steel hover:text-rpmx-ink hover:bg-rpmx-canvas/50'
+                  className={`relative px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-all ${
+                    isActive
+                      ? 'text-rpmx-ink tab-active'
+                      : 'text-rpmx-muted hover:text-rpmx-steel hover:bg-white/50'
                   }`}
                 >
                   {name}
                   {name === 'review' && openReviewCount > 0 && (
-                    <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-rpmx-amber text-[9px] font-bold text-white">
+                    <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-bold text-white">
                       {openReviewCount}
                     </span>
                   )}
                   {name === 'work' && isFinancial && reports.length > 0 && (
-                    <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-rpmx-signal text-[9px] font-bold text-white">
+                    <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rpmx-signal px-1 text-[9px] font-bold text-white">
                       {reports.length}
                     </span>
                   )}
@@ -1146,7 +1269,7 @@ export default function AgentWorkspace() {
                     const fmtDollars = (v) => Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
                     return (
-                      <div key={item.id} className="rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas overflow-hidden animate-slide-in">
+                      <div key={item.id} className="rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas/50 overflow-hidden animate-slide-in shadow-card">
                         {/* ── Collapsed header ── */}
                         <div
                           className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/40 transition-colors"
@@ -1175,7 +1298,7 @@ export default function AgentWorkspace() {
 
                         {/* ── Expanded detail panel ── */}
                         {isExp && (
-                          <div className="border-t border-rpmx-slate/50 bg-white px-4 py-3 space-y-3.5 text-xs">
+                          <div className="border-t border-rpmx-slate/15 bg-white px-4 py-3 space-y-3.5 text-xs">
                             {/* Agent summary */}
                             <p className="text-sm text-rpmx-ink">{item.details}</p>
 
@@ -1315,24 +1438,24 @@ export default function AgentWorkspace() {
             {/* ── CHAT tab: conversation with agent about its work ── */}
             {tab === 'chat' && (
               <div className="flex h-full flex-col" style={{ minHeight: '50vh' }}>
-                <div ref={agentChatRef} className="flex-1 space-y-3 overflow-auto p-1">
+                <div ref={agentChatRef} className="flex-1 space-y-3 overflow-auto p-1 activity-scroll">
                   {agentChatMsgs.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-10">
-                      <div className="rounded-full bg-rpmx-signal/10 p-3 mb-3">
-                        <svg className="h-6 w-6 text-rpmx-signal" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rpmx-canvas ring-1 ring-rpmx-slate/20 mb-3">
+                        <svg className="h-5 w-5 text-rpmx-signal" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
                         </svg>
                       </div>
-                      <h3 className="text-sm font-semibold text-rpmx-ink">Ask {agent?.name || 'Agent'}</h3>
-                      <p className="mt-1 text-xs text-rpmx-steel text-center max-w-xs">
+                      <h3 className="text-xs font-bold text-rpmx-ink">Ask {agent?.name || 'Agent'}</h3>
+                      <p className="mt-1 text-[11px] text-rpmx-muted text-center max-w-[260px] leading-relaxed">
                         Ask questions about this agent&apos;s last run, decisions, and work output.
                       </p>
-                      <div className="mt-4 flex flex-wrap justify-center gap-2">
+                      <div className="mt-5 flex flex-wrap justify-center gap-1.5">
                         {(CHAT_PROMPTS[agentId] || []).map((prompt) => (
                           <button
                             key={prompt}
                             onClick={() => { setAgentChatInput(prompt) }}
-                            className="rounded-full border border-rpmx-signal/30 bg-rpmx-signal/5 px-3 py-1.5 text-xs text-rpmx-signal hover:bg-rpmx-signal/10 transition-colors"
+                            className="rounded-full border border-rpmx-slate/30 bg-white px-3 py-1.5 text-[11px] text-rpmx-steel hover:border-rpmx-signal/40 hover:text-rpmx-signal hover:bg-orange-50/30 transition-all shadow-sm"
                           >
                             {prompt}
                           </button>
@@ -1342,22 +1465,22 @@ export default function AgentWorkspace() {
                   )}
                   {agentChatMsgs.map((msg, idx) => (
                     msg.role === 'user' ? (
-                      <div key={idx} className="flex justify-end">
-                        <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-rpmx-signal/10 border border-rpmx-signal/20 px-4 py-2.5 text-sm text-rpmx-ink">
+                      <div key={idx} className="flex justify-end animate-slide-in">
+                        <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-rpmx-signal/8 ring-1 ring-rpmx-signal/15 px-4 py-2.5 text-sm text-rpmx-ink">
                           {msg.content}
                         </div>
                       </div>
                     ) : (
-                      <div key={idx} className="flex justify-start">
-                        <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-white border border-rpmx-slate/50 px-4 py-2.5 text-sm text-rpmx-ink shadow-sm whitespace-pre-wrap">
-                          {msg.content}
+                      <div key={idx} className="flex justify-start animate-slide-in">
+                        <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-white ring-1 ring-rpmx-slate/20 px-4 py-2.5 text-sm text-rpmx-ink shadow-card">
+                          <MarkdownContent text={msg.content} />
                         </div>
                       </div>
                     )
                   ))}
                   {agentChatLoading && <ThinkingIndicator />}
                 </div>
-                <div className="border-t border-rpmx-slate/40 px-1 pt-3 mt-2">
+                <div className="border-t border-rpmx-slate/20 px-1 pt-3 mt-2">
                   <div className="flex gap-2">
                     <input
                       value={agentChatInput}
@@ -1365,12 +1488,12 @@ export default function AgentWorkspace() {
                       onKeyDown={(e) => e.key === 'Enter' && sendAgentChat()}
                       placeholder={`Ask ${agent?.name || 'agent'} about its work...`}
                       disabled={agentChatLoading}
-                      className="w-full rounded-xl border border-rpmx-slate bg-white px-4 py-2.5 text-sm focus:border-rpmx-signal focus:outline-none focus:ring-1 focus:ring-rpmx-signal/30 disabled:opacity-60"
+                      className="w-full rounded-xl border border-rpmx-slate/40 bg-white px-4 py-2.5 text-sm focus:border-rpmx-signal focus:outline-none focus:ring-2 focus:ring-rpmx-signal/15 disabled:opacity-60 transition-all shadow-inner-soft"
                     />
                     <button
                       onClick={sendAgentChat}
                       disabled={agentChatLoading || !agentChatInput.trim()}
-                      className="rounded-xl bg-rpmx-signal px-4 py-2.5 text-sm font-semibold text-white hover:brightness-95 disabled:opacity-50 transition-all"
+                      className="rounded-xl bg-gradient-to-b from-rpmx-signal to-[#e5612f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:shadow-md hover:brightness-105 disabled:opacity-50 transition-all"
                     >
                       Ask
                     </button>
@@ -1385,30 +1508,34 @@ export default function AgentWorkspace() {
                 <div className="grid gap-4 lg:grid-cols-2 flex-1">
                   {/* Left: Coaching chat */}
                   <div className="flex flex-col">
-                    <h4 className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel mb-2">Coach this Agent</h4>
-                    <div className="flex-1 space-y-2 overflow-auto rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas p-3 mb-2" style={{ maxHeight: '40vh' }}>
+                    <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-rpmx-muted mb-2">Coach this Agent</h4>
+                    <div className="flex-1 space-y-2 overflow-auto rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas/50 p-3 mb-2 activity-scroll" style={{ maxHeight: '40vh' }}>
                       {chatLog.length === 0 && (
-                        <div className="py-4 text-center">
+                        <div className="py-6 text-center">
                           <p className="text-xs text-rpmx-steel">Teach new behavior in plain language.</p>
-                          <p className="mt-1 text-[10px] text-rpmx-steel/60">
+                          <p className="mt-1.5 text-[10px] text-rpmx-muted leading-relaxed">
                             Example: &quot;When you find a price variance over $1,000, send an email to the project manager.&quot;
                           </p>
                         </div>
                       )}
                       {chatLog.map((msg, idx) => (
-                        <div key={idx} className={`rounded-lg px-3 py-2 text-sm ${msg.role === 'user' ? 'bg-white border border-rpmx-slate/30' : 'bg-[#fdf4ef] border border-orange-100'}`}>
-                          <p className="text-[9px] font-semibold uppercase tracking-wider text-rpmx-steel">{msg.role === 'user' ? 'You' : 'Agent'}</p>
-                          <p className="mt-0.5 text-xs">{msg.text}</p>
+                        <div key={idx} className={`rounded-lg px-3 py-2 text-sm ${msg.role === 'user' ? 'bg-white ring-1 ring-rpmx-slate/15 shadow-sm' : 'bg-orange-50/70 ring-1 ring-orange-100/60'}`}>
+                          <p className="text-[9px] font-bold uppercase tracking-wider text-rpmx-muted">{msg.role === 'user' ? 'You' : 'Agent'}</p>
+                          {msg.role === 'user' ? (
+                            <p className="mt-0.5 text-xs">{msg.text}</p>
+                          ) : (
+                            <div className="mt-0.5 text-xs"><MarkdownContent text={msg.text} /></div>
+                          )}
                         </div>
                       ))}
                     </div>
                     {pendingSuggestion && (
-                      <div className="mb-2 rounded-xl border-2 border-rpmx-signal/40 bg-rpmx-signal/5 p-3">
-                        <p className="text-[9px] font-semibold uppercase tracking-wider text-rpmx-signal">Pending Training Rule</p>
+                      <div className="mb-2 rounded-xl ring-2 ring-rpmx-signal/30 bg-orange-50/50 p-3">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-rpmx-signal">Pending Training Rule</p>
                         <p className="mt-1 text-xs text-rpmx-ink">{pendingSuggestion}</p>
                         <div className="mt-2 flex gap-2">
-                          <button onClick={applySuggestion} className="rounded-lg bg-rpmx-signal px-3 py-1.5 text-xs font-semibold text-white hover:brightness-95 transition-all">Apply to Skills</button>
-                          <button onClick={() => setPendingSuggestion('')} className="rounded-lg border border-rpmx-slate bg-white px-3 py-1.5 text-xs hover:bg-rpmx-canvas">Discard</button>
+                          <button onClick={applySuggestion} className="rounded-lg bg-gradient-to-b from-rpmx-signal to-[#e5612f] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:shadow-md transition-all">Apply to Skills</button>
+                          <button onClick={() => setPendingSuggestion('')} className="rounded-lg border border-rpmx-slate/40 bg-white px-3 py-1.5 text-xs text-rpmx-steel hover:bg-rpmx-canvas transition-all">Discard</button>
                         </div>
                       </div>
                     )}
@@ -1418,21 +1545,21 @@ export default function AgentWorkspace() {
                         onChange={(e) => setChatInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && sendTraining(false)}
                         placeholder="Teach a new procedure..."
-                        className="w-full rounded-xl border border-rpmx-slate bg-white px-4 py-2.5 text-sm focus:border-rpmx-signal focus:outline-none focus:ring-1 focus:ring-rpmx-signal/30"
+                        className="w-full rounded-xl border border-rpmx-slate/40 bg-white px-4 py-2.5 text-sm focus:border-rpmx-signal focus:outline-none focus:ring-2 focus:ring-rpmx-signal/15 transition-all shadow-inner-soft"
                       />
-                      <button onClick={() => sendTraining(false)} className="rounded-xl bg-rpmx-signal px-4 py-2.5 text-sm font-semibold text-white hover:brightness-95 transition-all">Send</button>
+                      <button onClick={() => sendTraining(false)} className="rounded-xl bg-gradient-to-b from-rpmx-signal to-[#e5612f] px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:shadow-md hover:brightness-105 transition-all">Send</button>
                     </div>
                   </div>
                   {/* Right: Skills editor */}
                   <div className="flex flex-col">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel">Skills File</h4>
+                      <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-rpmx-muted">Skills File</h4>
                       <button
                         onClick={async () => {
                           const data = await apiPut(`/api/agents/${agentId}/skills`, { content: skills })
                           setSkills(data.skills)
                         }}
-                        className="rounded-lg border border-rpmx-slate bg-white px-3 py-1 text-xs hover:bg-rpmx-canvas"
+                        className="rounded-lg border border-rpmx-slate/40 bg-white px-3 py-1 text-xs text-rpmx-steel hover:bg-rpmx-canvas shadow-sm transition-all"
                       >
                         Save Skills
                       </button>
@@ -1440,7 +1567,7 @@ export default function AgentWorkspace() {
                     <textarea
                       value={skills}
                       onChange={(e) => setSkills(e.target.value)}
-                      className="flex-1 min-h-[40vh] w-full rounded-xl border border-rpmx-slate bg-white p-3 font-mono text-[11px] leading-relaxed focus:border-rpmx-signal focus:outline-none resize-none"
+                      className="flex-1 min-h-[40vh] w-full rounded-xl border border-rpmx-slate/30 bg-white p-3 font-mono text-[11px] leading-relaxed focus:border-rpmx-signal focus:outline-none focus:ring-2 focus:ring-rpmx-signal/15 resize-none transition-all shadow-inner-soft"
                     />
                   </div>
                 </div>
@@ -1449,34 +1576,36 @@ export default function AgentWorkspace() {
 
             {/* ── PROFILE tab: agent identity, tools, skills ── */}
             {tab === 'profile' && (
-              <div className="space-y-4 overflow-auto" style={{ maxHeight: '70vh' }}>
+              <div className="space-y-5 overflow-auto activity-scroll" style={{ maxHeight: '70vh' }}>
                 {/* Identity card */}
-                <div className="rounded-xl border border-rpmx-slate/70 bg-gradient-to-r from-indigo-50/50 to-blue-50/50 p-4">
+                <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-gradient-to-br from-slate-50 to-blue-50/30 p-4 shadow-card">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h3 className="text-sm font-semibold text-rpmx-ink">{agent?.name}</h3>
-                      <p className="mt-0.5 text-xs text-rpmx-steel">{agent?.department}</p>
+                      <h3 className="text-sm font-bold text-rpmx-ink">{agent?.name}</h3>
+                      <p className="mt-0.5 text-[11px] text-rpmx-muted">{agent?.department}</p>
                     </div>
-                    <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-[10px] font-semibold text-indigo-700">{agent?.workspace_type}</span>
+                    <span className="rounded-full bg-indigo-100/70 px-2.5 py-0.5 text-[10px] font-semibold text-indigo-600 ring-1 ring-indigo-200/40">{agent?.workspace_type}</span>
                   </div>
-                  <p className="mt-2 text-xs text-rpmx-ink/80">{agent?.agent_description || 'No description available.'}</p>
+                  <p className="mt-2.5 text-xs text-rpmx-steel leading-relaxed">{agent?.agent_description || 'No description available.'}</p>
                 </div>
 
                 {/* Connected Tools */}
                 <div>
-                  <h4 className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel mb-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-rpmx-muted mb-2.5">
                     Connected Tools ({agent?.tools?.length || 0})
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {(agent?.tools || []).map((tool) => (
-                      <div key={tool} className="rounded-lg border border-rpmx-slate/50 bg-white px-3 py-2 hover:border-rpmx-signal/30 transition-colors">
+                      <div key={tool} className="rounded-lg ring-1 ring-rpmx-slate/15 bg-white px-3 py-2.5 hover:ring-rpmx-signal/25 hover:shadow-sm transition-all">
                         <div className="flex items-center gap-2">
-                          <svg className="h-3.5 w-3.5 text-rpmx-signal flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17l-5.384 3.164A1 1 0 015 17.482V6.518a1 1 0 011.036-.852L11.42 8.83m0 6.34l5.964 3.508A1 1 0 0018.5 17.834V6.166a1 1 0 00-1.116-.852L11.42 8.83m0 6.34V8.83" />
-                          </svg>
+                          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-orange-50 text-rpmx-signal">
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17l-5.384 3.164A1 1 0 015 17.482V6.518a1 1 0 011.036-.852L11.42 8.83m0 6.34l5.964 3.508A1 1 0 0018.5 17.834V6.166a1 1 0 00-1.116-.852L11.42 8.83m0 6.34V8.83" />
+                            </svg>
+                          </div>
                           <span className="text-xs font-semibold text-rpmx-ink">{TOOL_LABELS[tool] || tool.replace(/_/g, ' ')}</span>
                         </div>
-                        <p className="mt-0.5 text-[10px] text-rpmx-steel leading-snug">{TOOL_DESCRIPTIONS[tool] || ''}</p>
+                        <p className="mt-1 text-[10px] text-rpmx-muted leading-snug pl-7">{TOOL_DESCRIPTIONS[tool] || ''}</p>
                       </div>
                     ))}
                   </div>
@@ -1484,8 +1613,8 @@ export default function AgentWorkspace() {
 
                 {/* Skills summary */}
                 <div>
-                  <h4 className="text-[10px] font-semibold uppercase tracking-wider text-rpmx-steel mb-2">Skills & Procedures</h4>
-                  <div className="rounded-xl border border-rpmx-slate/70 bg-rpmx-canvas p-4 text-xs space-y-3">
+                  <h4 className="text-[10px] font-bold uppercase tracking-[0.12em] text-rpmx-muted mb-2.5">Skills & Procedures</h4>
+                  <div className="rounded-xl ring-1 ring-rpmx-slate/15 bg-rpmx-canvas/50 p-4 text-xs space-y-3">
                     {(skills || '').split(/\n##\s+/).map((section, idx) => {
                       if (idx === 0) {
                         const lines = section.split('\n')

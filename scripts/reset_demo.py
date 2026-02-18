@@ -559,50 +559,42 @@ def build_dispatch_dataset() -> dict[str, Any]:
 
 
 def build_progress_dataset() -> dict[str, Any]:
-    return {
-        "projects": [
-            {
-                "project_id": "MR-2024-015",
-                "project_name": "Maple Ridge Site Development",
-                "budget_used_percent": 45,
-                "percent_complete": 48,
-                "finding": "on_track",
-                "message": "On track. Budget 45% used, 48% complete.",
-            },
-            {
-                "project_id": "EX-2024-022",
-                "project_name": "Highway 9 Interchange",
-                "budget_used_percent": 78,
-                "percent_complete": 60,
-                "finding": "at_risk",
-                "projected_overrun": 18400,
-                "message": "Budget 78% used but only 60% complete. Projected overrun $18,400.",
-            },
-            {
-                "project_id": "SD-2024-018",
-                "project_name": "Summit Office Phase 2",
-                "days_behind": 3,
-                "productivity_gap_percent": 15,
-                "finding": "behind_schedule",
-                "message": "3 days behind schedule and productivity 15% below estimate.",
-            },
-            {
-                "project_id": "RC-2024-011",
-                "project_name": "County Road 42 Resurfacing",
-                "days_ahead": 2,
-                "finding": "on_track",
-                "message": "On track and 2 days ahead of schedule.",
-            },
-            {
-                "project_id": "EX-2024-027",
-                "project_name": "Riverdale Flood Mitigation",
-                "finding": "at_risk",
-                "change_order": "CO-045",
-                "change_order_amount": 256000,
-                "message": "At risk pending CO-045 approval. Within budget if approved.",
-            },
-        ]
-    }
+    """Rich progress tracking data: 3 projects with proposal-vs-actuals, labor, schedule, change orders."""
+    return {"as_of_date":"2026-01-15","projects":[
+        {"project_id":"RW-2025-003","project_name":"Highway 9 Interchange Grading & Paving","division":"Road & Highway Construction","division_id":"RW","project_manager":"Mike Torres","superintendent":"Dave Kowalski","client":"Colorado DOT — Region 4","start_date":"2025-03-15","original_end_date":"2025-12-20","current_projected_end_date":"2026-02-28","finding":"behind_schedule",
+         "proposal":{"contract_value":28500000,"estimated_cost":26900000,"target_margin_pct":5.6,"bid_date":"2025-01-22","scope_summary":"Complete interchange reconstruction including earthwork, drainage, asphalt paving, concrete barriers, signage, and striping for the Highway 9 / County Road 42 interchange.","key_assumptions":["Fuel at $3.85/gal average","No rock excavation required below 8ft depth","Subcontractor availability for concrete barriers by August","No winter weather delays past November 15","Material escalation capped at 3% via supplier contracts"],
+          "cost_estimate_by_code":{"01-Mobilization":1200000,"02-Earthwork & Grading":6800000,"03-Drainage & Utilities":3200000,"04-Aggregate Base":2400000,"05-Asphalt Paving":5800000,"06-Concrete Barriers":2100000,"07-Signage & Striping":900000,"08-Traffic Control":1600000,"09-Erosion Control":750000,"10-General Conditions":2150000},
+          "labor_estimate":{"total_labor_hours":68500,"avg_loaded_rate":78.50,"peak_crew_size":45,"estimated_labor_cost":5377250,"labor_pct_of_total":20.0},
+          "schedule_estimate":{"total_duration_days":280,"phases":[{"phase":"Mobilization & Site Prep","duration_days":25,"start":"2025-03-15","end":"2025-04-08"},{"phase":"Earthwork & Grading","duration_days":75,"start":"2025-04-09","end":"2025-06-22"},{"phase":"Drainage & Utilities","duration_days":45,"start":"2025-05-20","end":"2025-07-03"},{"phase":"Aggregate Base","duration_days":30,"start":"2025-07-04","end":"2025-08-02"},{"phase":"Asphalt Paving","duration_days":50,"start":"2025-08-03","end":"2025-09-21"},{"phase":"Concrete Barriers & Finishing","duration_days":40,"start":"2025-09-22","end":"2025-10-31"},{"phase":"Signage, Striping & Punch List","duration_days":35,"start":"2025-11-01","end":"2025-12-05"},{"phase":"Final Inspection & Closeout","duration_days":15,"start":"2025-12-06","end":"2025-12-20"}]}},
+         "actuals":{"total_cost_to_date":22847316,"percent_complete":62,"percent_billed":68,
+          "cost_by_code":{"01-Mobilization":{"budgeted":1200000,"actual":1215400,"pct_complete":100},"02-Earthwork & Grading":{"budgeted":6800000,"actual":7483200,"pct_complete":100},"03-Drainage & Utilities":{"budgeted":3200000,"actual":3488000,"pct_complete":95},"04-Aggregate Base":{"budgeted":2400000,"actual":2280000,"pct_complete":100},"05-Asphalt Paving":{"budgeted":5800000,"actual":4176000,"pct_complete":60},"06-Concrete Barriers":{"budgeted":2100000,"actual":1596000,"pct_complete":40},"07-Signage & Striping":{"budgeted":900000,"actual":0,"pct_complete":0},"08-Traffic Control":{"budgeted":1600000,"actual":1408716,"pct_complete":75},"09-Erosion Control":{"budgeted":750000,"actual":512000,"pct_complete":55},"10-General Conditions":{"budgeted":2150000,"actual":1688000,"pct_complete":65}},
+          "labor":{"total_hours_to_date":52340,"avg_actual_loaded_rate":83.20,"current_crew_size":38,"labor_cost_to_date":4354688,"overtime_hours":4800,"overtime_cost":576000,"productivity_index":0.87,"monthly_labor":[{"month":"2025-03","hours":2100,"cost":164850,"crew_size":18},{"month":"2025-04","hours":5400,"cost":423900,"crew_size":32},{"month":"2025-05","hours":6800,"cost":533800,"crew_size":42},{"month":"2025-06","hours":7200,"cost":565200,"crew_size":45},{"month":"2025-07","hours":6900,"cost":541650,"crew_size":44},{"month":"2025-08","hours":6500,"cost":510250,"crew_size":40},{"month":"2025-09","hours":5800,"cost":455300,"crew_size":38},{"month":"2025-10","hours":4200,"cost":329700,"crew_size":35},{"month":"2025-11","hours":3800,"cost":298350,"crew_size":30},{"month":"2025-12","hours":2140,"cost":168038,"crew_size":22},{"month":"2026-01","hours":1500,"cost":117750,"crew_size":18}]},
+          "schedule":{"days_elapsed":306,"days_behind":70,"critical_path_delay_cause":"Rock excavation encountered at 6ft depth (bid assumed no rock below 8ft). Added 35 calendar days to earthwork phase. Concrete barrier subcontractor delayed mobilization by 3 weeks due to other project commitments.","milestones":[{"name":"Mobilization Complete","planned":"2025-04-08","actual":"2025-04-10","status":"complete","days_delta":2},{"name":"Earthwork 100%","planned":"2025-06-22","actual":"2025-08-01","status":"complete","days_delta":40},{"name":"Drainage & Utilities","planned":"2025-07-03","actual":"2025-08-15","status":"complete","days_delta":43},{"name":"Base Course Complete","planned":"2025-08-02","actual":"2025-09-20","status":"complete","days_delta":49},{"name":"Paving 50%","planned":"2025-08-27","actual":"2025-11-05","status":"complete","days_delta":70},{"name":"Paving 100%","planned":"2025-09-21","actual":None,"status":"in_progress","days_delta":None},{"name":"Barriers Complete","planned":"2025-10-31","actual":None,"status":"in_progress","days_delta":None},{"name":"Signage & Striping","planned":"2025-12-05","actual":None,"status":"not_started","days_delta":None},{"name":"Final Inspection","planned":"2025-12-20","actual":None,"status":"not_started","days_delta":None}]}},
+         "change_orders":[{"co_number":"CO-001","description":"Rock excavation — unforeseen subsurface conditions","amount":682000,"status":"approved","date":"2025-06-15","impact_days":35},{"co_number":"CO-002","description":"Extended traffic control due to schedule extension","amount":245000,"status":"approved","date":"2025-09-01","impact_days":0},{"co_number":"CO-003","description":"Additional erosion control for extended winter exposure","amount":118000,"status":"pending","date":"2025-12-10","impact_days":0}],
+         "risk_flags":["Budget burn (84.8%) exceeds completion (62%) by 22.8 percentage points","Earthwork overran estimate by $683K (10%) due to unforeseen rock","Project 70 days behind original schedule","Winter paving window closing — asphalt plant shuts down mid-February","Overtime hours (4,800) represent 9.2% of total hours, indicating crew strain","Productivity index at 0.87 (13% below estimate)"]},
+        {"project_id":"EX-2025-011","project_name":"Maple Ridge Residential Site Development","division":"Site Development","division_id":"SD","project_manager":"Sarah Chen","superintendent":"Tony Vasquez","client":"Maple Ridge Development Group LLC","start_date":"2025-05-01","original_end_date":"2025-11-30","current_projected_end_date":"2025-12-15","finding":"on_track",
+         "proposal":{"contract_value":8750000,"estimated_cost":7960000,"target_margin_pct":9.0,"bid_date":"2025-03-10","scope_summary":"Full site development for 142-lot residential subdivision including mass grading, storm drainage, sanitary sewer, water main, curb & gutter, and road base for Maple Ridge Phase 3.","key_assumptions":["Soil conditions per geotech report — no remediation needed","City utility connections available by June 15","No FEMA floodplain impacts on grading design","Fuel at $3.75/gal average","Standard 5-day work weeks with no mandatory overtime"],
+          "cost_estimate_by_code":{"01-Mobilization":320000,"02-Mass Grading":2100000,"03-Storm Drainage":1450000,"04-Sanitary Sewer":1180000,"05-Water Main":980000,"06-Curb & Gutter":680000,"07-Road Base":750000,"08-Erosion Control":280000,"09-General Conditions":220000},
+          "labor_estimate":{"total_labor_hours":28200,"avg_loaded_rate":72.00,"peak_crew_size":28,"estimated_labor_cost":2030400,"labor_pct_of_total":25.5},
+          "schedule_estimate":{"total_duration_days":214,"phases":[{"phase":"Mobilization","duration_days":10,"start":"2025-05-01","end":"2025-05-10"},{"phase":"Mass Grading","duration_days":45,"start":"2025-05-11","end":"2025-06-24"},{"phase":"Underground Utilities","duration_days":75,"start":"2025-06-10","end":"2025-08-23"},{"phase":"Curb & Gutter","duration_days":35,"start":"2025-08-15","end":"2025-09-18"},{"phase":"Road Base & Grading","duration_days":30,"start":"2025-09-19","end":"2025-10-18"},{"phase":"Punch List & Closeout","duration_days":25,"start":"2025-10-19","end":"2025-11-12"}]}},
+         "actuals":{"total_cost_to_date":7624800,"percent_complete":92,"percent_billed":90,
+          "cost_by_code":{"01-Mobilization":{"budgeted":320000,"actual":318500,"pct_complete":100},"02-Mass Grading":{"budgeted":2100000,"actual":2058000,"pct_complete":100},"03-Storm Drainage":{"budgeted":1450000,"actual":1421000,"pct_complete":100},"04-Sanitary Sewer":{"budgeted":1180000,"actual":1180000,"pct_complete":100},"05-Water Main":{"budgeted":980000,"actual":950600,"pct_complete":100},"06-Curb & Gutter":{"budgeted":680000,"actual":665600,"pct_complete":100},"07-Road Base":{"budgeted":750000,"actual":675000,"pct_complete":85},"08-Erosion Control":{"budgeted":280000,"actual":207100,"pct_complete":70},"09-General Conditions":{"budgeted":220000,"actual":149000,"pct_complete":65}},
+          "labor":{"total_hours_to_date":25100,"avg_actual_loaded_rate":73.50,"current_crew_size":12,"labor_cost_to_date":1844850,"overtime_hours":980,"overtime_cost":108780,"productivity_index":1.04,"monthly_labor":[{"month":"2025-05","hours":2800,"cost":205800,"crew_size":18},{"month":"2025-06","hours":4200,"cost":308700,"crew_size":26},{"month":"2025-07","hours":4500,"cost":330750,"crew_size":28},{"month":"2025-08","hours":4100,"cost":301350,"crew_size":26},{"month":"2025-09","hours":3800,"cost":279300,"crew_size":24},{"month":"2025-10","hours":2900,"cost":213150,"crew_size":18},{"month":"2025-11","hours":1800,"cost":132300,"crew_size":14},{"month":"2025-12","hours":700,"cost":51450,"crew_size":12},{"month":"2026-01","hours":300,"cost":22050,"crew_size":8}]},
+          "schedule":{"days_elapsed":260,"days_behind":0,"days_ahead":5,"critical_path_delay_cause":None,"milestones":[{"name":"Mobilization Complete","planned":"2025-05-10","actual":"2025-05-09","status":"complete","days_delta":-1},{"name":"Mass Grading 100%","planned":"2025-06-24","actual":"2025-06-20","status":"complete","days_delta":-4},{"name":"Storm Drainage Complete","planned":"2025-08-05","actual":"2025-08-02","status":"complete","days_delta":-3},{"name":"Sanitary Sewer Complete","planned":"2025-08-15","actual":"2025-08-14","status":"complete","days_delta":-1},{"name":"Water Main Complete","planned":"2025-08-23","actual":"2025-08-20","status":"complete","days_delta":-3},{"name":"Curb & Gutter Complete","planned":"2025-09-18","actual":"2025-09-15","status":"complete","days_delta":-3},{"name":"Road Base Complete","planned":"2025-10-18","actual":None,"status":"in_progress","days_delta":None},{"name":"Punch List & Closeout","planned":"2025-11-12","actual":None,"status":"not_started","days_delta":None}]}},
+         "change_orders":[{"co_number":"CO-001","description":"Additional 12 lots added to Phase 3 scope","amount":420000,"status":"approved","date":"2025-07-20","impact_days":15}],
+         "risk_flags":[]},
+        {"project_id":"RC-2025-007","project_name":"Blue Mountain Mining Access Road","division":"Road & Highway Construction","division_id":"RW","project_manager":"James Whitfield","superintendent":"Carlos Mendez","client":"Blue Mountain Mining Corporation","start_date":"2025-06-01","original_end_date":"2026-03-15","current_projected_end_date":"2026-05-30","finding":"at_risk",
+         "proposal":{"contract_value":14200000,"estimated_cost":12900000,"target_margin_pct":9.2,"bid_date":"2025-04-05","scope_summary":"Construction of 4.2-mile heavy-haul access road including cut/fill operations, rock blasting, retaining walls, bridge abutment, aggregate base, and asphalt paving to Blue Mountain mine site elevation 8,200ft.","key_assumptions":["Blasting restricted to 8am-4pm per county permit","Mountain access road passable for equipment delivery by June 15","No endangered species habitat disruption (per environmental survey)","Retaining wall design finalized — no redesign needed","Winter shutdown December 15 through March 1 (70 calendar days)","Fuel delivery surcharge 8% for mountain elevation"],
+          "cost_estimate_by_code":{"01-Mobilization":580000,"02-Clearing & Grubbing":420000,"03-Rock Blasting":2800000,"04-Cut & Fill":2400000,"05-Retaining Walls":1850000,"06-Bridge Abutment":1200000,"07-Aggregate Base":1150000,"08-Asphalt Paving":1400000,"09-Erosion & Environmental":600000,"10-General Conditions":500000},
+          "labor_estimate":{"total_labor_hours":42000,"avg_loaded_rate":82.00,"peak_crew_size":35,"estimated_labor_cost":3444000,"labor_pct_of_total":26.7},
+          "schedule_estimate":{"total_duration_days":288,"phases":[{"phase":"Mobilization & Access","duration_days":20,"start":"2025-06-01","end":"2025-06-20"},{"phase":"Clearing & Grubbing","duration_days":25,"start":"2025-06-21","end":"2025-07-15"},{"phase":"Rock Blasting & Excavation","duration_days":60,"start":"2025-07-16","end":"2025-09-13"},{"phase":"Cut, Fill & Retaining Walls","duration_days":55,"start":"2025-08-15","end":"2025-10-08"},{"phase":"Bridge Abutment","duration_days":40,"start":"2025-09-20","end":"2025-10-29"},{"phase":"Winter Shutdown","duration_days":70,"start":"2025-12-15","end":"2026-02-22"},{"phase":"Aggregate Base & Paving","duration_days":45,"start":"2026-02-23","end":"2026-04-08"},{"phase":"Closeout & Final Inspection","duration_days":15,"start":"2026-04-09","end":"2026-04-23"}]}},
+         "actuals":{"total_cost_to_date":8934500,"percent_complete":48,"percent_billed":52,
+          "cost_by_code":{"01-Mobilization":{"budgeted":580000,"actual":612000,"pct_complete":100},"02-Clearing & Grubbing":{"budgeted":420000,"actual":445200,"pct_complete":100},"03-Rock Blasting":{"budgeted":2800000,"actual":3248000,"pct_complete":85},"04-Cut & Fill":{"budgeted":2400000,"actual":1920000,"pct_complete":65},"05-Retaining Walls":{"budgeted":1850000,"actual":1258000,"pct_complete":55},"06-Bridge Abutment":{"budgeted":1200000,"actual":540000,"pct_complete":30},"07-Aggregate Base":{"budgeted":1150000,"actual":0,"pct_complete":0},"08-Asphalt Paving":{"budgeted":1400000,"actual":0,"pct_complete":0},"09-Erosion & Environmental":{"budgeted":600000,"actual":486300,"pct_complete":70},"10-General Conditions":{"budgeted":500000,"actual":425000,"pct_complete":72}},
+          "labor":{"total_hours_to_date":24800,"avg_actual_loaded_rate":86.50,"current_crew_size":0,"labor_cost_to_date":2145200,"overtime_hours":3200,"overtime_cost":416000,"productivity_index":0.82,"monthly_labor":[{"month":"2025-06","hours":2400,"cost":207600,"crew_size":22},{"month":"2025-07","hours":4100,"cost":354650,"crew_size":30},{"month":"2025-08","hours":4600,"cost":397900,"crew_size":34},{"month":"2025-09","hours":4800,"cost":415200,"crew_size":35},{"month":"2025-10","hours":4200,"cost":363300,"crew_size":32},{"month":"2025-11","hours":3500,"cost":302750,"crew_size":28},{"month":"2025-12","hours":1200,"cost":103800,"crew_size":12}]},
+          "schedule":{"days_elapsed":229,"days_behind":25,"critical_path_delay_cause":"Rock blasting yielded 40% more material than geological survey predicted, extending excavation by 18 days. Retaining wall redesign required due to unstable slope conditions discovered during excavation — added 12 days for engineering review and revised foundation design. Currently in winter shutdown.","milestones":[{"name":"Mobilization Complete","planned":"2025-06-20","actual":"2025-06-22","status":"complete","days_delta":2},{"name":"Clearing & Grubbing","planned":"2025-07-15","actual":"2025-07-18","status":"complete","days_delta":3},{"name":"Rock Blasting 100%","planned":"2025-09-13","actual":None,"status":"in_progress","days_delta":None},{"name":"Cut & Fill Complete","planned":"2025-10-08","actual":None,"status":"in_progress","days_delta":None},{"name":"Bridge Abutment","planned":"2025-10-29","actual":None,"status":"in_progress","days_delta":None},{"name":"Retaining Walls Complete","planned":"2025-11-15","actual":None,"status":"in_progress","days_delta":None},{"name":"Winter Shutdown Start","planned":"2025-12-15","actual":"2025-12-15","status":"complete","days_delta":0},{"name":"Aggregate Base & Paving","planned":"2026-04-08","actual":None,"status":"not_started","days_delta":None},{"name":"Final Inspection","planned":"2026-04-23","actual":None,"status":"not_started","days_delta":None}]}},
+         "change_orders":[{"co_number":"CO-001","description":"Additional rock blasting — excess material volume","amount":385000,"status":"approved","date":"2025-08-22","impact_days":18},{"co_number":"CO-002","description":"Retaining wall redesign — unstable slope conditions","amount":290000,"status":"approved","date":"2025-10-15","impact_days":12},{"co_number":"CO-003","description":"Environmental mitigation — raptor nesting buffer zone","amount":145000,"status":"pending","date":"2025-11-28","impact_days":8}],
+         "risk_flags":["Rock blasting 16% over budget ($448K overrun on $2.8M estimate)","Retaining wall redesign added $290K in approved change orders","Productivity index at 0.82 (18% below target) — difficult terrain conditions","Overtime at 12.9% of total hours — above 8% threshold","Environmental change order pending — may add 8 more days to schedule","Project currently 25 days behind schedule with 48% complete","Estimated cost at completion exceeds original estimate by ~$820K before pending CO"]}
+    ]}
 
 
 def build_equipment_dataset() -> dict[str, Any]:
@@ -760,32 +752,101 @@ def build_onboarding_dataset() -> dict[str, Any]:
     }
 
 
-def build_productivity_dataset() -> dict[str, Any]:
+def build_takeoff_dataset() -> dict[str, Any]:
     return {
-        "contract_input": {
-            "turf_acres": 2.5,
-            "edging_linear_feet": 1200,
-            "shrubs": 45,
-            "trees": 12,
-            "service_window": "April-October",
-            "visits": 28,
-            "distance_miles": 22,
-            "overhead_rate": 0.15,
-            "target_margin": 0.25,
+        "project": {
+            "name": "Creekside Business Park — Site Development",
+            "project_id": "SD-2026-042",
+            "client": "Creekside Development Group LLC",
+            "location": "4200 Creekside Parkway, Charlotte, NC 28277",
+            "date": "2026-02-17",
+            "estimator": "James Callahan, PE",
+            "bid_date": "2026-03-07",
+            "description": (
+                "Complete site development package for a 12-acre commercial business park "
+                "including mass grading, storm drainage, water and sewer utilities, concrete "
+                "curb and sidewalk, asphalt paving, and erosion control measures."
+            ),
         },
-        "productivity_rates": {
-            "mowing_hours_per_acre": 0.95,
-            "edging_hours_per_100ft": 0.22,
-            "shrub_hours_each": 0.08,
-            "tree_hours_each": 0.14,
-            "labor_rate_per_hour": 62.0,
-            "vehicle_cost_per_visit": 46.0,
-            "materials_per_visit": 18.0,
+        "takeoff": [
+            # ── Earthwork ──
+            {"item": "Strip & Stockpile Topsoil", "category": "Earthwork", "quantity": 4800, "unit": "CY",
+             "description": "Strip 6\" topsoil, stockpile on-site for reuse"},
+            {"item": "Mass Grading — Cut", "category": "Earthwork", "quantity": 18500, "unit": "CY",
+             "description": "Bulk excavation to subgrade elevation per grading plan"},
+            {"item": "Mass Grading — Fill & Compaction", "category": "Earthwork", "quantity": 14200, "unit": "CY",
+             "description": "Place and compact structural fill to 95% standard proctor"},
+            {"item": "Fine Grading", "category": "Earthwork", "quantity": 52000, "unit": "SY",
+             "description": "Fine grade subgrade to ±0.1' tolerance"},
+            # ── Utilities ──
+            {"item": "8\" DIP Water Main", "category": "Utilities", "quantity": 2400, "unit": "LF",
+             "description": "Install 8\" ductile iron water main with fittings"},
+            {"item": "Fire Hydrant Assembly", "category": "Utilities", "quantity": 6, "unit": "EA",
+             "description": "Fire hydrant with valve, tee, and thrust block"},
+            {"item": "8\" PVC Sanitary Sewer", "category": "Utilities", "quantity": 1800, "unit": "LF",
+             "description": "Install 8\" SDR-35 PVC sanitary sewer"},
+            {"item": "Sanitary Manhole (4' dia)", "category": "Utilities", "quantity": 8, "unit": "EA",
+             "description": "Precast concrete sanitary manholes to 8' depth average"},
+            {"item": "18\" RCP Storm Drain", "category": "Utilities", "quantity": 1600, "unit": "LF",
+             "description": "18\" reinforced concrete storm drain pipe"},
+            {"item": "Storm Drain Inlet", "category": "Utilities", "quantity": 12, "unit": "EA",
+             "description": "Precast drop inlet with grate, 4'×4'×6' avg depth"},
+            # ── Paving ──
+            {"item": "6\" Aggregate Base Course", "category": "Paving", "quantity": 28000, "unit": "SY",
+             "description": "6\" compacted aggregate base for roadways and parking"},
+            {"item": "3\" HMA Surface Course", "category": "Paving", "quantity": 28000, "unit": "SY",
+             "description": "3\" hot-mix asphalt surface course, S9.5B"},
+            # ── Concrete ──
+            {"item": "Concrete Curb & Gutter", "category": "Concrete", "quantity": 4200, "unit": "LF",
+             "description": "2'-6\" standard curb and gutter per NCDOT detail"},
+            {"item": "4\" Concrete Sidewalk", "category": "Concrete", "quantity": 8400, "unit": "SF",
+             "description": "4\" reinforced concrete sidewalk, broom finish"},
+            {"item": "6\" Concrete Driveway Apron", "category": "Concrete", "quantity": 3200, "unit": "SF",
+             "description": "6\" reinforced concrete at driveway entrances"},
+            # ── Erosion Control ──
+            {"item": "Silt Fence", "category": "Erosion Control", "quantity": 3600, "unit": "LF",
+             "description": "Install and maintain silt fence perimeter"},
+            {"item": "Construction Entrance", "category": "Erosion Control", "quantity": 2, "unit": "EA",
+             "description": "50' stabilized rock construction entrance"},
+            {"item": "Seeding & Mulching", "category": "Erosion Control", "quantity": 42000, "unit": "SY",
+             "description": "Hydroseed disturbed areas with permanent seed mix"},
+        ],
+        "cost_database": {
+            "Earthwork": {
+                "Strip & Stockpile Topsoil":       {"labor_rate": 1.85, "material_rate": 0.00, "equipment_rate": 2.40},
+                "Mass Grading — Cut":              {"labor_rate": 1.60, "material_rate": 0.00, "equipment_rate": 2.75},
+                "Mass Grading — Fill & Compaction": {"labor_rate": 2.10, "material_rate": 0.45, "equipment_rate": 3.20},
+                "Fine Grading":                    {"labor_rate": 0.55, "material_rate": 0.00, "equipment_rate": 0.70},
+            },
+            "Utilities": {
+                "8\" DIP Water Main":       {"labor_rate": 18.50, "material_rate": 32.00, "equipment_rate": 8.50},
+                "Fire Hydrant Assembly":    {"labor_rate": 480.00, "material_rate": 2850.00, "equipment_rate": 320.00},
+                "8\" PVC Sanitary Sewer":   {"labor_rate": 16.00, "material_rate": 14.50, "equipment_rate": 9.00},
+                "Sanitary Manhole (4' dia)": {"labor_rate": 650.00, "material_rate": 2200.00, "equipment_rate": 450.00},
+                "18\" RCP Storm Drain":     {"labor_rate": 14.00, "material_rate": 22.00, "equipment_rate": 7.50},
+                "Storm Drain Inlet":        {"labor_rate": 720.00, "material_rate": 1850.00, "equipment_rate": 380.00},
+            },
+            "Paving": {
+                "6\" Aggregate Base Course": {"labor_rate": 1.20, "material_rate": 3.80, "equipment_rate": 1.50},
+                "3\" HMA Surface Course":    {"labor_rate": 1.00, "material_rate": 5.20, "equipment_rate": 1.80},
+            },
+            "Concrete": {
+                "Concrete Curb & Gutter":     {"labor_rate": 6.50, "material_rate": 8.00, "equipment_rate": 2.20},
+                "4\" Concrete Sidewalk":      {"labor_rate": 2.80, "material_rate": 3.50, "equipment_rate": 0.60},
+                "6\" Concrete Driveway Apron": {"labor_rate": 3.40, "material_rate": 4.80, "equipment_rate": 0.80},
+            },
+            "Erosion Control": {
+                "Silt Fence":             {"labor_rate": 1.20, "material_rate": 0.85, "equipment_rate": 0.30},
+                "Construction Entrance":  {"labor_rate": 800.00, "material_rate": 2400.00, "equipment_rate": 600.00},
+                "Seeding & Mulching":     {"labor_rate": 0.15, "material_rate": 0.22, "equipment_rate": 0.08},
+            },
         },
-        "expected_output": {
-            "per_visit": 399,
-            "monthly": 694,
-            "annual": 9715,
+        "markup_schedule": {
+            "overhead": 0.12,
+            "profit": 0.10,
+            "contingency": 0.05,
+            "bond": 0.015,
+            "mobilization": 0.03,
         },
     }
 
@@ -846,9 +907,13 @@ def build_inquiry_dataset() -> dict[str, Any]:
 
 
 def build_financial_payload() -> dict[str, Any]:
-    periods = []
-    current = date(2025, 1, 1)
-    end = date(2026, 2, 1)
+    """Generate 24 months of realistic financial data for an ~$800M construction company."""
+    import math
+
+    # ── Period range: 2024-01 through 2026-01 (25 months for full YoY) ──
+    periods: list[str] = []
+    current = date(2024, 1, 1)
+    end = date(2026, 1, 1)
     while current <= end:
         periods.append(current.strftime("%Y-%m"))
         if current.month == 12:
@@ -856,117 +921,296 @@ def build_financial_payload() -> dict[str, Any]:
         else:
             current = date(current.year, current.month + 1, 1)
 
-    divisions = ["EX", "RC", "SD", "LM", "RW"]
-    base = {
-        "EX": {"4100": 430000, "5100": 128000, "5200": 39000, "5300": 52000, "5400": 47000, "5500": 34000, "5600": 9000, "6100": 21000, "6200": 12000, "6300": 9300},
-        "RC": {"4100": 510000, "5100": 174000, "5200": 45000, "5300": 67000, "5400": 62000, "5500": 42000, "5600": 11000, "6100": 26000, "6200": 14500, "6300": 10200},
-        "SD": {"4100": 460000, "5100": 149000, "5200": 41000, "5300": 59000, "5400": 54000, "5500": 36000, "5600": 9000, "6100": 23000, "6200": 13000, "6300": 9500},
-        "LM": {"4200": 190000, "5100": 49000, "5200": 13000, "5300": 19000, "5400": 43000, "5500": 11000, "5600": 7000, "6100": 13000, "6200": 8400, "6300": 6400},
-        "RW": {"4100": 290000, "5100": 88000, "5200": 22000, "5300": 31000, "5400": 32000, "5500": 19000, "5600": 6200, "6100": 16500, "6200": 9300, "6300": 7800},
-    }
-
-    rows = []
-    for period_idx, period in enumerate(periods):
-        trend = 1.0 + (period_idx * 0.004)
-        for division in divisions:
-            for gl_code, amount in base[division].items():
-                adjusted = round(amount * trend, 2)
-                rows.append({"period": period, "division_id": division, "gl_code": gl_code, "amount": adjusted})
-
-    # Force exact excavation Jan 2025 and Jan 2026 values required by the demo.
-    exact_ex = {
-        "2025-01": {
-            "4100": 420000,
-            "5100": 126000,
-            "5200": 37800,
-            "5300": 50400,
-            "5400": 46200,
-            "5500": 33600,
-            "5600": 8400,
-            "6100": 21000,
-            "6200": 11500,
-            "6300": 8900,
-            "6400": 6500,
-            "6500": 5800,
-            "6600": 5100,
-        },
-        "2026-01": {
-            "4100": 470400,
-            "5100": 148680,
-            "5200": 42336,
-            "5300": 56448,
-            "5400": 49896,
-            "5500": 40992,
-            "5600": 9408,
-            "6100": 22680,
-            "6200": 12420,
-            "6300": 9612,
-            "6400": 7020,
-            "6500": 6264,
-            "6600": 5508,
+    # ── Company info ──
+    company = {
+        "name": "RPMX Construction Group",
+        "fiscal_year_end": "December",
+        "annual_revenue_target": 850_000_000,
+        "employee_count": 1200,
+        "regions": ["Southwest", "Mountain West", "Pacific Northwest"],
+        "divisions": {
+            "EX": "Excavation & Earthwork",
+            "RC": "Road & Highway Construction",
+            "SD": "Site Development",
+            "LM": "Landscape & Maintenance",
+            "RW": "Retaining Walls & Structures",
         },
     }
 
-    rows = [r for r in rows if not (r["division_id"] == "EX" and r["period"] in exact_ex)]
-    for period, values in exact_ex.items():
-        rows.extend(
-            {"period": period, "division_id": "EX", "gl_code": gl_code, "amount": float(amount)}
-            for gl_code, amount in values.items()
-        )
+    # ── GL chart of accounts ──
+    gl_chart = {
+        "4100": {"desc": "Contract Revenue", "category": "revenue"},
+        "4200": {"desc": "Service Revenue", "category": "revenue"},
+        "4300": {"desc": "Change Order Revenue", "category": "revenue"},
+        "5100": {"desc": "Materials", "category": "cogs"},
+        "5200": {"desc": "Equipment Rental", "category": "cogs"},
+        "5300": {"desc": "Subcontractor Costs", "category": "cogs"},
+        "5400": {"desc": "Direct Labor", "category": "cogs"},
+        "5500": {"desc": "Fuel & Lubricants", "category": "cogs"},
+        "5600": {"desc": "Hauling & Freight", "category": "cogs"},
+        "5700": {"desc": "Permits & Fees", "category": "cogs"},
+        "5800": {"desc": "Equipment Maintenance", "category": "cogs"},
+        "6100": {"desc": "Office & Admin", "category": "opex"},
+        "6200": {"desc": "Insurance", "category": "opex"},
+        "6300": {"desc": "Vehicle & Fleet", "category": "opex"},
+        "6400": {"desc": "IT & Software", "category": "opex"},
+        "6500": {"desc": "Professional Fees", "category": "opex"},
+        "6600": {"desc": "Depreciation", "category": "opex"},
+    }
 
-    summary = {
-        "q4_2025_company": {
-            "revenue": 4610000,
-            "cogs": 3260250,
-            "gross_margin_percent": 29.3,
-            "operating_expenses": 681850,
-            "net_income": 667900,
-            "net_margin_percent": 14.5,
-            "divisions": {
-                "Excavation": {"net_margin_percent": 14.2},
-                "Road Construction": {"net_margin_percent": 12.5},
-                "Site Development": {"net_margin_percent": 16.0},
-                "Landscaping Maintenance": {"net_margin_percent": 13.0},
-                "Retaining Walls": {"net_margin_percent": 16.0},
+    # ── Base monthly revenue per division (annual targets) ──
+    # EX ~$198M, RC ~$216M, SD ~$168M, LM ~$54M, RW ~$126M = ~$762M base (2025)
+    div_monthly_base = {
+        "EX": 16_500_000,
+        "RC": 18_000_000,
+        "SD": 14_000_000,
+        "LM":  4_500_000,
+        "RW": 10_500_000,
+    }
+
+    # Seasonal multipliers (construction peaks Q2/Q3, dips Q1/Q4)
+    seasonal = {
+        1: 0.78, 2: 0.82, 3: 0.92, 4: 1.08, 5: 1.15, 6: 1.18,
+        7: 1.20, 8: 1.16, 9: 1.10, 10: 0.96, 11: 0.84, 12: 0.76,
+    }
+
+    # Cost structure as % of revenue per division
+    cost_pcts = {
+        "EX": {"5100": 0.22, "5200": 0.07, "5300": 0.10, "5400": 0.14, "5500": 0.065, "5600": 0.025, "5700": 0.008, "5800": 0.018},
+        "RC": {"5100": 0.24, "5200": 0.06, "5300": 0.12, "5400": 0.13, "5500": 0.055, "5600": 0.022, "5700": 0.010, "5800": 0.015},
+        "SD": {"5100": 0.20, "5200": 0.08, "5300": 0.11, "5400": 0.12, "5500": 0.050, "5600": 0.020, "5700": 0.009, "5800": 0.016},
+        "LM": {"5100": 0.15, "5200": 0.04, "5300": 0.08, "5400": 0.25, "5500": 0.035, "5600": 0.018, "5700": 0.005, "5800": 0.020},
+        "RW": {"5100": 0.26, "5200": 0.05, "5300": 0.09, "5400": 0.11, "5500": 0.045, "5600": 0.020, "5700": 0.007, "5800": 0.014},
+    }
+
+    opex_pcts = {
+        "EX": {"6100": 0.022, "6200": 0.015, "6300": 0.012, "6400": 0.006, "6500": 0.005, "6600": 0.008},
+        "RC": {"6100": 0.024, "6200": 0.016, "6300": 0.013, "6400": 0.007, "6500": 0.006, "6600": 0.009},
+        "SD": {"6100": 0.023, "6200": 0.015, "6300": 0.011, "6400": 0.006, "6500": 0.005, "6600": 0.008},
+        "LM": {"6100": 0.030, "6200": 0.018, "6300": 0.014, "6400": 0.008, "6500": 0.007, "6600": 0.010},
+        "RW": {"6100": 0.021, "6200": 0.014, "6300": 0.010, "6400": 0.005, "6500": 0.005, "6600": 0.007},
+    }
+
+    # ── YoY growth + margin pressure story ──
+    # 2024: baseline. 2025 H1: healthy 10% growth. 2025 H2: fuel +15%, labor +8% pressure.
+    def yoy_growth(period_str: str) -> float:
+        y, m = int(period_str[:4]), int(period_str[5:7])
+        if y == 2024:
+            return 1.0
+        months_from_2024 = (y - 2024) * 12 + m - 1
+        return 1.0 + (months_from_2024 * 0.008)  # ~9.6% annual growth at month 12
+
+    def cost_inflation(period_str: str, gl_code: str) -> float:
+        """Extra cost inflation for fuel and labor in 2025 H2+."""
+        y, m = int(period_str[:4]), int(period_str[5:7])
+        if y < 2025 or (y == 2025 and m <= 6):
+            return 1.0
+        months_past = m - 6 if y == 2025 else m + 6
+        if gl_code == "5500":  # fuel
+            return 1.0 + (months_past * 0.022)  # ~15% over 7 months
+        if gl_code == "5400":  # labor
+            return 1.0 + (months_past * 0.012)  # ~8% over 7 months
+        if gl_code == "5100":  # materials
+            return 1.0 + (months_past * 0.006)  # ~4% over 7 months
+        return 1.0
+
+    rng = random.Random(42)
+
+    # ── Generate monthly_gl and monthly_budget ──
+    monthly_gl: list[dict] = []
+    monthly_budget: list[dict] = []
+
+    for period in periods:
+        month = int(period[5:7])
+        s_mult = seasonal[month]
+        g_mult = yoy_growth(period)
+
+        for div_id, base_rev in div_monthly_base.items():
+            # Revenue: seasonal * growth * small noise
+            noise = 1.0 + rng.uniform(-0.03, 0.03)
+            rev = round(base_rev * s_mult * g_mult * noise, 2)
+
+            # Split revenue: 85% contract, 10% service, 5% change orders
+            rev_4100 = round(rev * 0.85, 2)
+            rev_4200 = round(rev * 0.10, 2)
+            rev_4300 = round(rev * 0.05, 2)
+
+            for gl, amt in [("4100", rev_4100), ("4200", rev_4200), ("4300", rev_4300)]:
+                monthly_gl.append({"period": period, "division_id": div_id, "gl_code": gl, "amount": amt})
+                # Budget = planned without noise, no cost inflation
+                budget_base = base_rev * s_mult * yoy_growth(period)
+                if gl == "4100":
+                    budget_amt = round(budget_base * 0.85, 2)
+                elif gl == "4200":
+                    budget_amt = round(budget_base * 0.10, 2)
+                else:
+                    budget_amt = round(budget_base * 0.05, 2)
+                monthly_budget.append({"period": period, "division_id": div_id, "gl_code": gl, "budget_amount": budget_amt})
+
+            # COGS line items
+            for gl_code, pct in cost_pcts[div_id].items():
+                c_noise = 1.0 + rng.uniform(-0.02, 0.02)
+                c_infl = cost_inflation(period, gl_code)
+                amt = round(rev * pct * c_noise * c_infl, 2)
+                monthly_gl.append({"period": period, "division_id": div_id, "gl_code": gl_code, "amount": amt})
+                budget_amt = round(base_rev * s_mult * yoy_growth(period) * pct, 2)
+                monthly_budget.append({"period": period, "division_id": div_id, "gl_code": gl_code, "budget_amount": budget_amt})
+
+            # OpEx line items
+            for gl_code, pct in opex_pcts[div_id].items():
+                o_noise = 1.0 + rng.uniform(-0.015, 0.015)
+                amt = round(rev * pct * o_noise, 2)
+                monthly_gl.append({"period": period, "division_id": div_id, "gl_code": gl_code, "amount": amt})
+                budget_amt = round(base_rev * s_mult * yoy_growth(period) * pct, 2)
+                monthly_budget.append({"period": period, "division_id": div_id, "gl_code": gl_code, "budget_amount": budget_amt})
+
+    # ── Jobs (active projects) ──
+    job_statuses = ["active", "active", "active", "active", "completed", "on_hold"]
+    job_templates = [
+        ("J-1001", "Highway 9 Interchange Grading", "EX", 28_500_000, 0.62, "active"),
+        ("J-1002", "Riverfront Commercial Excavation", "EX", 14_200_000, 0.85, "active"),
+        ("J-1003", "Mountain View Residential Mass Grade", "EX", 8_700_000, 0.91, "active"),
+        ("J-1004", "Airport Runway Extension Earthwork", "EX", 41_000_000, 0.34, "active"),
+        ("J-1005", "Downtown Utility Relocation", "EX", 6_300_000, 1.00, "completed"),
+        ("J-1006", "Lakeside Dam Remediation", "EX", 19_800_000, 0.48, "active"),
+        ("J-2001", "I-25 Corridor Widening Phase III", "RC", 52_000_000, 0.55, "active"),
+        ("J-2002", "County Road 44 Reconstruction", "RC", 18_600_000, 0.72, "active"),
+        ("J-2003", "Industrial Park Access Road", "RC", 9_400_000, 0.88, "active"),
+        ("J-2004", "State Highway 191 Resurfacing", "RC", 31_200_000, 0.41, "active"),
+        ("J-2005", "Bridge Deck Overlay — CR 12", "RC", 7_800_000, 1.00, "completed"),
+        ("J-2006", "Transit Authority Bus Rapid Lane", "RC", 22_500_000, 0.28, "active"),
+        ("J-3001", "Copper Ridge Mixed-Use Site Development", "SD", 16_400_000, 0.67, "active"),
+        ("J-3002", "Westfield Hospital Campus Grading", "SD", 23_100_000, 0.52, "active"),
+        ("J-3003", "Tech Park Phase II Utilities", "SD", 11_800_000, 0.79, "active"),
+        ("J-3004", "Retail Center Parking & Storm Drain", "SD", 8_200_000, 0.93, "active"),
+        ("J-3005", "Solar Farm Site Prep", "SD", 14_600_000, 0.38, "active"),
+        ("J-3006", "School District Athletic Complex", "SD", 6_900_000, 1.00, "completed"),
+        ("J-4001", "City Parks Annual Maintenance Contract", "LM", 4_800_000, 0.60, "active"),
+        ("J-4002", "HOA Landscape Maintenance — Mesa Verde", "LM", 2_100_000, 0.75, "active"),
+        ("J-4003", "Commercial Campus Grounds — Quarterly", "LM", 3_600_000, 0.50, "active"),
+        ("J-4004", "Highway Median Maintenance — CDOT", "LM", 5_200_000, 0.42, "active"),
+        ("J-5001", "Hillside Stabilization — Lot 14-22", "RW", 12_300_000, 0.71, "active"),
+        ("J-5002", "Highway 82 Retaining Wall Replacement", "RW", 18_900_000, 0.56, "active"),
+        ("J-5003", "Residential Terrace Walls — Elk Ridge", "RW", 5_400_000, 0.88, "active"),
+        ("J-5004", "Bridge Abutment Reinforcement", "RW", 9_700_000, 0.44, "active"),
+        ("J-5005", "Flood Channel Retaining Walls", "RW", 15_600_000, 0.33, "active"),
+        ("J-5006", "Commercial Loading Dock Walls", "RW", 4_200_000, 1.00, "completed"),
+        ("J-1007", "Pipeline Corridor Clearing", "EX", 11_400_000, 0.15, "on_hold"),
+        ("J-2007", "Interchange Ramp Realignment", "RC", 8_900_000, 0.22, "on_hold"),
+        ("J-3007", "Warehouse District Infrastructure", "SD", 19_200_000, 0.08, "on_hold"),
+    ]
+
+    jobs = []
+    for jid, name, div, contract_val, pct_complete, status in job_templates:
+        costs_to_date = round(contract_val * pct_complete * rng.uniform(0.88, 0.98), 2)
+        labor_pct = cost_pcts[div].get("5400", 0.13)
+        mat_pct = cost_pcts[div].get("5100", 0.22)
+        sub_pct = cost_pcts[div].get("5300", 0.10)
+        equip_pct = cost_pcts[div].get("5200", 0.06)
+        other_pct = 1.0 - labor_pct - mat_pct - sub_pct - equip_pct
+        jobs.append({
+            "job_id": jid,
+            "name": name,
+            "division_id": div,
+            "contract_value": contract_val,
+            "status": status,
+            "percent_complete": pct_complete,
+            "costs": {
+                "labor": round(costs_to_date * labor_pct / (labor_pct + mat_pct + sub_pct + equip_pct + other_pct), 2),
+                "materials": round(costs_to_date * mat_pct / (labor_pct + mat_pct + sub_pct + equip_pct + other_pct), 2),
+                "subcontractor": round(costs_to_date * sub_pct / (labor_pct + mat_pct + sub_pct + equip_pct + other_pct), 2),
+                "equipment": round(costs_to_date * equip_pct / (labor_pct + mat_pct + sub_pct + equip_pct + other_pct), 2),
+                "other": round(costs_to_date * other_pct / (labor_pct + mat_pct + sub_pct + equip_pct + other_pct), 2),
+                "total": costs_to_date,
             },
-        }
+            "estimated_completion": "2025-12" if status == "active" and pct_complete > 0.7 else "2026-06" if status == "active" else None,
+            "profit_margin_pct": round((1.0 - costs_to_date / (contract_val * max(pct_complete, 0.01))) * 100, 1) if pct_complete > 0 else None,
+        })
+
+    # ── AR Aging Snapshot ──
+    ar_customers = [
+        ("Greenfield Development Corp", "EX", 1_240_000, 380_000, 0, 0, 0),
+        ("Summit Property Group", "RC", 890_000, 420_000, 210_000, 0, 0),
+        ("Parkview Associates LLC", "SD", 0, 0, 340_000, 560_000, 280_000),
+        ("Riverside Municipal District", "RC", 2_100_000, 0, 0, 0, 0),
+        ("Oak Valley Homes Inc", "EX", 640_000, 0, 0, 0, 0),
+        ("Metro Transit Authority", "RC", 3_200_000, 1_800_000, 0, 0, 0),
+        ("Cascade Energy Partners", "SD", 0, 920_000, 460_000, 0, 0),
+        ("Alpine Ski Resort Corp", "RW", 780_000, 310_000, 0, 0, 0),
+        ("Desert Sun Solar LLC", "SD", 1_100_000, 0, 0, 0, 0),
+        ("Horizon Healthcare System", "SD", 0, 0, 0, 890_000, 420_000),
+        ("CDOT Region 4", "LM", 2_400_000, 600_000, 0, 0, 0),
+        ("Pinnacle Developers", "EX", 560_000, 280_000, 140_000, 0, 0),
+        ("Westridge HOA", "LM", 180_000, 90_000, 45_000, 0, 0),
+        ("Blue Mountain Mining Co", "EX", 0, 0, 0, 0, 1_200_000),
+        ("Lakefront Properties Inc", "RW", 440_000, 220_000, 0, 0, 0),
+    ]
+
+    ar_aging_snapshot = []
+    for cust, div, curr, d30, d60, d90, over90 in ar_customers:
+        total = curr + d30 + d60 + d90 + over90
+        ar_aging_snapshot.append({
+            "customer": cust,
+            "division_id": div,
+            "current": curr,
+            "days_1_30": d30,
+            "days_31_60": d60,
+            "days_61_90": d90,
+            "days_over_90": over90,
+            "total_outstanding": total,
+        })
+
+    # ── Backlog by Division ──
+    backlog = [
+        {"division_id": "EX", "contracted_backlog": 85_000_000, "expected_12mo_burn": 62_000_000, "new_awards_ytd": 48_000_000, "proposal_pipeline": 120_000_000},
+        {"division_id": "RC", "contracted_backlog": 112_000_000, "expected_12mo_burn": 78_000_000, "new_awards_ytd": 65_000_000, "proposal_pipeline": 180_000_000},
+        {"division_id": "SD", "contracted_backlog": 72_000_000, "expected_12mo_burn": 55_000_000, "new_awards_ytd": 41_000_000, "proposal_pipeline": 95_000_000},
+        {"division_id": "LM", "contracted_backlog": 18_000_000, "expected_12mo_burn": 15_000_000, "new_awards_ytd": 12_000_000, "proposal_pipeline": 28_000_000},
+        {"division_id": "RW", "contracted_backlog": 48_000_000, "expected_12mo_burn": 36_000_000, "new_awards_ytd": 29_000_000, "proposal_pipeline": 72_000_000},
+    ]
+
+    # ── Cash Flow ──
+    cash_flow: list[dict] = []
+    cash_balance = 24_000_000.0
+    for period in periods:
+        month = int(period[5:7])
+        g = yoy_growth(period)
+        s = seasonal[month]
+        total_rev = sum(div_monthly_base[d] for d in div_monthly_base) * s * g
+        cash_in = round(total_rev * rng.uniform(0.88, 0.95), 2)  # collections lag
+        cash_out = round(total_rev * 0.82 * rng.uniform(0.96, 1.04), 2)  # operating disbursements
+        capex = round(rng.uniform(800_000, 2_400_000), 2)
+        net = round(cash_in - cash_out - capex, 2)
+        cash_balance = round(cash_balance + net, 2)
+        cash_flow.append({
+            "period": period,
+            "operating_cash_in": cash_in,
+            "operating_cash_out": cash_out,
+            "capital_expenditures": capex,
+            "net_cash_flow": net,
+            "ending_cash_balance": cash_balance,
+        })
+
+    # ── KPI Targets ──
+    kpi_targets = {
+        "gross_margin_target": 18.5,
+        "net_margin_target": 5.2,
+        "dso_target": 52,
+        "overhead_ratio_target": 8.5,
+        "backlog_to_revenue_target": 1.4,
+        "revenue_per_employee_target": 680_000,
     }
 
     return {
-        "monthly_records": rows,
-        "excavation_jan_comparison": {
-            "2025": {
-                "revenue": 420000,
-                "materials": 126000,
-                "equipment_rental": 37800,
-                "subcontractor": 50400,
-                "direct_labor": 46200,
-                "fuel": 33600,
-                "hauling": 8400,
-                "total_cogs": 302400,
-                "gross_profit": 117600,
-                "gross_margin_percent": 28.0,
-                "operating_expenses": 58800,
-                "net_income": 58800,
-                "net_margin_percent": 14.0,
-            },
-            "2026": {
-                "revenue": 470400,
-                "materials": 148680,
-                "equipment_rental": 42336,
-                "subcontractor": 56448,
-                "direct_labor": 49896,
-                "fuel": 40992,
-                "hauling": 9408,
-                "total_cogs": 347760,
-                "gross_profit": 122640,
-                "gross_margin_percent": 26.1,
-                "operating_expenses": 63504,
-                "net_income": 59136,
-                "net_margin_percent": 12.6,
-            },
-        },
-        "summary": summary,
+        "company": company,
+        "gl_chart": gl_chart,
+        "monthly_gl": monthly_gl,
+        "monthly_budget": monthly_budget,
+        "jobs": jobs,
+        "ar_aging_snapshot": ar_aging_snapshot,
+        "backlog": backlog,
+        "cash_flow": cash_flow,
+        "kpi_targets": kpi_targets,
     }
 
 
@@ -1107,7 +1351,7 @@ def seed_database(conn: sqlite3.Connection) -> None:
         INSERT INTO financial_monthly (period, division_id, gl_code, amount)
         VALUES (:period, :division_id, :gl_code, :amount)
         """,
-        financial_payload["monthly_records"],
+        financial_payload["monthly_gl"],
     )
 
 
@@ -1142,7 +1386,7 @@ def write_json_files(conn: sqlite3.Connection) -> None:
         "equipment_maintenance.json": build_equipment_dataset(),
         "hr_certifications.json": build_hr_dataset(),
         "onboarding_new_hire.json": build_onboarding_dataset(),
-        "productivity_rates.json": build_productivity_dataset(),
+        "takeoff_data.json": build_takeoff_dataset(),
         "inquiry_emails.json": build_inquiry_dataset(),
         "financial_reporting.json": financial_payload,
     }

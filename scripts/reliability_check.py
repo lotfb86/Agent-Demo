@@ -112,10 +112,11 @@ def check_ar_followup(output: dict[str, Any]) -> None:
 
 
 def check_financial_reporting(output: dict[str, Any]) -> None:
-    conversation = output.get("conversation")
-    narrative = output.get("narrative")
-    assert_true(isinstance(conversation, list) and len(conversation) >= 3, "financial_reporting: conversation must have >=3 entries")
-    assert_true(isinstance(narrative, str) and narrative.strip(), "financial_reporting: narrative required")
+    sections = output.get("sections")
+    assert_true(isinstance(sections, list) and len(sections) >= 1, "financial_reporting: sections must be non-empty array")
+    has_table = any(s.get("type") == "table" for s in sections if isinstance(s, dict))
+    has_narrative = any(s.get("type") == "narrative" for s in sections if isinstance(s, dict))
+    assert_true(has_table or has_narrative, "financial_reporting: expected at least one table or narrative section")
 
 
 def check_vendor_compliance(output: dict[str, Any]) -> None:
@@ -155,9 +156,18 @@ def check_onboarding(output: dict[str, Any]) -> None:
 
 
 def check_cost_estimator(output: dict[str, Any]) -> None:
-    for field in ["per_visit", "monthly", "annual"]:
-        value = output.get(field)
-        assert_true(isinstance(value, (int, float)) and value > 0, f"cost_estimator: {field} must be > 0")
+    line_items = output.get("line_items")
+    assert_true(isinstance(line_items, list) and len(line_items) >= 15, "cost_estimator: expected ≥15 line items")
+    grand_total = output.get("grand_total")
+    assert_true(isinstance(grand_total, (int, float)) and grand_total > 400000, "cost_estimator: grand_total should be >$400K")
+    cat_subs = output.get("category_subtotals")
+    assert_true(isinstance(cat_subs, dict) and len(cat_subs) >= 4, "cost_estimator: expected ≥4 category subtotals")
+    markups = output.get("markups")
+    assert_true(isinstance(markups, dict) and "overhead" in markups, "cost_estimator: markups dict required")
+    assumptions = output.get("assumptions")
+    assert_true(isinstance(assumptions, list) and len(assumptions) >= 4, "cost_estimator: expected ≥4 assumptions")
+    exclusions = output.get("exclusions")
+    assert_true(isinstance(exclusions, list) and len(exclusions) >= 3, "cost_estimator: expected ≥3 exclusions")
 
 
 def check_inquiry_router(output: dict[str, Any]) -> None:
