@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { apiGet, apiPost, apiPut, wsUrl } from '../api'
 import ArtifactRenderer from './ArtifactRenderer'
+import BlueprintTab from './blueprint/BlueprintTab'
 
-const TABS = ['work', 'review', 'comms', 'chat', 'training', 'profile']
-const FINANCIAL_TABS = ['work', 'history', 'comms', 'chat', 'training', 'profile']
+const TABS = ['work', 'blueprint', 'review', 'comms', 'chat', 'training', 'profile']
+const FINANCIAL_TABS = ['work', 'blueprint', 'history', 'comms', 'chat', 'training', 'profile']
 
 const TOOL_LABELS = {
   // PO Match
@@ -1056,6 +1057,10 @@ export default function AgentWorkspace() {
                 running={running}
                 reports={reports}
               />
+            )}
+
+            {tab === 'blueprint' && (
+              <BlueprintTab agentId={agentId} />
             )}
 
             {tab === 'review' && (
