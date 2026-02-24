@@ -825,6 +825,12 @@ export default function AgentWorkspace() {
       const result = await apiPost(`/api/agents/${agentId}/chat`, { message: pendingSuggestion, apply: true })
       if (result.skills) setSkills(result.skills)
       setChatLog((prev) => [...prev, { role: 'agent', text: 'Training rule applied to skills.md.' }])
+      setPendingSuggestion('')
+      // Scroll skills textarea to bottom so user sees the new training update
+      setTimeout(() => {
+        const ta = document.querySelector('textarea[class*="font-mono"]')
+        if (ta) ta.scrollTop = ta.scrollHeight
+      }, 100)
     } catch (err) { setError(err.message) }
   }
 
