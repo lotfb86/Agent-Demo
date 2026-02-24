@@ -54,7 +54,7 @@ export default function BlueprintTab({ agentId }) {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 pb-3 border-b border-rpmx-slate/30">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3 pb-3 border-b border-rpmx-wash">
         <LegendItem type="source" label="Data Source" />
         <LegendItem type="process" label="Process Step" />
         <LegendItem type="ai_decision" label="AI Decision" />
@@ -71,7 +71,7 @@ export default function BlueprintTab({ agentId }) {
       </div>
 
       {/* Diagram */}
-      <div className="flex-1 min-h-0 overflow-auto rounded-lg border border-rpmx-slate/25 bg-white">
+      <div className="flex-1 min-h-0 overflow-auto rounded-lg border border-rpmx-wash bg-white">
         <BlueprintRenderer
           config={config}
           selectedNodeId={selectedNodeId}
@@ -84,7 +84,7 @@ export default function BlueprintTab({ agentId }) {
 
       {/* Hint */}
       {!selectedNode && (
-        <p className="text-[11px] text-rpmx-steel/60 text-center mt-2 italic">
+        <p className="text-[11px] text-rpmx-muted text-center mt-2 italic">
           Click any step in the diagram to see details
         </p>
       )}

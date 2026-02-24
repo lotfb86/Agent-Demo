@@ -2,11 +2,11 @@ import { NODE_STYLES } from './blueprintConstants'
 import { BlueprintIcon } from './blueprintIcons'
 
 const TYPE_BADGES = {
-  source:      { label: 'Data Source',  bg: 'bg-gray-100',       text: 'text-gray-600' },
-  process:     { label: 'Process Step', bg: 'bg-gray-100',       text: 'text-gray-700' },
-  ai_decision: { label: 'AI Decision',  bg: 'bg-orange-50',      text: 'text-orange-600' },
-  human:       { label: 'Human Review', bg: 'bg-amber-50',       text: 'text-amber-600' },
-  output:      { label: 'Output',       bg: 'bg-green-50',       text: 'text-green-600' },
+  source:      { label: 'Data Source',  cls: 'badge badge-slate' },
+  process:     { label: 'Process Step', cls: 'badge badge-slate' },
+  ai_decision: { label: 'AI Decision',  cls: 'badge badge-blue'  },
+  human:       { label: 'Human Review', cls: 'badge badge-amber' },
+  output:      { label: 'Output',       cls: 'badge badge-green' },
 }
 
 export default function BlueprintNodeDetail({ node }) {
@@ -16,7 +16,7 @@ export default function BlueprintNodeDetail({ node }) {
   const style = NODE_STYLES[node.type] || NODE_STYLES.process
 
   return (
-    <div className="animate-fade-in border border-rpmx-slate/40 rounded-xl bg-white p-4 mt-3">
+    <div className="card p-4 mt-3 animate-fade-in">
       <div className="flex items-start gap-3">
         {/* Icon */}
         <div
@@ -30,7 +30,7 @@ export default function BlueprintNodeDetail({ node }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h4 className="text-sm font-semibold text-rpmx-ink">{node.label}</h4>
-            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${badge.bg} ${badge.text}`}>
+            <span className={badge.cls}>
               {badge.label}
             </span>
           </div>
