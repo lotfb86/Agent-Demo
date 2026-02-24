@@ -602,9 +602,9 @@ function ScheduleMapArtifact({ output }) {
             <span className="font-semibold text-emerald-800">Route Optimization</span>
           </div>
           <div className="mt-1.5 flex items-center gap-3 text-[11px]">
-            <span className="text-rpmx-steel">Before: <b className="text-rpmx-ink">{output?.unoptimized_drive_minutes} min</b></span>
+            <span className="text-rpmx-steel">Before: <b className="text-rpmx-ink">{output?.unoptimized_drive_minutes ?? '—'} min</b></span>
             <span className="text-rpmx-steel">→</span>
-            <span className="text-rpmx-steel">After: <b className="text-emerald-700">{output?.optimized_drive_minutes} min</b></span>
+            <span className="text-rpmx-steel">After: <b className="text-emerald-700">{output?.optimized_drive_minutes ?? '—'} min</b></span>
             {saved > 0 && (
               <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-700">
                 {saved} min saved ({output?.improvement_percent}%)
@@ -749,7 +749,7 @@ function ProgressKpiBar({ kpi }) {
     { label: 'Contract Value', value: fmtCurrency(kpi.total_contract_value), sub: `${kpi.total_projects} projects` },
     { label: 'Cost to Date', value: fmtCurrency(kpi.total_cost_to_date), sub: `of ${fmtCurrency(kpi.total_estimated_cost)} est.` },
     { label: 'Est. at Completion', value: fmtCurrency(kpi.total_eac), sub: `Margin ${fmtPercent(kpi.portfolio_margin_pct)}` },
-    { label: 'Completion', value: `${kpi.portfolio_pct_complete}%`, sub: `${kpi.on_track_count} on track · ${kpi.at_risk_count + kpi.behind_count} flagged`, flagged: (kpi.at_risk_count + kpi.behind_count) > 0 },
+    { label: 'Completion', value: fmtPercent(kpi.portfolio_pct_complete), sub: `${kpi.on_track_count ?? 0} on track · ${(kpi.at_risk_count ?? 0) + (kpi.behind_count ?? 0)} flagged`, flagged: ((kpi.at_risk_count ?? 0) + (kpi.behind_count ?? 0)) > 0 },
   ]
   return (
     <div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-4">
