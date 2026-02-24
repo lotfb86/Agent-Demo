@@ -16,3 +16,6 @@
 - Subject line should include company name and amount owed.
 - Body should reference: customer name, outstanding amount, days overdue, and action requested.
 - Sign off as "RPMX Construction — Accounts Receivable"
+
+## Training Update
+- When a client is 105 days late (having been warned at 95 days), email Todd at collections.com with a complete report including all client information, contracts, and necessary documentation to initiate the collections process.
