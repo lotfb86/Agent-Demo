@@ -127,7 +127,7 @@ function Edge({ edge, nodesMap }) {
             dominantBaseline="central"
             fill="#5d6b79"
             fontSize="10"
-            fontFamily='"Space Grotesk", system-ui, sans-serif'
+            fontFamily='"Inter", system-ui, sans-serif'
           >
             {edge.label}
           </text>
@@ -198,7 +198,7 @@ function NodeBox({ node, isSelected, onClick }) {
         fill="#1f2a36"
         fontSize="12"
         fontWeight="600"
-        fontFamily='"Space Grotesk", system-ui, sans-serif'
+        fontFamily='"Inter", system-ui, sans-serif'
       >
         {node.label}
       </text>
@@ -219,7 +219,7 @@ function NodeBox({ node, isSelected, onClick }) {
             fill="white"
             fontSize="8"
             fontWeight="700"
-            fontFamily='"Space Grotesk", system-ui, sans-serif'
+            fontFamily='"Inter", system-ui, sans-serif'
           >
             AI
           </text>
@@ -242,7 +242,7 @@ function NodeBox({ node, isSelected, onClick }) {
             fill="white"
             fontSize="8"
             fontWeight="700"
-            fontFamily='"Space Grotesk", system-ui, sans-serif'
+            fontFamily='"Inter", system-ui, sans-serif'
           >
             HUMAN
           </text>
@@ -302,7 +302,7 @@ function LoopIndicator({ loop, nodesMap }) {
         fill="#5d6b79"
         fontSize="10"
         fontStyle="italic"
-        fontFamily='"Space Grotesk", system-ui, sans-serif'
+        fontFamily='"Inter", system-ui, sans-serif'
       >
         {loop.label}
       </text>

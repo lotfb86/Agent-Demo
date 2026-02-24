@@ -274,20 +274,23 @@ async def training_chat(agent_id: str, body: ChatRequest) -> dict[str, Any]:
         )
 
     message = body.message.strip()
-    suggestion = await draft_training_instruction(agent_id, message)
     updated_generic = None
     if body.apply:
-        updated_generic = append_training_instruction(agent_id, suggestion)
+        # When applying, the message is the already-approved instruction — skip LLM.
+        updated_generic = append_training_instruction(agent_id, message)
+        return {
+            "response": "Training update applied to skills.md.",
+            "suggested_instruction": message,
+            "applied": True,
+            "skills": updated_generic,
+        }
 
+    suggestion = await draft_training_instruction(agent_id, message)
     return {
-        "response": (
-            "I interpreted your instruction and can apply it to the skills file."
-            if not body.apply
-            else "Training update applied to skills.md."
-        ),
+        "response": "I interpreted your instruction and can apply it to the skills file.",
         "suggested_instruction": suggestion,
-        "applied": body.apply,
-        "skills": updated_generic,
+        "applied": False,
+        "skills": None,
     }
 
 
@@ -454,3 +457,100 @@ async def get_activity(agent_id: str, session_id: Optional[str] = None) -> list[
         return [dict(row) for row in rows]
     finally:
         await conn.close()
+
+
+@router.get("/{agent_id}/decisions")
+async def get_decisions(agent_id: str, session_id: Optional[str] = None) -> list[dict[str, Any]]:
+    """Retrieve decision history for an agent's last run or specific session."""
+    if agent_id not in BY_ID:
+        raise HTTPException(status_code=404, detail="Unknown agent")
+
+    # Get the session to retrieve from
+    target_session = None
+    if session_id:
+        target_session = await session_manager.get(session_id)
+    else:
+        target_session = await session_manager.latest_for_agent(agent_id)
+
+    if not target_session:
+        return []
+
+    # Extract decisions from session events
+    decisions = []
+    for event in target_session.events:
+        decision = None
+
+        # Tool results contain decision information
+        if event.get("type") == "tool_result":
+            payload = event.get("payload", {})
+            tool = payload.get("tool", "")
+            result = payload.get("result", {})
+
+            # PO Match: match or exception decision
+            if tool == "complete_invoice":
+                decision = {
+                    "timestamp": event.get("timestamp"),
+                    "agent_id": agent_id,
+                    "decision_type": "po_match",
+                    "status": result.get("status", "unknown"),
+                    "confidence": result.get("confidence", 0),
+                    "reasoning": result.get("reasoning", ""),
+                    "invoice_number": result.get("invoice_number"),
+                    "vendor": result.get("vendor"),
+                    "amount": result.get("amount"),
+                    "matched_po": result.get("matched_po"),
+                    "variance": result.get("variance"),
+                }
+            # AR Follow-Up: account action decision
+            elif tool == "complete_account":
+                decision = {
+                    "timestamp": event.get("timestamp"),
+                    "agent_id": agent_id,
+                    "decision_type": "ar_action",
+                    "action": result.get("action", "unknown"),
+                    "reasoning": result.get("reason", ""),
+                    "customer_name": result.get("customer_name"),
+                    "days_overdue": result.get("days_out"),
+                    "amount": result.get("amount"),
+                    "email_sent": result.get("email_sent", False),
+                    "escalation_level": result.get("escalation_level"),
+                }
+            # PO Match: exception flag decision
+            elif tool == "flag_exception":
+                decision = {
+                    "timestamp": event.get("timestamp"),
+                    "agent_id": agent_id,
+                    "decision_type": "exception_flag",
+                    "reason_code": result.get("reason_code"),
+                    "reason_detail": result.get("reason_detail", ""),
+                    "confidence": 0.95,  # Exception flagging is high confidence
+                    "item_ref": result.get("item_ref"),
+                }
+            # Financial Reporting: report decision
+            elif tool == "generate_report":
+                decision = {
+                    "timestamp": event.get("timestamp"),
+                    "agent_id": agent_id,
+                    "decision_type": "report_generation",
+                    "report_type": result.get("report_type"),
+                    "dimensions": result.get("dimensions", []),
+                    "reasoning": result.get("reasoning", ""),
+                    "confidence": result.get("confidence", 0.9),
+                }
+            # Vendor Compliance: compliance decision
+            elif tool == "check_vendor":
+                decision = {
+                    "timestamp": event.get("timestamp"),
+                    "agent_id": agent_id,
+                    "decision_type": "vendor_compliance",
+                    "vendor_name": result.get("vendor_name"),
+                    "compliance_status": result.get("status", "unknown"),
+                    "issues": result.get("issues", []),
+                    "actions_recommended": result.get("recommendations", []),
+                    "reasoning": result.get("reasoning", ""),
+                }
+
+        if decision:
+            decisions.append(decision)
+
+    return decisions

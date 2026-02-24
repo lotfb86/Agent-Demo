@@ -634,6 +634,7 @@ AR_ALLOWED_ACTIONS = {
     "polite_reminder",
     "firm_email_plus_internal_task",
     "escalated_to_collections",
+    "attorney_escalation_105_days",
     "skip_retainage",
     "no_action_within_terms",
 }
@@ -1504,19 +1505,21 @@ async def ar_choose_account_action(
         bucket_hint = "30-59 days (polite reminder range)"
     elif days <= 89:
         bucket_hint = "60-89 days (firm follow-up range)"
+    elif days <= 104:
+        bucket_hint = "90-104 days (collections escalation range)"
     else:
-        bucket_hint = "90+ days (collections escalation range)"
+        bucket_hint = "105+ days (attorney escalation range)"
 
     objective = (
         f"Analyze this accounts receivable account and determine the correct follow-up action. "
         f"This is account {account_index} of {total_accounts}. "
         f"The account falls in the {bucket_hint} aging bucket. "
         f"Return JSON with keys: action (polite_reminder|firm_email_plus_internal_task|"
-        f"escalated_to_collections|skip_retainage|no_action_within_terms), "
+        f"escalated_to_collections|attorney_escalation_105_days|skip_retainage|no_action_within_terms), "
         f"reason (1-2 sentence explanation), "
-        f"email_subject (required for polite_reminder, firm_email_plus_internal_task, escalated_to_collections), "
+        f"email_subject (required for polite_reminder, firm_email_plus_internal_task, escalated_to_collections, attorney_escalation_105_days), "
         f"email_body (required for same — write a professional email following the tone guidelines in your skills), "
-        f"recipient (email address — use billing@<companyname>.com format if not known)."
+        f"recipient (email address — use billing@<companyname>.com format if not known; for attorney_escalation_105_days, use attorney contact info from skills)."
     )
 
     return await llm_json_response(
